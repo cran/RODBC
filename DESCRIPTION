@@ -1,5 +1,6 @@
 Package: RODBC
-Version: 0.7-2
+Version: 0.8-2
+Date: 2000-11-29
 Author: Michael Lapsley <mlapsley@sthelier.sghms.ac.uk>
 Description: An ODBC database interface
 Depends: ODBC support and a back end database
