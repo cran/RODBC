@@ -30,10 +30,12 @@ odbcConnectExcel(xls.file)
   \item{connection}{character string. See your ODBC documentation for the
     format.}
   \item{case}{Controls case changes for different RDBMS engines.}
-  \item{channel, con}{RODBC connection object returned by \code{odbcConnect}.}
+  \item{channel}{RODBC connection object returned by \code{odbcConnect}.}
   \item{believeNRows}{logical.  Is the number of rows returned by the
     ODBC connection believable?  Not true for Oracle, apparently.}
+#ifdef windows
   \item{access.file, dbf.file, xls.file}{file of an appropriate type.}
+#endif
 }
 \details{
   \code{odbcConnect} establishes a connection to the dsn, and

@@ -158,7 +158,7 @@ sqlSave <-
                 stop(paste(odbcGetErrMsg(channel), sep="\n"))
         }
         if(sqlwrite(channel ,tablename, dat, verbose=verbose, ...) == -1) {
-            if(safer) error("unable to append to table %s", tablename)
+            if(safer) stop("unable to append to table %s", tablename)
             ##cannot write: try dropping table
             query <- paste("DROP TABLE", tablename)
             if(verbose) {

@@ -51,7 +51,7 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
 
   \code{sqlGetResults} is a mid-level function.  It should be called
   after a call to \code{\link{odbcQuery}} and used to retrieve waiting
-  results into a dataframe. Its main use is with \code{max} set to non
+  results into a data frame. Its main use is with \code{max} set to non
   zero it will retrieve the result set in batches with repeated calls.
   This is useful for very large result sets which can be subjected to
   intermediate processing.  It makes use of the setting of

@@ -57,7 +57,7 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
 \details{
   \code{sqlSave} saves the data frame \code{dat} in the table
   \code{tablename}.  The table name is taken from tablename if given or
-  the name of the dataframe specified at \code{dat}.
+  the name of the data frame specified at \code{dat}.
   If the table exists and has the appropriate structure
   it is used, or else it is created anew.
   If \code{rownames = TRUE} the first column of the table will be the row

@@ -12,7 +12,6 @@ odbcClose(channel)
 odbcCloseAll()
 }
 \arguments{
-  \item{case}{Controls case changes for different RDBMS engines.}
   \item{channel, con}{RODBC connection object returned by \code{odbcConnect}.}
   \item{\dots}{additional arguments passed from the generic.}
 }

@@ -1,6 +1,13 @@
-Version: 1.0-3 (2003-05-25, released)
+Version: 1.0-4 (2003-07-19, released)
 
         * RODBC.c: iodbc was not recognizing the SQLTCHAR cast
+
+        * odbcClose.Rd, odbcConnect.Rd: tidy up
+
+
+Version: 1.0-3 (2003-05-25, released)
+
+        * RODBC.c: remove unneeded SQLCHAR cast
 
 
 Version: 1.0-2 (2003-05-13, released)

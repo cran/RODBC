@@ -172,9 +172,9 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows)
 #else
 				 NULL,
 #endif
-				 (SQLTCHAR *) CHAR(STRING_ELT(connection, 0)),
+				 (SQLCHAR *) CHAR(STRING_ELT(connection, 0)),
 				 SQL_NTS,
-				 (SQLTCHAR *) buf1,
+				 (SQLCHAR *) buf1,
 				 (SQLSMALLINT) buf1_len,
 				 (SQLSMALLINT *) &tmp1,
 				 SQL_DRIVER_COMPLETE);
