@@ -36,7 +36,9 @@ typesR2DBMS <-
          PostgreSQL = list(double="float8", integer="int4",
          character="varchar(255)", logical="varchar(5)"),
          Oracle = list(double="double precision", integer="integer",
-         character="varchar(255)", logical="varchar(255)")
+         character="varchar(255)", logical="varchar(255)"),
+         SQLite = list(double="double", integer="integer",
+         character="varchar(255)", logical="varchar(5)")
          )
 
 getSqlTypeInfo <- function(driver)

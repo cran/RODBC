@@ -4,7 +4,9 @@ provide access to any database for which a driver exists.  It has been
 tested with MySQL and PostgreSQL on both Linux and Windows (and to
 those DBMSs on Linux hosts from R under Windows), Microsoft Access,
 SQL Server and Excel spreadsheets (read-only), and users have reported
-success with connections to Oracle and DBase.
+success with connections to Oracle and DBase.  We have also used
+SQLite-2.8.15 with sqliteodbc-0.64 for simple tasks (but not long
+text strings nor dates).
 
 Basic usage is covered in the R Data Import/Export manual.
 

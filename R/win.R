@@ -47,9 +47,9 @@ if(.Platform$OS.type == "windows") {
                    else filename)
         }
         con <- if(missing(dbf.file))
-            "Driver={Microsoft dBASE Driver(*.dbf)};DriverID=277;Dbq="
+            "Driver={Microsoft dBASE Driver (*.dbf)};DriverID=277;Dbq="
         else
-            paste("Driver={Microsoft dBASE Driver(*.dbf)};DriverID=277;Dbq=",
+            paste("Driver={Microsoft dBASE Driver (*.dbf)};DriverID=277;Dbq=",
                      dirname(full.path(dbf.file)), ";", sep="")
         odbcDriverConnect(con)
     }

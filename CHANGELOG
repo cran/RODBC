@@ -1,3 +1,12 @@
+Version: 1.1-2 (2004-10-24, released)
+
+	* Operating on a closed channel might crash in RODBCcheckchannel.
+
+        * Report that DBase driver description in odbcConnectDbase was wrong.
+
+	* Add settings for SQLite.
+
+
 Version: 1.1-1 (2004-09-14, released)
 
 	* Select the decimal point from Sys.localeconv.

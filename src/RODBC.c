@@ -1357,7 +1357,7 @@ SEXP RODBCcheckchannel(SEXP chan, SEXP id)
 	ptr = getAttrib(chan, install("handle_ptr"));
     pRODBCHandle thisHandle = R_ExternalPtrAddr(ptr);
 
-    LOGICAL(ans)[0] = TYPEOF(ptr) == EXTPTRSXP &&
+    LOGICAL(ans)[0] = thisHandle && TYPEOF(ptr) == EXTPTRSXP &&
 	thisHandle->channel == asInteger(chan) && 
 	thisHandle->id == asInteger(id);
     return ans;
