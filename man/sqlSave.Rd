@@ -7,27 +7,29 @@
   Write or update a table in an ODBC database.
 }
 \synopsis{
-sqlSave(channel, dat, tablename = NULL, append = FALSE, rownames = TRUE,
+sqlSave(channel, dat, tablename = NULL, append = FALSE,rownames = TRUE,
         colnames = FALSE, verbose = FALSE, oldstyle = FALSE,
-        safer = TRUE, addPK = FALSE, ...)
-sqlUpdate(channel, dat, tablename = NULL, index = NULL,
-          verbose = FALSE, test = FALSE, nastring = NULL, fast = TRUE)
-}
-\usage{
-sqlSave(channel, dat, tablename = NULL, append = FALSE, rownames = TRUE,
-        colnames = FALSE, verbose = FALSE, oldstyle = FALSE,
-        safer = TRUE, addPK = FALSE, fast = TRUE, test = TRUE,
-        nastring = NULL)
+        safer = TRUE, addPK = FALSE, typeInfo, varTypes, ...)
 
 sqlUpdate(channel, dat, tablename = NULL, index = NULL,
           verbose = FALSE, test = FALSE, nastring = NULL, fast = TRUE)
 }
+\usage{
+sqlSave(channel, dat, tablename = NULL, append = FALSE,
+        rownames = TRUE, colnames = FALSE,
+        verbose = FALSE, oldstyle = FALSE,
+        safer = TRUE, addPK = FALSE, typeInfo, varTypes,
+        fast = TRUE, test = TRUE, nastring = NULL)
+
+sqlUpdate(channel, dat, tablename = NULL, index = NULL,
+          verbose = FALSE, test = FALSE,
+          nastring = NULL, fast = TRUE)
+}
 \arguments{
   \item{channel}{connection handle returned by \code{\link{odbcConnect}}.}
-  \item{dat}{a data frame}
-  \item{tablename}{a
-    database table name accessible from the connected dsn.  This should be
-    either a character string or a character vector of length 1.}
+  \item{dat}{a data frame.}
+  \item{tablename}{character: a database table name accessible from
+    the connected dsn.  If missing, the name of \code{dat}.}
   \item{index}{character.  Name(s) of index column(s) to be used.}
   \item{append}{logical.  Should data be appended to an existing table?}
   \item{rownames}{either logical or character.
@@ -45,6 +47,11 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
     to attempt to delete all the rows of an existing table, or to drop it.}
   \item{addPK}{logical.  Should rownames (if included) be specified as a
     primary key?}
+  \item{typeInfo}{optional list of DBMS datatypes.  Should have elements
+    named \code{"character"}, \code{"double"} and \code{"integer"}.}
+  \item{varTypes}{an optional named character vector giving the DBMSs
+    datatypes to be used for some (or all) of the columns if a table is
+    to be created.}
   \item{fast}{logical.  If false, write data a row at a time.  If true,
     use a parametrized INSERT INTO / UPDATE query to write all the data
     in one operation.}
@@ -52,38 +59,34 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   \item{nastring}{character string to be used for writing \code{NA}s
     to the database.  The default, \code{NULL}, attempts to write
     a missing value as a database null.}
-  \item{\dots}{any additional arguments are passed to \code{\link{sqlwrite}}.}
+%  \item{\dots}{any additional arguments are passed to \code{\link{sqlwrite}}.}
 }
 \details{
   \code{sqlSave} saves the data frame \code{dat} in the table
-  \code{tablename}.  The table name is taken from tablename if given or
-  the name of the data frame specified at \code{dat}.
-  If the table exists and has the appropriate structure
-  it is used, or else it is created anew.
-  If \code{rownames = TRUE} the first column of the table will be the row
-  labels with colname \code{rowname}:  \code{rownames}
-  can also be a string giving the desired name (see example). \code{colnames}
+  \code{tablename}.  If the table exists and has the appropriate
+  structure it is used, or else it is created anew.  If a new table is
+  created, column names are remapped by removing any characters which
+  are not alphanumeric or \code{_}, and the types are selected by
+  consulting arguments \code{varTypes} and \code{typeInfo}, then looking
+  the driver up in the database used by \code{\link{getSqlTypeInfo}} or
+  failing that by interrogating \code{\link{sqlTypeInfo}}.
+
+  If \code{rownames = TRUE} the first column of the table will be the
+  row labels with colname \code{rowname}: \code{rownames} can also be a
+  string giving the desired column name (see example). \code{colnames}
   copied the column names into row 1.  This is intended for cases where
-  case conversion alters the original column names and it is desired that
-  they are retained.  Note that there are drawbacks to this approach:
-  it presupposes that the rows will be returned in correct order;
-  not always valid.  It will also cause numeric rows to be returned as factors.
+  case conversion alters the original column names and it is desired
+  that they are retained.  Note that there are drawbacks to this
+  approach: it presupposes that the rows will be returned in correct
+  order; not always valid.  It will also cause numeric rows to be
+  returned as factors.
 
   Argument \code{addPK = TRUE} causes the rownames to be marked as a
   primary key.  This is usually a good idea, and may allow updates to be
   done.  However, some DBMSs (e.g. Access) do not support primary keys,
-  and the PostgreSQL ODBC driver generates internal memory corruption if
-  this option is used.
+  and the PostgreSQL ODBC driver has generated internal memory
+  corruption if this option is used.
   
-  WARNING: \code{sqlSave(safer = FALSE)} uses the 'great white shark'
-  method of testing tables (bite it and see).  The logic will
-  unceremoniously DROP the table and create it anew with its own choice of
-  column types in its attempt to find a writable solution.
-  \code{test=TRUE} will not necessarily predict this behaviour.
-  Attempting to write indexed columns or writing to pseudo-columns are
-  less obvious causes of failed writes followed by a DROP. If your table
-  structure is precious to you back it up.
-
   \code{sqlUpdate} updates the table where the rows already exist. Data
   frame \code{dat} should columns with names that map to (some of) the
   columns in the table.  It also needs to contain the column(s)
@@ -100,6 +103,22 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   attempt is made to check if the column is nullable.  For all but the
   simplest applications it will be better to prepare a data frame with
   non-null missing values already substituted.
+
+  If \code{fast = FALSE} all data is sent as character strings.
+  If \code{fast = TRUE}, integer and double vectors are sent as types
+  \code{SQL_C_SLONG} and \code{SQL_C_DOUBLE} respectively.  Some drivers
+  seem to require \code{fast = FALSE} to send other types,
+  e.g. \code{datetime}.
+}
+\section{Warning}{
+  \code{sqlSave(safer = FALSE)} uses the 'great white shark'
+  method of testing tables (bite it and see).  The logic will
+  unceremoniously DROP the table and create it anew with its own choice of
+  column types in its attempt to find a writable solution.
+  \code{test = TRUE} will not necessarily predict this behaviour.
+  Attempting to write indexed columns or writing to pseudo-columns are
+  less obvious causes of failed writes followed by a DROP.  If your table
+  structure is precious to you back it up.  
 }
 \value{
   1 invisibly for success (and failures cause errors).
@@ -112,17 +131,17 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   Michael Lapsley and Brian Ripley
 }
 \examples{
-\dontrun{library(RODBC)
-data(USArrests)
-channel <- odbcConnect("test", "", "") # userId and password
-sqlSave(channel, USArrests, verbose = TRUE, rownames = "State")
-sqlFetch(channel, "USArrests", rownames = "State") # get the lot
+\dontrun{
+data(USArrests) # R < 2.0.0 only
+channel <- odbcConnect("test")
+sqlSave(channel, USArrests, rownames = "state", addPK=TRUE)
+sqlFetch(channel, "USArrests", rownames = "state") # get the lot
 foo <- cbind(state=row.names(USArrests), USArrests)[1:3, c(1,3)]
 foo[1,2] <- 222
 sqlUpdate(channel, foo, "USArrests")
 sqlFetch(channel, "USArrests", rownames = "state", max = 5)
 sqlDrop(channel, "USArrests") 
-odbcClose(channel)
+close(channel)
 }}
 \keyword{IO}
 \keyword{database}

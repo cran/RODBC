@@ -9,10 +9,13 @@ if(.Platform$OS.type == "windows") {
                    if(!is.abs) file.path(getwd(), filename)
                    else filename)
         }
-        fp <- full.path(xls.file)
-        con <-
+        con <- if(missing(xls.file))
+            "Driver={Microsoft Excel Driver (*.xls)};DriverId=790;Dbq="
+        else {
+            fp <- full.path(xls.file)
             paste("Driver={Microsoft Excel Driver (*.xls)};DriverId=790;Dbq=",
                   fp, ";DefaultDir=", dirname(fp), ";", sep = "")
+        }
         odbcDriverConnect(con)
     }
 
@@ -25,9 +28,12 @@ if(.Platform$OS.type == "windows") {
                    if(!is.abs) file.path(getwd(), filename)
                    else filename)
         }
-        con <- paste("Driver={Microsoft Access Driver (*.mdb)};Dbq=",
-                         full.path(access.file),
-                         ";Uid=", uid, ";Pwd=", pwd, ";", sep="")
+        con <- if(missing(access.file))
+            "Driver={Microsoft Access Driver (*.mdb)};Dbq="
+        else
+            paste("Driver={Microsoft Access Driver (*.mdb)};Dbq=",
+                  full.path(access.file),
+                  ";Uid=", uid, ";Pwd=", pwd, ";", sep="")
         odbcDriverConnect(con)
     }
 
@@ -40,7 +46,10 @@ if(.Platform$OS.type == "windows") {
                    if(!is.abs) file.path(getwd(), filename)
                    else filename)
         }
-        con <- paste("Driver={Microsoft dBASE Driver(*.dbf)};DriverID=277;Dbq=",
+        con <- if(missing(dbf.file))
+            "Driver={Microsoft dBASE Driver(*.dbf)};DriverID=277;Dbq="
+        else
+            paste("Driver={Microsoft dBASE Driver(*.dbf)};DriverID=277;Dbq=",
                      dirname(full.path(dbf.file)), ";", sep="")
         odbcDriverConnect(con)
     }

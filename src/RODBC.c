@@ -26,7 +26,8 @@ __declspec(dllimport) window RConsole;
 #include <R.h>
 #include <Rdefines.h>
 
-#define CHANMAX 16	/* Number of open channels allowed */
+#define my_min(a,b) ((a < b)?a:b)
+
 #define COLMAX 256
 #ifndef ODBCVER
 # define ODBCVER 0x0100
@@ -35,11 +36,11 @@ __declspec(dllimport) window RConsole;
 #ifndef SQL_NO_DATA
 # define SQL_NO_DATA_FOUND /* for iODBC */
 #endif
-#define NCOLS handles[channel].nColumns /*save some column space for typing*/
-#define NROWS handles[channel].nRows
+#define NCOLS thisHandle->nColumns /* save some column space for typing*/
+#define NROWS thisHandle->nRows
 
 
-typedef struct cols{
+typedef struct cols {
     SQLCHAR	ColName[256];
     SQLSMALLINT	NameLength;
     SQLSMALLINT	DataType;
@@ -59,7 +60,7 @@ typedef struct mess {
     struct mess	*next;
 } SQLMSG;
 
-struct RODBCHandles  {
+typedef struct rodbcHandle  {
     SQLHENV	hEnv;
     SQLHDBC	hDbc;
     SQLHSTMT	hStmt;
@@ -72,12 +73,15 @@ struct RODBCHandles  {
     COLUMNS	*ColData;	/* This will be allocated as an array of columns */
     int		nAllocated;
     SQLMSG	*msglist;	/* root of linked list of messages */
-} static handles[CHANMAX];
+    SEXP        extPtr;
+} RODBCHandle, *pRODBCHandle;
+
+static unsigned int nChannels = 0; /* number of channels opened in session */
+static pRODBCHandle opened_handles[101];
 
 /* prototypes */
 SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows);
 SEXP RODBCQuery(SEXP chan, SEXP query);
-SEXP RODBCNumRows(SEXP chan);
 SEXP RODBCNumCols(SEXP chan);
 SEXP RODBCColData(SEXP chan);
 SEXP RODBCClose(SEXP chan);
@@ -85,46 +89,43 @@ SEXP RODBCInit(void);
 SEXP RODBCTables(SEXP chan);
 SEXP RODBCPrimaryKeys(SEXP chan, SEXP table);
 SEXP RODBCColumns(SEXP chan, SEXP table);
-static void geterr(int channel, SQLHANDLE hEnv, SQLHANDLE hDbc,
-		   SQLHANDLE hStmt);
+static void geterr(pRODBCHandle thisHandle);
 static void errorFree(SQLMSG *node);
-static void errlistAppend(int channel, char *string);
-static int checkchannel(int channel, int id);
-static int cachenbind(int channel);
+static void errlistAppend(pRODBCHandle thisHandle, char *string);
+static int cachenbind(pRODBCHandle thisHandle);
 
 /* Error messages */
 
 static char err_SQLAllocEnv[]="[RODBC] ERROR: Could not SQLAllocEnv";
 static char err_SQLAllocConnect[]="[RODBC] ERROR: Could not SQLAllocConnect";
-static char err_SQLConnect[]= "[RODBC] ERROR: Could not SQLDriverConnect" ;
+static char err_SQLConnect[]="[RODBC] ERROR: Could not SQLDriverConnect";
 static char err_SQLFreeConnect[]="[RODBC] Error SQLFreeconnect";
 static char err_SQLDisconnect[]="[RODBC] Error SQLDisconnect";
 static char err_SQLFreeEnv[]="[RODBC] Error in SQLFreeEnv";
-static char err_SQLExecute[]=  "[RODBC] ERROR: Could not SQLExecute" ;
-static char err_SQLPrepare[]= "[RODBC] ERROR: Could not SQLPrepare" ;
-static char err_SQLTables[]= "[RODBC] ERROR: SQLTables failed" ;
-static char err_SQLAllocStmt[]= "[RODBC] ERROR: Could not SQLAllocStmt" ;
+static char err_SQLExecDirect[]="[RODBC] ERROR: Could not SQLExecDirect";
+static char err_SQLPrepare[]="[RODBC] ERROR: Could not SQLPrepare";
+static char err_SQLTables[]="[RODBC] ERROR: SQLTables failed";
+static char err_SQLAllocStmt[]="[RODBC] ERROR: Could not SQLAllocStmt";
 static char err_SQLRowCount[]="[RODBC] ERROR: Row count failed";
-static char err_SQLRowCountNA[]="[RODBC] ERROR: Row count not supported";
 static char err_SQLDescribeCol[]="[RODBC] ERROR: SQLDescribe Col failed";
 static char err_SQLBindCol[]="[RODBC] ERROR: SQLBindCol failed";
 static char err_SQLPrimaryKeys[]="[RODBC] ERROR: Failure in SQLPrimary keys";
 static char err_SQLColumns[]="[RODBC] ERROR: Failure in SQLColumns";
 
 
-static void clearresults(int channel)
+static void clearresults(pRODBCHandle thisHandle)
 {
-    if(handles[channel].fStmt > -1) {
-        (void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
-        handles[channel].fStmt = -1;
+    if(thisHandle->fStmt > -1) {
+        (void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
+        thisHandle->fStmt = -1;
     }
-    errorFree(handles[channel].msglist);
-    handles[channel].msglist=NULL;
+    errorFree(thisHandle->msglist);
+    thisHandle->msglist=NULL;
 }
 
 SEXP RODBCclearresults(SEXP chan)
 {
-    clearresults(asInteger(chan));
+    clearresults(R_ExternalPtrAddr(chan));
     return R_NilValue;
 }
 
@@ -135,38 +136,43 @@ SEXP RODBCclearresults(SEXP chan)
  *  		saves connect data in handles[channel]
  *
  *  	***************************************/
+static void chanFinalizer(SEXP ptr);
 
 #define buf1_len 8096
 SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows)
 {
     SEXP ans;
-    int i, tmp1;
+    SQLSMALLINT tmp1;
     SQLRETURN retval;
     SQLCHAR buf1[buf1_len];
-
+    pRODBCHandle thisHandle;
+    
     PROTECT(ans = allocVector(INTSXP, 1));
     INTEGER(ans)[0] = -1;
-    /* First find an available channel */
+    /* First find an available channel
     for (i = 0; i < CHANMAX; i++)
 	if(handles[i].channel == -1) break;
     if(i >= CHANMAX) {
 	warning("[RODBC] ERROR:Too many open channels");
 	UNPROTECT(1);
 	return ans;
-    }
+    } */
     if(!isString(connection)) {
 	warning("[RODBC] ERROR:invalid connection argument");
 	UNPROTECT(1);
 	return ans;
     }
-    retval = SQLAllocEnv( &handles[i].hEnv ) ;
+    thisHandle = Calloc(1, RODBCHandle);
+    ++nChannels;
+    
+    retval = SQLAllocEnv( &thisHandle->hEnv ) ;
     if(retval == SQL_SUCCESS || retval == SQL_SUCCESS_WITH_INFO) {
-	/* SQLSetEnvAttr(handles[i].hEnv, SQL_ATTR_ODBC_VERSION,
+	/* SQLSetEnvAttr(thisHandle->hEnv, SQL_ATTR_ODBC_VERSION,
 	   (SQLPOINTER) SQL_OV_ODBC3, 0);*/
-	retval = SQLAllocConnect( handles[i].hEnv, &handles[i].hDbc );
+	retval = SQLAllocConnect( thisHandle->hEnv, &thisHandle->hDbc );
 	if(retval == SQL_SUCCESS || retval == SQL_SUCCESS_WITH_INFO) {
 	    retval =
-		SQLDriverConnect(handles[i].hDbc,
+		SQLDriverConnect(thisHandle->hDbc,
 #ifdef WIN32
 				 RConsole ? RConsole->handle : NULL,
 #else
@@ -176,20 +182,29 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows)
 				 SQL_NTS,
 				 (SQLCHAR *) buf1,
 				 (SQLSMALLINT) buf1_len,
-				 (SQLSMALLINT *) &tmp1,
+				 &tmp1,
 				 SQL_DRIVER_COMPLETE);
 	    if(retval == SQL_SUCCESS || retval == SQL_SUCCESS_WITH_INFO) {
-		SEXP constr;
+		SEXP constr, ptr;
+		
+		ptr = R_MakeExternalPtr(thisHandle, install("RODBC_channel"), 
+					R_NilValue);
+		R_RegisterCFinalizerEx(ptr, chanFinalizer, TRUE);
 		PROTECT(constr = allocVector(STRSXP, 1));
 		SET_STRING_ELT(constr, 0, mkChar((char *)buf1));
-		handles[i].nColumns = -1;
-		handles[i].channel = i;
-		handles[i].useNRows = asInteger(useNRows);
-		handles[i].id = asInteger(id);
+		thisHandle->nColumns = -1;
+		thisHandle->channel = nChannels;
+		thisHandle->useNRows = asInteger(useNRows);
+		thisHandle->id = asInteger(id);
+		thisHandle->extPtr = ptr;
 		/* return the channel no */
-		INTEGER(ans)[0] = i;
+		INTEGER(ans)[0] = nChannels;
 		/* and the connection string as an attribute */
 		setAttrib(ans, install("connection.string"), constr);
+		setAttrib(ans, install("handle_ptr"), ptr);
+		/* Rprintf("opening %d (%p, %p)\n", nChannels, 
+		           ptr, thisHandle); */
+		if(nChannels <= 100) opened_handles[nChannels] = thisHandle;
 		UNPROTECT(2);
 		return ans;
 	    } else {
@@ -197,16 +212,16 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows)
 		    SQLCHAR state[5], msg[1000];
 		    SQLSMALLINT buffsize=1000, msglen;
 		    SQLINTEGER code;
-		    SQLGetDiagRec(SQL_HANDLE_DBC, handles[i].hDbc, 1,
+		    SQLGetDiagRec(SQL_HANDLE_DBC, thisHandle->hDbc, 1,
 				  state, &code, msg, buffsize, &msglen);
 		    warning("[RODBC] ERROR: state %s, code %d, message %s",
 			    state, code, msg);
 		} else warning(err_SQLConnect);
-		(void)SQLFreeConnect(handles[i].hDbc);
-		(void)SQLFreeEnv(handles[i].hEnv);
+		(void)SQLFreeConnect(thisHandle->hDbc);
+		(void)SQLFreeEnv(thisHandle->hEnv);
 	    }
 	} else {
-	    (void)SQLFreeEnv(handles[i].hEnv);
+	    (void)SQLFreeEnv(thisHandle->hEnv);
 	    warning(err_SQLAllocConnect);
 	}
     } else {
@@ -227,50 +242,40 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows)
 SEXP RODBCQuery(SEXP chan, SEXP query)
 {
     SEXP ans;
-    int channel = asInteger(chan);
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     SQLRETURN res;
 
     PROTECT(ans = allocVector(INTSXP, 1));
 
-    clearresults(channel);
+    clearresults(thisHandle);
 
-    res = SQLAllocStmt( handles[channel].hDbc, &handles[channel].hStmt );
+    res = SQLAllocStmt( thisHandle->hDbc, &thisHandle->hStmt );
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	errlistAppend(channel,err_SQLAllocStmt);
-	INTEGER(ans)[0] = -1;
-	UNPROTECT(1);
-	return ans;
-    }
-
-    res = SQLPrepare( handles[channel].hStmt,
-		      (SQLCHAR *) CHAR(STRING_ELT(query, 0)), SQL_NTS );
-    if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-	       handles[channel].hStmt);
-	(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
-	errlistAppend(channel, err_SQLPrepare);
+	errlistAppend(thisHandle, err_SQLAllocStmt);
 	INTEGER(ans)[0] = -1;
 	UNPROTECT(1);
 	return ans;
     }
 
-    res = SQLExecute( handles[channel].hStmt );
+    res = SQLExecDirect(thisHandle->hStmt, 
+			(SQLCHAR *) CHAR(STRING_ELT(query, 0)),
+			SQL_NTS);
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	errlistAppend(channel, err_SQLExecute);
-	geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-	       handles[channel].hStmt);
-	(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
+	errlistAppend(thisHandle, err_SQLExecDirect);
+	geterr(thisHandle);
+	(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 	INTEGER(ans)[0] = -1;
 	UNPROTECT(1);
 	return ans;
     }
-    if(cachenbind(channel) < 0) {
-	(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
+
+    if(cachenbind(thisHandle) < 0) {
+	(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 	INTEGER(ans)[0] = -1;
 	UNPROTECT(1);
 	return ans;
     }
-    handles[channel].fStmt = 1; /* flag the hStmt in use */
+    thisHandle->fStmt = 1; /* flag the hStmt in use */
     INTEGER(ans)[0] = 1;
     UNPROTECT(1);
     return ans;
@@ -284,34 +289,34 @@ SEXP RODBCQuery(SEXP chan, SEXP query)
 SEXP RODBCPrimaryKeys(SEXP chan, SEXP table)
 {
     SEXP ans;
-    int channel = asInteger(chan), stat;
+    int stat;
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     SQLRETURN res;
 
     PROTECT(ans = allocVector(INTSXP, 1));
     stat = 1;
 
-    clearresults(channel);
+    clearresults(thisHandle);
 
-    res = SQLAllocStmt( handles[channel].hDbc, &handles[channel].hStmt );
+    res = SQLAllocStmt( thisHandle->hDbc, &thisHandle->hStmt );
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	errlistAppend(channel,err_SQLAllocStmt);
+	errlistAppend(thisHandle,err_SQLAllocStmt);
 	stat = -1;
     } else {
-	res = SQLPrimaryKeys( handles[channel].hStmt, NULL, 0, NULL, 0,
+	res = SQLPrimaryKeys( thisHandle->hStmt, NULL, 0, NULL, 0,
 			      (SQLCHAR *) CHAR(STRING_ELT(table, 0)),
 			      SQL_NTS);
 	if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	    geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-		   handles[channel].hStmt);
-	    (void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
-	    errlistAppend(channel,err_SQLPrimaryKeys);
+	    geterr(thisHandle);
+	    (void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
+	    errlistAppend(thisHandle,err_SQLPrimaryKeys);
 	    stat = -1;
 	} else {
-	    if(cachenbind(channel) < 0) {
-		(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
+	    if(cachenbind(thisHandle) < 0) {
+		(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 		stat = -1;
 	    } else
-		handles[channel].fStmt = 1; /* flag the hStmt in use */
+		thisHandle->fStmt = 1; /* flag the hStmt in use */
 	}
     }
     INTEGER(ans)[0] = stat;
@@ -326,34 +331,34 @@ SEXP RODBCPrimaryKeys(SEXP chan, SEXP table)
 SEXP RODBCColumns(SEXP chan, SEXP table)
 {
     SEXP ans;
-    int channel = asInteger(chan), stat;
+    int stat;
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     SQLRETURN res;
 
     PROTECT(ans = allocVector(INTSXP, 1));
     stat = 1;
 
-    clearresults(channel);
+    clearresults(thisHandle);
 
-    res = SQLAllocStmt( handles[channel].hDbc, &handles[channel].hStmt );
+    res = SQLAllocStmt( thisHandle->hDbc, &thisHandle->hStmt );
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	errlistAppend(channel, err_SQLAllocStmt);
+	errlistAppend(thisHandle, err_SQLAllocStmt);
 	stat = -1;
     } else {
-	res = SQLColumns( handles[channel].hStmt, NULL, 0, NULL, 0,
+	res = SQLColumns( thisHandle->hStmt, NULL, 0, NULL, 0,
 			  (SQLCHAR *) CHAR(STRING_ELT(table, 0)),
 			  SQL_NTS, NULL, 0);
 	if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	    geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-		   handles[channel].hStmt);
-	    (void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
-	    errlistAppend(channel, err_SQLColumns);
+	    geterr(thisHandle);
+	    (void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
+	    errlistAppend(thisHandle, err_SQLColumns);
 	    stat = -1;
 	} else {
-	    if(cachenbind(channel) < 0) {
-		(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
+	    if(cachenbind(thisHandle) < 0) {
+		(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 		stat = -1;
 	    } else
-		handles[channel].fStmt = 1; /* flag the hStmt in use */
+		thisHandle->fStmt = 1; /* flag the hStmt in use */
 	}
     }
     INTEGER(ans)[0] = stat;
@@ -365,36 +370,36 @@ SEXP RODBCColumns(SEXP chan, SEXP table)
 SEXP RODBCSpecialColumns(SEXP chan, SEXP table)
 {
     SEXP ans;
-    int channel = asInteger(chan), stat;
+    int stat;
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     SQLRETURN res;
 
     PROTECT(ans = allocVector(INTSXP, 1));
     stat = 1;
 
-    clearresults(channel);
+    clearresults(thisHandle);
 
-    res = SQLAllocStmt( handles[channel].hDbc, &handles[channel].hStmt );
+    res = SQLAllocStmt( thisHandle->hDbc, &thisHandle->hStmt );
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	errlistAppend(channel,err_SQLAllocStmt);
+	errlistAppend(thisHandle,err_SQLAllocStmt);
 	stat = -1;
     } else {
-	res = SQLSpecialColumns( handles[channel].hStmt,
+	res = SQLSpecialColumns( thisHandle->hStmt,
 				 SQL_BEST_ROWID, NULL, 0, NULL, 0,
 				 (SQLCHAR *) CHAR(STRING_ELT(table, 0)),
 				 SQL_NTS,
 				 SQL_SCOPE_TRANSACTION, SQL_NULLABLE);
 	if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	    geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-		   handles[channel].hStmt);
-	    (void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
-	    errlistAppend(channel,err_SQLColumns);
+	    geterr(thisHandle);
+	    (void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
+	    errlistAppend(thisHandle,err_SQLColumns);
 	    stat = -1;
 	} else {
-	    if(cachenbind(channel) < 0) {
-		(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
+	    if(cachenbind(thisHandle) < 0) {
+		(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 		stat = -1;
 	    } else
-		handles[channel].fStmt = 1; /* flag the hStmt in use */
+		thisHandle->fStmt = 1; /* flag the hStmt in use */
 	}
     }
     INTEGER(ans)[0] = stat;
@@ -410,39 +415,38 @@ SEXP RODBCSpecialColumns(SEXP chan, SEXP table)
 SEXP RODBCTables(SEXP chan)
 {
     SEXP ans;
-    int channel = asInteger(chan);
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     SQLRETURN res;
 
     PROTECT(ans = allocVector(INTSXP, 1));
 
-    clearresults(channel);
+    clearresults(thisHandle);
 
-    res = SQLAllocStmt( handles[channel].hDbc, &handles[channel].hStmt );
+    res = SQLAllocStmt( thisHandle->hDbc, &thisHandle->hStmt );
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	errlistAppend(channel, err_SQLAllocStmt);
+	errlistAppend(thisHandle, err_SQLAllocStmt);
 	INTEGER(ans)[0] = -1;
 	UNPROTECT(1);
 	return ans;
     }
 
-    res = SQLTables(handles[channel].hStmt,
+    res = SQLTables(thisHandle->hStmt,
 		    NULL, 0, NULL, 0, NULL, 0, NULL, 0);
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-	       handles[channel].hStmt);
-	(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
-	errlistAppend(channel, err_SQLTables);
+	geterr(thisHandle);
+	(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
+	errlistAppend(thisHandle, err_SQLTables);
 	INTEGER(ans)[0] = -1;
 	UNPROTECT(1);
 	return ans;
     }
-    if(cachenbind(channel) < 0) {
-	(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
+    if(cachenbind(thisHandle) < 0) {
+	(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 	INTEGER(ans)[0] = -1;
 	UNPROTECT(1);
 	return ans;
     }
-    handles[channel].fStmt = 1; /* flag the hStmt in use */
+    thisHandle->fStmt = 1; /* flag the hStmt in use */
     INTEGER(ans)[0] = 1;
     UNPROTECT(1);
     return ans;
@@ -457,16 +461,16 @@ SEXP RODBCTables(SEXP chan)
 SEXP RODBCTypeInfo(SEXP chan,  SEXP ptype)
 {
     SEXP ans;
-    int channel = asInteger(chan);
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     short type;
     SQLRETURN res;
 
-    clearresults(channel);
+    clearresults(thisHandle);
 
     PROTECT(ans = allocVector(LGLSXP, 1));
-    res = SQLAllocStmt( handles[channel].hDbc, &handles[channel].hStmt );
+    res = SQLAllocStmt( thisHandle->hDbc, &thisHandle->hStmt );
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	errlistAppend(channel, err_SQLAllocStmt);
+	errlistAppend(thisHandle, err_SQLAllocStmt);
 	LOGICAL(ans)[0] = FALSE;
 	UNPROTECT(1);
 	return ans;
@@ -479,30 +483,32 @@ SEXP RODBCTypeInfo(SEXP chan,  SEXP ptype)
     case 3: type = SQL_REAL; break;
     case 4: type = SQL_DOUBLE; break;
     case 5: type = SQL_INTEGER; break;
-    case 8: type = SQL_SMALLINT; break;
+    case 6: type = SQL_SMALLINT; break;
 #if (ODBCVER >= 0x0300)
     case 7: type = SQL_TYPE_TIMESTAMP; break;
+#else
+    case 7: type = SQL_TIMESTAMP; break;
 #endif
+    case 8: type = SQL_FLOAT; break;
     default: type = SQL_ALL_TYPES;
     }
 
-    res = SQLGetTypeInfo( handles[channel].hStmt, type);
+    res = SQLGetTypeInfo( thisHandle->hStmt, type);
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-	       handles[channel].hStmt);
-	(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
-	errlistAppend(channel, err_SQLTables);
+	geterr(thisHandle);
+	(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
+	errlistAppend(thisHandle, err_SQLTables);
 	LOGICAL(ans)[0] = FALSE;
 	UNPROTECT(1);
 	return ans;
     }
-    if(cachenbind(channel) < 0) {
-	(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
+    if(cachenbind(thisHandle) < 0) {
+	(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 	LOGICAL(ans)[0] = FALSE;
 	UNPROTECT(1);
 	return ans;
     }
-    handles[channel].fStmt = 1; /* flag the hStmt in use */
+    thisHandle->fStmt = 1; /* flag the hStmt in use */
 	LOGICAL(ans)[0] = TRUE;
 	UNPROTECT(1);
 	return ans;
@@ -511,138 +517,121 @@ SEXP RODBCTypeInfo(SEXP chan,  SEXP ptype)
 SEXP RODBCGetInfo(SEXP chan)
 {
     SEXP ans;
-    int channel = asInteger(chan);
-    char buf[1000], res[1000];
+    int i;
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
+    char buf[1000];
     SQLSMALLINT nbytes;
     SQLRETURN retval;
+    int InfoTypes[] = {SQL_DBMS_NAME, SQL_DBMS_VER, SQL_DRIVER_ODBC_VER,
+		       SQL_DATA_SOURCE_NAME, SQL_DRIVER_NAME, SQL_DRIVER_VER, 
+		       SQL_ODBC_VER, SQL_SERVER_NAME};
 
-    PROTECT(ans = allocVector(STRSXP, 1));
-    retval = SQLGetInfo(handles[channel].hDbc,
-			SQL_DBMS_NAME, buf, (SQLSMALLINT)1000, &nbytes);
-    if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
-	geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-	       handles[channel].hStmt);
-	SET_STRING_ELT(ans, 1, mkChar("error"));
-	UNPROTECT(1);
-	return ans;
-    } else strcpy(res, buf);
-    strcat(res, " version ");
-
-    retval = SQLGetInfo(handles[channel].hDbc,
-			SQL_DBMS_VER, buf, (SQLSMALLINT)1000, &nbytes);
-    if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
-	geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-	       handles[channel].hStmt);
-	SET_STRING_ELT(ans, 0, mkChar("error"));
-	UNPROTECT(1);
-	return ans;
-    } else strcat(res, buf);
-    strcat(res, ". Driver ODBC version ");
-
-    retval = SQLGetInfo(handles[channel].hDbc,
-		   SQL_DRIVER_ODBC_VER,
-		   buf, (SQLSMALLINT)1000, &nbytes);
-    if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
-	geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-	       handles[channel].hStmt);
-	SET_STRING_ELT(ans, 0, mkChar("error"));
-	UNPROTECT(1);
-	return ans;
-    } else strcat(res, buf);
-    SET_STRING_ELT(ans, 0, mkChar(res));
+    /* Rprintf("using (%p, %p)\n", chan, thisHandle); */
+    PROTECT(ans = allocVector(STRSXP, 8));
+    for (i = 0; i < LENGTH(ans); i++) {
+	retval = SQLGetInfo(thisHandle->hDbc,
+			    InfoTypes[i], buf, (SQLSMALLINT)1000, &nbytes);
+	if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
+	    geterr(thisHandle);
+	    SET_STRING_ELT(ans, i, mkChar("error"));
+	    UNPROTECT(1);
+	    return ans;
+	} else 
+	    SET_STRING_ELT(ans, i, mkChar(buf));
+    }
     UNPROTECT(1);
     return ans;
 }
 
 
-/********************************************
+/*      *******************************************
  *
  * 	Common column cache and bind for query-like routines
  *
  * 	*******************************************/
-static int cachenbind(int channel)
+static int cachenbind(pRODBCHandle thisHandle)
 {
 
     SQLUSMALLINT i;
     SQLRETURN retval;
 
     /* Now cache the number of columns, rows */
-    retval = SQLNumResultCols(handles[channel].hStmt, &NCOLS);
+    retval = SQLNumResultCols(thisHandle->hStmt, &NCOLS);
     if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
 	/* assume this is not an error but that no rows found */
 	NROWS = 0;
 	return 1 ;
     }
-    retval = SQLRowCount(handles[channel].hStmt, &NROWS);
+    retval = SQLRowCount(thisHandle->hStmt, &NROWS);
     if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
-	errlistAppend(channel,err_SQLRowCount);
+	errlistAppend(thisHandle,err_SQLRowCount);
 	return -1;
     }
     /* Allocate storage for ColData array ,first freeing what was there last */
-    if(handles[channel].ColData) {
-	for (i = 0; i < handles[channel].nAllocated; i++)
-	    if(handles[channel].ColData[i].pData)
-	    Free(handles[channel].ColData[i].pData);
-	Free(handles[channel].ColData);
+    if(thisHandle->ColData) {
+	for (i = 0; i < thisHandle->nAllocated; i++)
+	    if(thisHandle->ColData[i].pData)
+	    Free(thisHandle->ColData[i].pData);
+	Free(thisHandle->ColData);
     }
-    handles[channel].ColData = Calloc(NCOLS, COLUMNS);
+    thisHandle->ColData = Calloc(NCOLS, COLUMNS);
     /* this allocates Data as zero */
-    handles[channel].nAllocated = NCOLS;
+    thisHandle->nAllocated = NCOLS;
 
     /* step through each col and cache metadata: cols are numbered from 1!
      */
     for (i = 0; i < NCOLS; i++) {
-	retval = SQLDescribeCol(handles[channel].hStmt, i+1,
-				handles[channel].ColData[i].ColName, 256,
-				&handles[channel].ColData[i].NameLength,
-				&handles[channel].ColData[i].DataType,
-				&handles[channel].ColData[i].ColSize,
-				&handles[channel].ColData[i].DecimalDigits,
-				&handles[channel].ColData[i].Nullable);
+	retval = SQLDescribeCol(thisHandle->hStmt, i+1,
+				thisHandle->ColData[i].ColName, 256,
+				&thisHandle->ColData[i].NameLength,
+				&thisHandle->ColData[i].DataType,
+				&thisHandle->ColData[i].ColSize,
+				&thisHandle->ColData[i].DecimalDigits,
+				&thisHandle->ColData[i].Nullable);
 	if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
-	    errlistAppend(channel, err_SQLDescribeCol);
+	    errlistAppend(thisHandle, err_SQLDescribeCol);
 	    return -1;
 	}
 	/* now bind the col to its data buffer */
-	if (handles[channel].ColData[i].DataType == SQL_DOUBLE) {
-	    retval = SQLBindCol(handles[channel].hStmt, i+1,
+	if (thisHandle->ColData[i].DataType == SQL_DOUBLE) {
+	    retval = SQLBindCol(thisHandle->hStmt, i+1,
 				SQL_C_DOUBLE,
-				&handles[channel].ColData[i].RData,
+				&thisHandle->ColData[i].RData,
 				COLMAX,
-				&handles[channel].ColData[i].IndPtr);
-	} else if (handles[channel].ColData[i].DataType == SQL_REAL) {
-	    retval = SQLBindCol(handles[channel].hStmt, i+1,
+				&thisHandle->ColData[i].IndPtr);
+	} else if (thisHandle->ColData[i].DataType == SQL_REAL) {
+	    retval = SQLBindCol(thisHandle->hStmt, i+1,
 				SQL_C_FLOAT,
-				&handles[channel].ColData[i].R4Data,
+				&thisHandle->ColData[i].R4Data,
 				COLMAX,
-				&handles[channel].ColData[i].IndPtr);
-	} else if (handles[channel].ColData[i].DataType == SQL_INTEGER) {
-	    retval = SQLBindCol(handles[channel].hStmt, i+1,
+				&thisHandle->ColData[i].IndPtr);
+	} else if (thisHandle->ColData[i].DataType == SQL_INTEGER) {
+	    retval = SQLBindCol(thisHandle->hStmt, i+1,
 				SQL_C_SLONG,
-				&handles[channel].ColData[i].IData,
+				&thisHandle->ColData[i].IData,
 				COLMAX,
-				&handles[channel].ColData[i].IndPtr);
-	} else if (handles[channel].ColData[i].DataType == SQL_SMALLINT) {
-	    retval = SQLBindCol(handles[channel].hStmt, i+1,
+				&thisHandle->ColData[i].IndPtr);
+	} else if (thisHandle->ColData[i].DataType == SQL_SMALLINT) {
+	    retval = SQLBindCol(thisHandle->hStmt, i+1,
 				SQL_C_SSHORT,
-				&handles[channel].ColData[i].I2Data,
+				&thisHandle->ColData[i].I2Data,
 				COLMAX,
-				&handles[channel].ColData[i].IndPtr);
+				&thisHandle->ColData[i].IndPtr);
 	} else { /* transfer as character */
-	    int datalen = handles[channel].ColData[i].ColSize;
-	    if (datalen < COLMAX) datalen = COLMAX;
+	    int datalen = thisHandle->ColData[i].ColSize;
+	    if (datalen <= 0 || datalen < COLMAX) datalen = COLMAX;
 	    /* sanity check as the reports are sometimes unreliable */
 	    if (datalen > 65535) datalen = 65535;
-	    handles[channel].ColData[i].pData = Calloc(datalen + 1, char);
-	    handles[channel].ColData[i].IData = datalen;
-	    retval = SQLBindCol(handles[channel].hStmt, i+1,
+	    thisHandle->ColData[i].pData = Calloc(datalen + 1, char);
+	    thisHandle->ColData[i].IData = datalen;
+	    retval = SQLBindCol(thisHandle->hStmt, i+1,
 				SQL_C_CHAR,
-				handles[channel].ColData[i].pData,
+				thisHandle->ColData[i].pData,
 				datalen,
-				&handles[channel].ColData[i].IndPtr);
+				&thisHandle->ColData[i].IndPtr);
 	}
 	if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
-	    errlistAppend(channel, err_SQLBindCol);
+	    errlistAppend(thisHandle, err_SQLBindCol);
 	    return -1;
 	}
     }
@@ -650,30 +639,13 @@ static int cachenbind(int channel)
 }
 /***************************************/
 
-/* This is currently unused */
-SEXP RODBCNumRows(SEXP chan)
-{
-    SEXP ans;
-    int channel = asInteger(chan);
-
-    if(NROWS == -1)
-	errlistAppend(channel, err_SQLRowCountNA);
-    if(NCOLS == -1)
-	errlistAppend(channel, "[RODBC] No results available");
-
-    PROTECT(ans = allocVector(INTSXP, 1));
-    INTEGER(ans)[0] = (int) NROWS; /* return nRows even if -1 */
-    UNPROTECT(1);
-    return ans;
-}
-
 SEXP RODBCNumCols(SEXP chan)
 {
     SEXP ans;
-    int channel = asInteger(chan);
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
 
     if(NCOLS == -1)
-	errlistAppend(channel,"[RODBC] No results available");
+	errlistAppend(thisHandle,"[RODBC] No results available");
 
     PROTECT(ans = allocVector(INTSXP, 1));
     INTEGER(ans)[0] = (int) NCOLS;
@@ -688,7 +660,8 @@ SEXP RODBCNumCols(SEXP chan)
 SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 {
     int status = 1, i, j, blksize, nc, n;
-    int channel = asInteger(chan), maximum = asInteger(max);
+    int maximum = asInteger(max);
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     int useNRows = asLogical(believeNRows) != 0;
     int buffsize = asInteger(bs);
     SEXP data, names, ans, stat, old, new;
@@ -702,18 +675,18 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 #ifdef ORACLE
     NROWS = ROWSNA;
 #endif
-    if(!useNRows || !handles[channel].useNRows) NROWS = ROWSNA;
+    if(!useNRows || !thisHandle->useNRows) NROWS = ROWSNA;
     /* if(NROWS == 0 || nc == 0) status = -1;*/
     if(nc == 0) status = -2;
 
     if(nc == -1) {
-	errlistAppend(channel, "[RODBC] No results available");
+	errlistAppend(thisHandle, "[RODBC] No results available");
 	status = -1;
     }
 
     if(status < 0 || nc == 0) {
 	if(NROWS == 0)
-	    errlistAppend(channel, "No Data");
+	    errlistAppend(thisHandle, "No Data");
 	PROTECT(data = allocVector(VECSXP, 0));
     } else { /* NCOLS > 0 */
 	PROTECT(data = allocVector(VECSXP, nc));
@@ -729,13 +702,13 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 	    blksize = maximum;
 	}
 	for(i = 0; i < nc; i++)
-	    if(handles[channel].ColData[i].DataType == SQL_DOUBLE)
+	    if(thisHandle->ColData[i].DataType == SQL_DOUBLE)
 		SET_VECTOR_ELT(data, i, allocVector(REALSXP, blksize));
-	    else if(handles[channel].ColData[i].DataType == SQL_REAL)
+	    else if(thisHandle->ColData[i].DataType == SQL_REAL)
 		SET_VECTOR_ELT(data, i, allocVector(REALSXP, blksize));
-	    else if(handles[channel].ColData[i].DataType == SQL_INTEGER)
+	    else if(thisHandle->ColData[i].DataType == SQL_INTEGER)
 		SET_VECTOR_ELT(data, i, allocVector(INTSXP, blksize));
-	    else if(handles[channel].ColData[i].DataType == SQL_SMALLINT)
+	    else if(thisHandle->ColData[i].DataType == SQL_SMALLINT)
 		SET_VECTOR_ELT(data, i, allocVector(INTSXP, blksize));
 	    else
 		SET_VECTOR_ELT(data, i, allocVector(STRSXP, blksize));
@@ -755,9 +728,9 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 
 	    /* looks like we have to zero the cols explicitly :(
 	    for (i = 0; i < nc; i++)
-		handles[channel].ColData[i].Data[0] = '\0'; */
+		thisHandle->ColData[i].Data[0] = '\0'; */
 
-	    retval = SQLFetch(handles[channel].hStmt);
+	    retval = SQLFetch(thisHandle->hStmt);
 	    if(retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO) break;
 
 	    /* SQL_SUCCESS_WITH_INFO if column(s) truncated
@@ -766,60 +739,60 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 		SQLCHAR sqlstate[6], msg[SQL_MAX_MESSAGE_LENGTH];
 		SQLINTEGER NativeError;
 		SQLSMALLINT MsgLen;
-		if(SQLError(handles[channel].hEnv, handles[channel].hDbc,
-			    handles[channel].hStmt, sqlstate, &NativeError,
+		if(SQLError(thisHandle->hEnv, thisHandle->hDbc,
+			    thisHandle->hStmt, sqlstate, &NativeError,
 			    msg, (SQLSMALLINT)sizeof(msg), &MsgLen)
 		   == SQL_SUCCESS) {
 		    if(strcmp(sqlstate, "O1004") == 0)
-			warning("character data truncated in column `%s'",
-				(char *)handles[channel].ColData[i].ColName);
+			warning("character data truncated in column '%s'",
+				(char *)thisHandle->ColData[i].ColName);
 		}
 	    }
 
 	    for (i = 0; i < nc; i++) {
-		if(handles[channel].ColData[i].DataType == SQL_DOUBLE) {
-		    if(handles[channel].ColData[i].IndPtr == SQL_NULL_DATA)
+		if(thisHandle->ColData[i].DataType == SQL_DOUBLE) {
+		    if(thisHandle->ColData[i].IndPtr == SQL_NULL_DATA)
 			REAL(VECTOR_ELT(data, i))[j-1] = NA_REAL;
 		    else
 			REAL(VECTOR_ELT(data, i))[j-1] =
-			    handles[channel].ColData[i].RData;
-		} else if(handles[channel].ColData[i].DataType == SQL_REAL) {
-		    if(handles[channel].ColData[i].IndPtr == SQL_NULL_DATA)
+			    thisHandle->ColData[i].RData;
+		} else if(thisHandle->ColData[i].DataType == SQL_REAL) {
+		    if(thisHandle->ColData[i].IndPtr == SQL_NULL_DATA)
 			REAL(VECTOR_ELT(data, i))[j-1] = NA_REAL;
 		    else
 			REAL(VECTOR_ELT(data, i))[j-1] =
-			    (double) handles[channel].ColData[i].R4Data;
-		} else if(handles[channel].ColData[i].DataType ==
+			    (double) thisHandle->ColData[i].R4Data;
+		} else if(thisHandle->ColData[i].DataType ==
 			  SQL_INTEGER) {
-		    if(handles[channel].ColData[i].IndPtr == SQL_NULL_DATA)
+		    if(thisHandle->ColData[i].IndPtr == SQL_NULL_DATA)
 			INTEGER(VECTOR_ELT(data, i))[j-1] = NA_INTEGER;
 		    else
 			INTEGER(VECTOR_ELT(data, i))[j-1] =
-			    handles[channel].ColData[i].IData;
-		} else if(handles[channel].ColData[i].DataType ==
+			    thisHandle->ColData[i].IData;
+		} else if(thisHandle->ColData[i].DataType ==
 			  SQL_SMALLINT) {
-		    if(handles[channel].ColData[i].IndPtr == SQL_NULL_DATA)
+		    if(thisHandle->ColData[i].IndPtr == SQL_NULL_DATA)
 			INTEGER(VECTOR_ELT(data, i))[j-1] = NA_INTEGER;
 		    else
 			INTEGER(VECTOR_ELT(data, i))[j-1] =
-			    (int) handles[channel].ColData[i].I2Data;
+			    (int) thisHandle->ColData[i].I2Data;
 		} else {
-		    if(handles[channel].ColData[i].IndPtr == SQL_NULL_DATA)
+		    if(thisHandle->ColData[i].IndPtr == SQL_NULL_DATA)
 			SET_STRING_ELT(VECTOR_ELT(data, i), j-1,
 				       STRING_ELT(nas, 0));
 		    else
 			SET_STRING_ELT(VECTOR_ELT(data, i), j-1,
-				       mkChar(handles[channel].ColData[i].pData));
+				       mkChar(thisHandle->ColData[i].pData));
 		}
 	    }
 	}
-	SQLCloseCursor(handles[channel].hStmt);
+	/* SQLCloseCursor(thisHandle->hStmt); seems incorrect */
 
 	n = --j;
 	if (n > 0 && !(maximum && n >= maximum))
 	    NCOLS = -1; /* reset for next call */
 	if (n < blksize) { /* need to trim vectors */
-	    /* if (n == 0) errlistAppend(channel, "No Data"); */
+	    /* if (n == 0) errlistAppend(thisHandle, "No Data"); */
 	    for (i = 0; i < nc; i++) {
 		old = VECTOR_ELT(data, i);
 		new = allocVector(TYPEOF(old), n);
@@ -864,12 +837,12 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 SEXP RODBCColData(SEXP chan)
 {
     SEXP ans, names, length, type, ansnames;
-    int channel = asInteger(chan);
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     int i, nc;
 
     PROTECT(ans = allocVector(VECSXP, 3));
     if(NCOLS == -1)
-	errlistAppend(channel,"[RODBC] No results available");
+	errlistAppend(thisHandle,"[RODBC] No results available");
     nc = NCOLS;
     if(nc < 0) nc = 0;
     SET_VECTOR_ELT(ans, 0, names = allocVector(STRSXP, nc));
@@ -883,9 +856,9 @@ SEXP RODBCColData(SEXP chan)
 
     for (i = 0; i < nc; i++) {
 	SET_STRING_ELT(names, i,
-		       mkChar((char *)handles[channel].ColData[i].ColName));
-	INTEGER(length)[i] = (int)handles[channel].ColData[i].ColSize;
-	switch(handles[channel].ColData[i].DataType) {
+		       mkChar((char *)thisHandle->ColData[i].ColName));
+	INTEGER(length)[i] = (int)thisHandle->ColData[i].ColSize;
+	switch(thisHandle->ColData[i].DataType) {
 	case SQL_CHAR:
 	    SET_STRING_ELT(type, i, mkChar("char"));
 	    break;
@@ -910,10 +883,16 @@ SEXP RODBCColData(SEXP chan)
 	case SQL_DOUBLE:
 	    SET_STRING_ELT(type, i, mkChar("double"));
 	    break;
-#if (ODBCVER >= 0x0300)
-	case SQL_DATETIME:
-	    SET_STRING_ELT(type, i, mkChar("datetime"));
+	case SQL_DATE:
+	    SET_STRING_ELT(type, i, mkChar("date"));
 	    break;
+	case SQL_TIME:
+	    SET_STRING_ELT(type, i, mkChar("time"));
+	    break;
+	case SQL_TIMESTAMP:
+	    SET_STRING_ELT(type, i, mkChar("timestamp"));
+	    break;
+#if (ODBCVER >= 0x0300)
 	case SQL_UNKNOWN_TYPE:
 	    SET_STRING_ELT(type, i, mkChar("unknown"));
 	    break;
@@ -944,7 +923,7 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 	    SEXP nrows, SEXP ncols, SEXP colnames, SEXP test)
 {
     SEXP ans;
-    int channel = asInteger(chan);
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     int i,cols = asInteger(ncols);
     int j, k, rows = asInteger(nrows), stat;
     int *sequence;
@@ -957,50 +936,49 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
     sequence = Calloc(ncolnames, int);
     NCOLS = ncolnames/5;
 
-    clearresults(channel);
+    clearresults(thisHandle);
 
-    res = SQLAllocStmt( handles[channel].hDbc, &handles[channel].hStmt );
+    res = SQLAllocStmt( thisHandle->hDbc, &thisHandle->hStmt );
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-        errlistAppend(channel, err_SQLAllocStmt);
+        errlistAppend(thisHandle, err_SQLAllocStmt);
 	stat = -1;
 	goto end;
     }
-    res = SQLPrepare( handles[channel].hStmt, (SQLCHAR *) cquery,
+    res = SQLPrepare( thisHandle->hStmt, (SQLCHAR *) cquery,
 		      strlen(cquery) );
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-        geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-	       handles[channel].hStmt);
-        (void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
-        errlistAppend(channel, err_SQLPrepare);
+        geterr(thisHandle);
+        (void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
+        errlistAppend(thisHandle, err_SQLPrepare);
 	stat = -1;
 	goto end;
     }
     /* Allocate storage for ColData array,
        first freeing what was there last */
-        if(handles[channel].ColData) {
-	for (i = 0; i < handles[channel].nAllocated; i++)
-	    if(handles[channel].ColData[i].pData)
-	    Free(handles[channel].ColData[i].pData);
-	Free(handles[channel].ColData);
+        if(thisHandle->ColData) {
+	for (i = 0; i < thisHandle->nAllocated; i++)
+	    if(thisHandle->ColData[i].pData)
+	    Free(thisHandle->ColData[i].pData);
+	Free(thisHandle->ColData);
     }
-    handles[channel].ColData = Calloc(NCOLS, COLUMNS);
+    thisHandle->ColData = Calloc(NCOLS, COLUMNS);
     /* this allocates Data as zero */
-    handles[channel].nAllocated = NCOLS;
+    thisHandle->nAllocated = NCOLS;
 
     /* extract the column data and put it somewhere easy to read */
     /* datanames are in sequence that matches data,
        colnames are sequence for parameters */
     for(i = 0, j = 0; i < ncolnames; i += 5, j++) {
-	strcpy((char *) handles[channel].ColData[j].ColName,
+	strcpy((char *) thisHandle->ColData[j].ColName,
 	       CHAR(STRING_ELT(colnames, i))); /* signedness */
-	handles[channel].ColData[j].DataType =
+	thisHandle->ColData[j].DataType =
 	    atoi(CHAR(STRING_ELT(colnames,i+1)));
-	handles[channel].ColData[j].ColSize =
+	thisHandle->ColData[j].ColSize =
 	    atoi(CHAR(STRING_ELT(colnames, i+2)));
 	if(!strcmp(CHAR(STRING_ELT(colnames, i+4)), "NA"))
-	    handles[channel].ColData[j].DecimalDigits = 0;
+	    thisHandle->ColData[j].DecimalDigits = 0;
 	else
-	    handles[channel].ColData[j].DecimalDigits =
+	    thisHandle->ColData[j].DecimalDigits =
 		atoi(CHAR(STRING_ELT(colnames, i+4)));
 	/* step thru datanames to find correct sequence */
 	found = 0;
@@ -1013,49 +991,49 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 	    }
 	}
 	if(!found) {
-	    errlistAppend(channel, "Missing column name");
+	    errlistAppend(thisHandle, "Missing column name");
 	    INTEGER(ans)[0] = -1;
 	    UNPROTECT(1);
 	    return ans;
 	}
 	if(vtest)
 	    Rprintf("Binding: %s: DataType %d\n",
-		    (char *) handles[channel].ColData[j].ColName,
-		    handles[channel].ColData[j].DataType);
+		    (char *) thisHandle->ColData[j].ColName,
+		    thisHandle->ColData[j].DataType);
 	if(TYPEOF(VECTOR_ELT(data, sequence[j])) == REALSXP) {
-	    res <- SQLBindParameter(handles[channel].hStmt,
+	    res <- SQLBindParameter(thisHandle->hStmt,
 				    j+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
-				    handles[channel].ColData[j].DataType,
-				    handles[channel].ColData[j].ColSize,
-				    handles[channel].ColData[j].DecimalDigits,
-				    &handles[channel].ColData[j].RData,
+				    thisHandle->ColData[j].DataType,
+				    thisHandle->ColData[j].ColSize,
+				    thisHandle->ColData[j].DecimalDigits,
+				    &thisHandle->ColData[j].RData,
 				    0,
-				    &handles[channel].ColData[j].IndPtr);
+				    &thisHandle->ColData[j].IndPtr);
 	} else if(TYPEOF(VECTOR_ELT(data, sequence[j])) == INTSXP) {
-	    res <- SQLBindParameter(handles[channel].hStmt,
+	    res <- SQLBindParameter(thisHandle->hStmt,
 				    j+1, SQL_PARAM_INPUT, SQL_C_SLONG,
-				    handles[channel].ColData[j].DataType,
-				    handles[channel].ColData[j].ColSize,
-				    handles[channel].ColData[j].DecimalDigits,
-				    &handles[channel].ColData[j].IData,
+				    thisHandle->ColData[j].DataType,
+				    thisHandle->ColData[j].ColSize,
+				    thisHandle->ColData[j].DecimalDigits,
+				    &thisHandle->ColData[j].IData,
 				    0,
-				    &handles[channel].ColData[j].IndPtr);
+				    &thisHandle->ColData[j].IndPtr);
 	} else {
-	    handles[channel].ColData[j].pData = Calloc(COLMAX+1, char);
-	    res <- SQLBindParameter(handles[channel].hStmt,
+	    int datalen = thisHandle->ColData[j].ColSize;
+	    thisHandle->ColData[j].pData = Calloc(datalen+1, char);
+	    res <- SQLBindParameter(thisHandle->hStmt,
 				    j+1, SQL_PARAM_INPUT, SQL_C_CHAR,
-				    handles[channel].ColData[j].DataType,
-				    handles[channel].ColData[j].ColSize,
-				    handles[channel].ColData[j].DecimalDigits,
-				    handles[channel].ColData[j].pData,
+				    thisHandle->ColData[j].DataType,
+				    datalen,
+				    thisHandle->ColData[j].DecimalDigits,
+				    thisHandle->ColData[j].pData,
 				    0,
-				    &handles[channel].ColData[j].IndPtr);
+				    &thisHandle->ColData[j].IndPtr);
 	}
 	if(res  != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
-	    (void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
-	    errlistAppend(channel, "[RODBC] Failed Bind Param in Update");
-	    geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-		   handles[channel].hStmt);
+	    (void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
+	    errlistAppend(thisHandle, "[RODBC] Failed Bind Param in Update");
+	    geterr(thisHandle);
 	    INTEGER(ans)[0] = -1;
 	    UNPROTECT(1);
 	    return ans;
@@ -1067,60 +1045,60 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 	for(j = 0; j < cols; j++) {
 	    k = sequence[j]; /* get the right column */
 	    if(TYPEOF(VECTOR_ELT(data, k)) == REALSXP) {
-		handles[channel].ColData[j].RData =
+		thisHandle->ColData[j].RData =
 		    REAL(VECTOR_ELT(data, k))[i];
 		if(vtest)
 		    Rprintf("no: %d: %s %g/***/", j + 1,
-			    (char *) handles[channel].ColData[j].ColName,
+			    (char *) thisHandle->ColData[j].ColName,
 			    REAL(VECTOR_ELT(data, k))[i]);
 		if(ISNAN(REAL(VECTOR_ELT(data, k))[i]))
-		    handles[channel].ColData[j].IndPtr = SQL_NULL_DATA;
+		    thisHandle->ColData[j].IndPtr = SQL_NULL_DATA;
 		else
-		    handles[channel].ColData[j].IndPtr = SQL_NTS;
+		    thisHandle->ColData[j].IndPtr = SQL_NTS;
 	    } else if(TYPEOF(VECTOR_ELT(data, k)) == INTSXP) {
-		handles[channel].ColData[j].IData =
+		thisHandle->ColData[j].IData =
 		    INTEGER(VECTOR_ELT(data, k))[i];
 		if(vtest)
 		    Rprintf("no: %d: %s %d/***/", j + 1,
-			    (char *) handles[channel].ColData[j].ColName,
+			    (char *) thisHandle->ColData[j].ColName,
 			    INTEGER(VECTOR_ELT(data, k))[i]);
 		if(INTEGER(VECTOR_ELT(data, k))[i] == NA_INTEGER)
-		    handles[channel].ColData[j].IndPtr = SQL_NULL_DATA;
+		    thisHandle->ColData[j].IndPtr = SQL_NULL_DATA;
 		else
-		    handles[channel].ColData[j].IndPtr = SQL_NTS;
+		    thisHandle->ColData[j].IndPtr = SQL_NTS;
 	    } else {
 		char *cData = CHAR(STRING_ELT(VECTOR_ELT(data, k), i));
-		strncpy(handles[channel].ColData[j].pData, cData, COLMAX);
-		handles[channel].ColData[j].pData[COLMAX+1] = '\0';
-		if(strlen(cData) > COLMAX)
-		    warning("character data truncated in column `%s'",
-			    (char *) handles[channel].ColData[j].ColName);
+		int datalen = thisHandle->ColData[j].ColSize;
+		strncpy(thisHandle->ColData[j].pData, cData, datalen);
+		thisHandle->ColData[j].pData[datalen+1] = '\0';
+		if(strlen(cData) > datalen)
+		    warning("character data truncated in column '%s'",
+			    (char *) thisHandle->ColData[j].ColName);
 		if(vtest)
 		    Rprintf("no: %d: %s %s/***/", j + 1,
-			    (char *) handles[channel].ColData[j].ColName,
+			    (char *) thisHandle->ColData[j].ColName,
 			    cData);
 		if(STRING_ELT(VECTOR_ELT(data, k), i) == NA_STRING)
-		    handles[channel].ColData[j].IndPtr = SQL_NULL_DATA;
+		    thisHandle->ColData[j].IndPtr = SQL_NULL_DATA;
 		else
-		    handles[channel].ColData[j].IndPtr = SQL_NTS;
+		    thisHandle->ColData[j].IndPtr = SQL_NTS;
 	    }
 	}
 	if(vtest) Rprintf("\n");
 	if(vtest < 2) {
-	    res <- SQLExecute(handles[channel].hStmt);
+	    res <- SQLExecute(thisHandle->hStmt);
 	    if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-		errlistAppend(channel, "[RODBC] Failed exec in Update");
-		geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
-		       handles[channel].hStmt);
-		(void)SQLFreeStmt( handles[channel].hStmt, SQL_RESET_PARAMS );
-		(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
+		errlistAppend(thisHandle, "[RODBC] Failed exec in Update");
+		geterr(thisHandle);
+		(void)SQLFreeStmt( thisHandle->hStmt, SQL_RESET_PARAMS );
+		(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 		INTEGER(ans)[0] = -1;
 		UNPROTECT(1);
 		return ans;
 	    }
 	}
     }
-    (void)SQLFreeStmt( handles[channel].hStmt, SQL_RESET_PARAMS );
+    (void)SQLFreeStmt( thisHandle->hStmt, SQL_RESET_PARAMS );
 end:
     Free(sequence);
     INTEGER(ans)[0] = stat;
@@ -1134,71 +1112,69 @@ end:
  *
  * **********************************************/
 
-SEXP RODBCClose(SEXP chan)
+static int inRODBCClose(pRODBCHandle thisHandle)
 {
-    SEXP ans;
-    int channel = asInteger(chan), success = 1;
+    int success = 1;
     SQLRETURN retval;
 
-    PROTECT(ans = allocVector(INTSXP, 1));
-    retval = SQLDisconnect( handles[channel].hDbc );
+    /* Rprintf("closing %p\n", thisHandle); */
+    opened_handles[thisHandle->channel] = NULL;
+    retval = SQLDisconnect( thisHandle->hDbc );
     if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
 	/* was errlist_append, but errorlist is squashed before return! */
 	warning(err_SQLDisconnect);
 	success = -1;
     }
-    retval = SQLFreeConnect( handles[channel].hDbc );
+    retval = SQLFreeConnect( thisHandle->hDbc );
     if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
 	warning(err_SQLFreeConnect);
 	success = -1;
     }
-    retval = SQLFreeEnv( handles[channel].hEnv );
+    retval = SQLFreeEnv( thisHandle->hEnv );
     if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
 	warning(err_SQLFreeEnv);
 	success = -1;
     }
-    if(handles[channel].ColData) Free(handles[channel].ColData);
-    NCOLS = -1;
-    handles[channel].channel = -1;
-    handles[channel].fStmt = -1;
-    errorFree(handles[channel].msglist);
-    handles[channel].msglist = NULL;
+    if(thisHandle->ColData) Free(thisHandle->ColData);
+    thisHandle->nColumns = -1;
+    thisHandle->channel = -1;
+    thisHandle->fStmt = -1;
+    errorFree(thisHandle->msglist);
+    thisHandle->msglist = NULL;
+    R_ClearExternalPtr(thisHandle->extPtr);
+    return success;
+}
+
+SEXP RODBCClose(SEXP chan)
+{
+    SEXP ans;
+    int success = inRODBCClose(R_ExternalPtrAddr(chan));
+    
+    PROTECT(ans = allocVector(INTSXP, 1));
     INTEGER(ans)[0] = success;
     UNPROTECT(1);
     return ans;
 }
 
-SEXP RODBCCloseAll(void)
+static void chanFinalizer(SEXP ptr)
 {
-    int channel;
-
-    for(channel = 0; channel < CHANMAX; channel++)
-	if(handles[channel].channel == channel) {
-	    SQLDisconnect( handles[channel].hDbc );
-	    SQLFreeConnect( handles[channel].hDbc );
-	    SQLFreeEnv( handles[channel].hEnv );
-	    if(handles[channel].ColData) Free(handles[channel].ColData);
-	    NCOLS = -1;
-	    handles[channel].channel = -1;
-	    handles[channel].fStmt = -1;
-	    errorFree(handles[channel].msglist);
-	    handles[channel].msglist = NULL;
-	}
-    return R_NilValue;
+    if(!R_ExternalPtrAddr(ptr)) return;
+    /* Rprintf("finalizing %p\n", R_ExternalPtrAddr(ptr)); */
+    warning("closing unused RODBC handle %d\n", 
+	    ((pRODBCHandle )R_ExternalPtrAddr(ptr))->channel);
+    inRODBCClose(R_ExternalPtrAddr(ptr));
+    R_ClearExternalPtr(ptr); /* not really needed */
 }
 
 
-/*********************************/
-
-SEXP RODBCInit()
+SEXP RODBCCloseAll(void)
 {
     int i;
-    for (i = 0; i < CHANMAX; i++) {
-	handles[i].channel = -1;
-	handles[i].nColumns = -1;
-	handles[i].fStmt = -1;
-	handles[i].msglist = 0;
-    }
+
+    for(i = 1; i <= my_min(nChannels, 100); i++)
+	if(opened_handles[i])
+	    inRODBCClose(opened_handles[i]);
+
     return R_NilValue;
 }
 
@@ -1214,30 +1190,30 @@ SEXP RODBCInit()
  * Don't use while !SQL_NO_DATA 'cause iodbc does not support it
  *****************************************/
 static void
-geterr(int channel, SQLHANDLE hEnv, SQLHANDLE hDbc, SQLHANDLE hStmt)
+geterr(pRODBCHandle thisHandle)
 {
 
-    SQLCHAR sqlstate[6],msg[SQL_MAX_MESSAGE_LENGTH];
+    SQLCHAR sqlstate[6], msg[SQL_MAX_MESSAGE_LENGTH];
     SQLINTEGER NativeError;
-    SQLSMALLINT i=1,MsgLen;
+    SQLSMALLINT i=1, MsgLen;
     SQLCHAR *message;
     SQLRETURN retval;
 
     while(1) {	/* exit via break */
-	retval= SQLError(	hEnv,
-				hDbc,
-				hStmt,
-				sqlstate,
-				&NativeError,
-				msg,
-				(SQLSMALLINT)sizeof(msg),
-				&MsgLen);
+	retval = SQLError(thisHandle->hEnv,
+			  thisHandle->hDbc,
+			  thisHandle->hStmt,
+			  sqlstate,
+			  &NativeError,
+			  msg,
+			  (SQLSMALLINT)sizeof(msg),
+			  &MsgLen);
 
 	if(retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO)
 	    break;
 	message = (SQLCHAR*) Calloc(SQL_MAX_MESSAGE_LENGTH+16, char);
 	sprintf((char *)message,"%s %d %s", sqlstate, (int)NativeError, msg);
-	errlistAppend(channel, (char *)message);
+	errlistAppend(thisHandle, (char *)message);
 	Free(message);
 	i++;
     }
@@ -1257,7 +1233,7 @@ static char *mystrdup(char *s)
 }
 
 
-static void errlistAppend(int channel, char *string)
+static void errlistAppend(pRODBCHandle thisHandle, char *string)
 {
     SQLMSG *root;
     SQLCHAR *buffer;
@@ -1267,7 +1243,7 @@ static void errlistAppend(int channel, char *string)
 	REprintf("RODBC.c: Memory Allocation failure for message string\n");
 	return;
     }
-    root = handles[channel].msglist;
+    root = thisHandle->msglist;
 
     if(root) {
 	while(root->message) {
@@ -1277,7 +1253,7 @@ static void errlistAppend(int channel, char *string)
 	root->next = Calloc(1, SQLMSG);
 	root = root->next;
     } else {
-	root = handles[channel].msglist = Calloc(1, SQLMSG);
+	root = thisHandle->msglist = Calloc(1, SQLMSG);
     }
     root->next = NULL;
     root->message = buffer;
@@ -1291,11 +1267,12 @@ static void errlistAppend(int channel, char *string)
 SEXP RODBCErrMsgCount(SEXP chan)
 {
     SEXP ans;
-    int channel = asInteger(chan), i = 0;
+    int i = 0;
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     SQLMSG *root;
 
     PROTECT(ans = allocVector(INTSXP, 1));
-    root = handles[channel].msglist;
+    root = thisHandle->msglist;
     if(root) {
 	while(root->message) {
 	    i++;
@@ -1314,12 +1291,13 @@ SEXP RODBCErrMsgCount(SEXP chan)
 SEXP RODBCGetErrMsg(SEXP chan)
 {
     SEXP ans;
-    int i, num, channel = asInteger(chan);
+    int i, num;
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     SQLMSG *root;
 
     /* count the messages */
     i = 0;
-    root = handles[channel].msglist;
+    root = thisHandle->msglist;
     if(root) {
 	while(root->message) {
 	    i++;
@@ -1330,7 +1308,7 @@ SEXP RODBCGetErrMsg(SEXP chan)
     }
     num = i; i = 0;
     PROTECT(ans = allocVector(STRSXP, num));
-    root = handles[channel].msglist;
+    root = thisHandle->msglist;
     if(root) {
 	while(root->message) {
 	    SET_STRING_ELT(ans, i++, mkChar((char *)root->message));
@@ -1347,10 +1325,10 @@ SEXP RODBCGetErrMsg(SEXP chan)
 
 SEXP RODBCClearError(SEXP chan)
 {
-    int channel = asInteger(chan);
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
 
-    errorFree(handles[channel].msglist);
-    handles[channel].msglist = NULL;
+    errorFree(thisHandle->msglist);
+    thisHandle->msglist = NULL;
     return R_NilValue;
 }
 
@@ -1373,18 +1351,14 @@ static void errorFree(SQLMSG *node)
  * will cause segfault on most functions
  */
 
-static int checkchannel(int channel, int id)
-{
-    if(channel < 0  || channel >= CHANMAX ||
-       handles[channel].channel != channel ||
-       handles[channel].id != id
-	)
-	return 0; else return 1;
-}
-
 SEXP RODBCcheckchannel(SEXP chan, SEXP id)
 {
-    SEXP ans = allocVector(LGLSXP, 1);
-    LOGICAL(ans)[0] = checkchannel(asInteger(chan), asInteger(id)) > 0;
+    SEXP ans = allocVector(LGLSXP, 1), 
+	ptr = getAttrib(chan, install("handle_ptr"));
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(ptr);
+
+    LOGICAL(ans)[0] = TYPEOF(ptr) == EXTPTRSXP &&
+	thisHandle->channel == asInteger(chan) && 
+	thisHandle->id == asInteger(id);
     return ans;
 }

@@ -1,6 +1,5 @@
 \name{RODBC-internal}
 \alias{odbcColData}
-\alias{odbcNumRows}
 \alias{odbcNumCols}
 \alias{odbcUpdate}
 \alias{odbcCaseFlag}
@@ -14,21 +13,20 @@
 
 \title{Internal RODBC functions}
 \description{
-  Internal RODBC functions
+  Internal RODBC functions: not exported from the \pkg{RODBC} namespace
 }
 \usage{
 odbcColData(channel)
-odbcNumRows(channel)
 odbcNumCols(channel)
 
-odbcUpdate(channel, query, data, names, test = FALSE, verbose = FALSE,
-           nastring = NULL)
+odbcUpdate(channel, query, data, params, test = FALSE,
+           verbose = FALSE, nastring = NULL)
 odbcCaseFlag(channel)
 odbcSpecialColumns(channel, table)
 sqlwrite(channel, tablename, mydata, test = FALSE, fast = TRUE,
          nastring = NULL, verbose = FALSE)
-sqltablecreate(tablename, coldata, keys=-1)
-odbcTableExists(channel, tablename, abort=TRUE)
+sqltablecreate(tablename, coldata = NULL, colspecs, keys = -1)
+odbcTableExists(channel, tablename, abort = TRUE, forQuery = TRUE)
 odbcTypeInfo(channel, type)
 odbcClearResults(channel)
 odbcValidChannel(channel)

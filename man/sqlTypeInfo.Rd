@@ -1,9 +1,9 @@
 \name{sqlTypeInfo}
 \alias{sqlTypeInfo}
 
-\title{Request Information about Column Types in an ODBC Database}
+\title{Request Information about DataTypes in an ODBC Database}
 \description{
-  Request information about column types in an ODBC database
+  Request information about datatypes in an ODBC database
 }
 \usage{
 sqlTypeInfo(channel, type = "all", errors = TRUE, as.is = TRUE)
@@ -13,7 +13,7 @@ sqlTypeInfo(channel, type = "all", errors = TRUE, as.is = TRUE)
     \code{\link{odbcConnect}}.}
   \item{type}{The types of columns about which information is
     requested. Possible values are \code{"all", "char", "varchar", "real",
-      "double", "integer", "smallint", "timestamp"}.}
+      "float", "double", "integer", "smallint", "timestamp"}.}
   \item{errors}{if TRUE halt and display error, else return -1}
   \item{as.is}{as in \code{\link{sqlGetResults}}.}
 }
@@ -26,7 +26,7 @@ sqlTypeInfo(channel, type = "all", errors = TRUE, as.is = TRUE)
 \value{
   A data frame on success, or character/verbose
   on error depending on the \code{errors} parameter.  See
-  \code{link{sqlGetResults}} for further details.
+  \code{\link{sqlGetResults}} for further details.
 }
 \seealso{
   \code{\link{sqlGetResults}}, \code{\link{odbcGetInfo}}

@@ -30,8 +30,8 @@ sqlTables(channel, errors = FALSE, as.is = TRUE)
   Michael Lapsley and Brian Ripley
 }
 \examples{
-\dontrun{library(RODBC)
-channel <- odbcConnect("test", "", "") # userId and password
+\dontrun{
+channel <- odbcConnect("test")
 sqlTables(channel, "USArrests")
 ## MySQL example
 ##   Table_qualifer Table_owner Table_name Table_type     Remarks
@@ -45,7 +45,7 @@ sqlTables(channel, "USArrests")
 ##5 C:\\bdr\\test        <NA> MSysRelationships SYSTEM TABLE    <NA>
 ##6 C:\\bdr\\test        <NA>             hills        TABLE    <NA>
 ##7 C:\\bdr\\test        <NA>         USArrests        TABLE    <NA>
-odbcClose(channel)
+close(channel)
 }}
 \keyword{IO}
 \keyword{database}

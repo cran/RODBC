@@ -1,3 +1,48 @@
+Version: 1.1-1 (2004-09-14, released)
+
+	* Select the decimal point from Sys.localeconv.
+
+	* Add an external reference and finalizer so open channels get
+	  closed at the end of the session or when there is no R object
+	  referring to them.
+
+	* There is no longer a restriction to 16 channels.
+
+
+Version: 1.1-0 (2004-09-06, test version)
+
+	* Add NAMESPACE.
+
+        * odbcConnect{Access,Dbase,Excel} allow a missing file name
+	  (and will bring up a dialog box to search for it).
+
+	* odbcGetInfo returns more information in a 8-element character
+	  vector (based on an idea of Matthew Dowle).
+
+	* The C code calls SQLExecuteDirect rather than SQLExecute and
+	  does not call SQLCloseCursor, based on a problem report from
+	  Matthew Dowle using MS SQLServer.  Repeated calls to
+	  sqlGetResults now work.
+
+	* New function sqlFetchMore.
+
+	* Table names in Access with embedded spaces are mapped to the 
+	  [name space] form which Access requires.
+
+	* Table creation no longer removes _ from column names.
+
+	* New functions get/setSqlTypeInfo and the typeInfo argument to
+	  sqlSave allow users to specify the mapping from R types to DBMS
+	  datatypes.  sqlSave also allows the specification of DBMS
+	  datatypes by column.
+
+	* It is now possible to write more than 255 chars to a field with
+	  sqlSave and sqlUpdate.
+
+	* Dates and timestamps are now read as 'Date' and 'POSIXct'
+	  columns by sqlGetResults (unless as.is = TRUE for the column).
+
+
 Version: 1.0-4 (2003-07-19, released)
 
         * RODBC.c: iodbc was not recognizing the SQLTCHAR cast
@@ -39,10 +84,10 @@ Version: 0.99-9 (2003-01-17, test version)
 	  - the special columns in PostgreSQL are pseudo-columns, so ML's
 	    stategy in sqlUpdate is doomed.
 
-	* Added `addPK' argument to sqlSave(), defaulting to FALSE, to
+	* Added 'addPK' argument to sqlSave(), defaulting to FALSE, to
 	  circumvent the above.  (The latest psqlodbc client behaves.)
 
-	* Changed strategy in sqlUpdate().  Allow `index' argument, and
+	* Changed strategy in sqlUpdate().  Allow 'index' argument, and
 	  otherwise look first for a primary key in the data frame, then
 	  special columns, then "rownames".
 
@@ -65,7 +110,7 @@ Version: 0.99-8 (2003-01-15, test version)
 	  odbcConnectDbase() and odbcConnectExcel() based on suggestion of
 	  Fan, <xiao.gang.fan1@libertysurf.fr>.
 
-	* A `channel' object contains a randomly generated ID, so even if
+	* A 'channel' object contains a randomly generated ID, so even if
 	  a channel has been closed and the slot reused, the original R
 	  object will be declared invalid.
 
@@ -81,14 +126,14 @@ Version: 0.99-6 (2003-01-12, test version)
 
 	* Migration to use .Call where appropriate.
 
-	* `channel' is now a classed object, with a print method and
+	* 'channel' is now a classed object, with a print method and
 	  all relevant information is recorded as attributes of the
 	  object, and new function odbcReConnect() allows reconnection to
-	  a saved `channel' object.
+	  a saved 'channel' object.
 
 	* New function odbcDriverConnect() provides an alternative
 	  interface via ODBC driver connection strings. Under the Windows
-	  GUI this allows interactive completion of connections strings
+	  GUI this allows interactive completion of connection strings
 	  via standard ODBC dialog boxes.
 
 	* Names of tables are no longer deparsed, so normal R
@@ -98,23 +143,23 @@ Version: 0.99-6 (2003-01-12, test version)
 
 	* odbcCaseFlag now returns character in all cases.
 
-	* New argument `believeNRows' to accommodate ORACLE (and also
+	* New argument 'believeNRows' to accommodate ORACLE (and also
 	  sqlTypeInfo() calls on MySQL).
 
 	* The limit on the number of channels was off by one.
 
 	* sqlSave() and sqlFetch() now default to rownames = TRUE, that is
-	  to include rownames in the table, and to use column `rownames'
+	  to include rownames in the table, and to use column 'rownames'
 	  for the rownames if it exists.  It is possible to retrieve
 	  columns other than the first as rownames, as documented (but not
 	  working).
 
-	* New `safer' option to sqlSave(), which defaults to TRUE.
+	* New 'safer' option to sqlSave(), which defaults to TRUE.
 
 	* When sqlSave() creates a table and includes rownames, the rownames
 	  are created as a primary key (where supported).
 
-	* sqlUpdate() has a new `tablename' argument and many internal
+	* sqlUpdate() has a new 'tablename' argument and many internal
 	  changes (e.g. implementing case changes): it is now operational.
 
 	* sqlSave(fast=TRUE) and sqlUpdate() can now create database NULLs
@@ -165,4 +210,4 @@ Version: 0.9-0 (release candidate 1)
 
 Version: 0.8-3
 
-Minor changes to make documentation and examples R CMD check compliant
+       * Minor changes to make documentation and examples R CMD check compliant

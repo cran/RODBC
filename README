@@ -1,15 +1,21 @@
 ODBC is a package to provide connectivity to databases supporting the
-ODBC interface.  The package should be platform independent and
+ODBC interface.  The package itself is platform independent and
 provide access to any database for which a driver exists.  It has been
-tested with MySQL and PostgreSQL on both Linix and Windows (and to
+tested with MySQL and PostgreSQL on both Linux and Windows (and to
 those DBMSs on Linux hosts from R under Windows), Microsoft Access,
 SQL Server and Excel spreadsheets (read-only), and users have reported
 success with connections to Oracle and DBase.
 
-Usage is covered in the R Data Import/Export manual.
+Basic usage is covered in the R Data Import/Export manual.
 
-Character fields in the database are limited to 255 characters, and
-will be truncated on reading.
+Do be aware of the limitations on table and column names of various
+databases and drivers.  SQL supports alphanumeric plus _ and up to 128
+characters (but some DBMSs only support 32), and '.' and ' ' are
+disallowed.  However, Access allows spaces, and Excel allows '.' in
+column names in Excel which appear to get mapped to '#' by the driver.
+It is your job and not the RODBC maintainers' to know about your DBMS
+and ODBC driver, and it is inappropriate to ask them about such
+questions.
 
 
 ODBC under Windows
@@ -19,10 +25,12 @@ ODBC is often installed by applications that can use this interface
 (it is part of MDAC).  A freely available (in the free-of-charge not
 the copyleft sense) implementation can be downloaded from
 http://www.microsoft.com/data/odbc/.  Updated drivers are also
-available here for several data sources.
+available there for several data sources.  A free version called MSDE
+2000 of SQL Server 2000 with ODBC driver is available at
+http://www.microsoft.com/sql/msde/.
 
 DSNs are usually set up using the "ODBC data sources" control panel
-(`Data Sources (ODBC)' in the `Administrative Tools' section on 2000/XP).
+('Data Sources (ODBC)' in the 'Administrative Tools' section on 2000/XP).
 If using RGui a DSN can be prepared via dialog boxes using
 
 R> channel <- odbcDriverConnect("")
@@ -72,7 +80,7 @@ This can be used via
 
 R> channel <- odbcConnect("test")
 
-as MySQL provides open access to the `test' database, but for real
+as MySQL provides open access to the 'test' database, but for real
 examples you will need to provide a uid and pwd entry as in
 
 R> channel <- odbcConnect("test", uid="ripley", pwd="secret")
@@ -81,7 +89,8 @@ More sophisticated connections, e.g. to remote machines, can be built
 using odbcDriverConnect or as DSNs.
 
 Note that you need to ensure that .../etc/odbcinst.ini contains the
-driver information.  We have
+rest of the driver information.  (UnixODBC uses /usr/local/etc/odbcinst.ini
+and iODBC /etc/odbcinst.ini, by default.) We have
 
 gannet% cat /usr/local/etc/odbcinst.ini
 [myodbc3]
@@ -98,15 +107,21 @@ FileUsage    = 1
 
 
 for use with MySQL using the MyODBC 3.51 driver (both from
-http://www.mysql.com), and PostgreSQL using the latest unbundled
-driver from the psqlodbc project
-(http://gborg.postgresql.org/project/psqlodbc).
+http://www.mysql.com), and PostgreSQL using the driver psqlodbc-07.03.0200
+from the psqlODBC project (http://gborg.postgresql.org/project/psqlodbc).
+For PostgreSQL, CommLog = 1 adds user-level logging.
 
 One quirk to be watched is the use of connections to the DBMS via the
 Unix sockets vs ports.  The PostgreSQL driver bundled with unixODBC
-will use Unix sockets to `localhost', but this driver seems unreliable
+will use Unix sockets to 'localhost', but this driver seems unreliable
 (see the ChangeLog).  The current driver will only use a TCP/IP port,
 and to use that needs postmaster started with the -i flag (which is
 not the default) and with tcp/ip enabled in the configuration file
 (which is the default).  The PostgreSQL drivers are seriously
-under-documented!
+under-documented (but some older docs exists at 
+http://www.postgresql.org/docs/7.2/static/odbc.html)!
+
+Users of unixODBC and iODBC can use gODBCConfig and iodbcadm-gtk
+repspectively to prepare user and systems DSNs: they are reworkings of
+the Window's ODBC administation multi-tabbed dialog box.  Both write in
+~/.odbc.ini, in slightly different formats.

@@ -9,16 +9,19 @@
   Operations on tables in ODBC databases.
 }
 \usage{
-sqlColumns(channel, sqtable, errors = FALSE, as.is = TRUE, special = FALSE)
-sqlPrimaryKeys(channel, sqtable, errors = FALSE, as.is = TRUE)
-sqlDrop(channel, sqtable, errors = TRUE)
 sqlClear(channel, sqtable, errors = TRUE)
+
+sqlDrop(channel, sqtable, errors = TRUE)
+
+sqlColumns(channel, sqtable, errors = FALSE, as.is = TRUE,
+           special = FALSE)
+
+sqlPrimaryKeys(channel, sqtable, errors = FALSE, as.is = TRUE)
 }
 \arguments{
-  \item{channel}{connection handle as returned by \code{\link{odbcConnect}}.}
-  \item{sqtable}{a database table name accessible from the connected
-    dsn. This should be either a character string or a character vector
-    of length 1.}
+  \item{channel}{connection object as returned by \code{\link{odbcConnect}}.}
+  \item{sqtable}{character: a database table name accessible from the
+    connected dsn.}
   \item{errors}{if TRUE halt and display error, else return -1}
   \item{as.is}{as in \code{\link{sqlGetResults}}.}
   \item{special}{return only the column(s) needed to specify a row
@@ -31,14 +34,12 @@ sqlClear(channel, sqtable, errors = TRUE)
   \code{sqlDrop} removes the table \code{sqtable}.  No confirmation
   is requested.
 
-  \code{sqlColumns} and \code{sqlPrimaryKeys} return
-  information as data frames.  Note that the column names often contain
-  underscores and are invalid in \R unless quoted.  The column names are
-  not constant across ODBC versions so the data should be accessed by
-  column number.  The argument \code{special} to \code{sqlColumns}
-  returns the columns needed to specify a row uniquely.  This is
-  intended to form the basis of a WHERE clause for updates (see
-  \code{\link{sqlUpdate}}.
+  \code{sqlColumns} and \code{sqlPrimaryKeys} return information as data
+  frames.  The column names are not constant across ODBC versions so the
+  data should be accessed by column number.  The argument \code{special}
+  to \code{sqlColumns} returns the columns needed to specify a row
+  uniquely.  This is intended to form the basis of a WHERE clause for
+  updates (see \code{\link{sqlUpdate}}).
 }
 \value{
   A data frame on success, or character/numeric on error depending on the
@@ -57,8 +58,8 @@ sqlClear(channel, sqtable, errors = TRUE)
 }
 \examples{
 \dontrun{## example results from MySQL
-data(USArrests)
-channel <- odbcConnect("test", "", "") # userId and password
+data(USArrests) # R < 2.0.0 only
+channel <- odbcConnect("test")
 sqlDrop(channel, "USArrests", errors = FALSE) # precautionary
 sqlSave(channel, USArrests)
 sqlColumns(channel, "USArrests")
@@ -87,7 +88,7 @@ sqlPrimaryKeys(channel, "USArrests")
 ## 1           <NA>        <NA>  USArrests    rownames       1 PRIMARY
 sqlClear(channel, "USArrests")
 sqlDrop(channel, "USArrests")
-odbcClose(channel)
+close(channel)
 }}
 \keyword{IO}
 \keyword{database}

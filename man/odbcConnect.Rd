@@ -15,7 +15,10 @@
 \usage{
 odbcConnect(dsn, uid = "", pwd = "", case = "nochange",
             believeNRows = TRUE)
-odbcDriverConnect(connection, case = "nochange", believeNRows = TRUE)
+
+odbcDriverConnect(connection = "", case = "nochange",
+                  believeNRows = TRUE)
+
 odbcReConnect(channel, case, believeNRows)
 #ifdef windows
 
@@ -32,7 +35,7 @@ odbcConnectExcel(xls.file)
   \item{case}{Controls case changes for different RDBMS engines.}
   \item{channel}{RODBC connection object returned by \code{odbcConnect}.}
   \item{believeNRows}{logical.  Is the number of rows returned by the
-    ODBC connection believable?  Not true for Oracle, apparently.}
+    ODBC connection believable?  Not true for Oracle and Sybase, apparently.}
 #ifdef windows
   \item{access.file, dbf.file, xls.file}{file of an appropriate type.}
 #endif
@@ -40,14 +43,15 @@ odbcConnectExcel(xls.file)
 \details{
   \code{odbcConnect} establishes a connection to the dsn, and
   \code{odbcDriverConnect} allows a more flexible specification via a
-  connection string.  \code{odbcConnect} uses the connection string
-  \code{"DSN=dsn;UID=uid;PWD=pwd"}.  See the examples for other
-  uses of connection strings.
+  connection string.  \code{odbcConnect} uses the connection string\cr
+  \code{"DSN=dsn;UID=uid;PWD=pwd"}, omitting the last two comments if
+  they are empty.  See the examples for other uses of connection strings.
 
 #ifdef windows
   Under the Windows GUI, specifying an incomplete \code{connection}, for
-  example \code{""}, will bring up a dialog box to complete the
-  information required.
+  example the default \code{""}, will bring up a dialog box to complete the
+  information required.  (This does not work from \code{Rterm.exe}
+  unless a driver is specified, a Windows restriction.)
 
 #endif
   For databases that translate table and column names the case must be
@@ -56,7 +60,7 @@ odbcConnectExcel(xls.file)
   where the behaviour is known to us (currently \code{"mysql"} (which
   maps to lower case on Windows but not on Linux),
   \code{"postgresql"} (lower), \code{"oracle"} (upper) and
-  \code{"msaccess"}) (nochange).
+  \code{"msaccess"} (nochange)).
 
   Function \code{odbcReConnect} re-connects to a database using the
   settings of an existing (and presumably now closed) channel object.
@@ -70,14 +74,15 @@ odbcConnectExcel(xls.file)
   relative to the \R working directory or absolute paths (and it seems
   that the drivers will also look relative to the user's home
   directory).  \bold{Note:} they will only work with English versions of
-  the MicroSoft drivers, which may or may not be installed in other locales.
+  the Microsoft drivers, which may or may not be installed in other
+  locales.  The file name can be omitted which will bring up a dialog
+  box to search for a file.
 #endif
 }
 \value{
-  A non-negative
-  integer which is used as handle if no error occurred, -1 otherwise.
-  A successful return has class \code{"RODBC"}, and attribute
-  \code{"connection.string"} giving the full ODBC connection string.
+  A non-negative integer which is used as handle if no error occurred,
+  -1 otherwise. A successful return has class \code{"RODBC"}, and
+  attribute \code{"connection.string"} giving the full ODBC connection string.
 }
 \author{
   Michael Lapsley, Brian Ripley
@@ -93,7 +98,7 @@ channel <- odbcConnect("test", uid="ripley", pwd="secret")
 channel <- odbcConnect("pg", uid="ripley", pwd="secret", case="postgresql")
 #endif
 #ifdef windows
-# interactive specification
+# interactive specification under RGui
 channel <- odbcDriverConnect("")
 
 # MySQL on Windows -- MySQL maps to lower case on Windows only
@@ -107,7 +112,7 @@ channel2 <- odbcConnectAccess("test.mdb", uid="ripley")
 channel <- odbcConnect("bdr.xls") # if this was set up as a DSN
 channel2 <-
  odbcDriverConnect("DRIVER=Microsoft Excel Driver (*.xls);DBQ=C:\\bdr\\hills.xls")
-channel3 <- odbcConnectExcel("bdr.xls")
+channel3 <- odbcConnectExcel("hills.xls")
 #endif
 
 # re-connection

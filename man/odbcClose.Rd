@@ -8,7 +8,9 @@
 }
 \usage{
 odbcClose(channel)
+
 \method{close}{RODBC}(con, \dots)
+
 odbcCloseAll()
 }
 \arguments{
@@ -19,7 +21,11 @@ odbcCloseAll()
   \code{odbcClose} cleans up and frees resources. It is also the method for the
   generic function \code{close}.
 
-  \code{odbcCloseAll} closes all open channels,
+  \code{odbcCloseAll} closes all open channels (amongst the first 100
+  used in the session)
+
+  Channels are closed at the end of an \R session, and may also be
+  closed by garbage collection if no object refers to them.
 }
 \value{
   Function \code{odbcClose} returns invisibly a logical indicating if it

@@ -8,6 +8,7 @@
 }
 \usage{
 sqlQuery(channel, query, errors = TRUE, ...)
+
 sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
               max = 0, buffsize = 1000,
               nullstring = NA, na.strings = "NA",
@@ -18,6 +19,7 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
   \item{query}{any valid SQL statement}
   \item{errors}{if TRUE halt and display error, else return -1}
   \item{\dots}{additional arguments to be passed to \code{sqlGetResults}.}
+
   \item{as.is}{which (if any) character columns should be converted,
     as in \code{\link{read.table}}?  See the details.}
   \item{max}{limit on the number of rows to fetch, with 0 indicating no limit.}
@@ -34,14 +36,14 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
     ODBC connection believable?  This might already be set to false when
     the channel was opened, and can that setting cannot be overriden.}
   \item{dec}{The character for the decimal place to be assumed when
-    converting character columns.}
+    converting character columns to numeric.}
 }
 \details{
   \code{sqlQuery} is the workhorse function of RODBC.  It sends the SQL
   statement \code{query} to the server, using connection \code{channel}
   returned by \code{\link{odbcConnect}}.
 
-  SQL beginners should note that the term `Query' includes
+  SQL beginners should note that the term 'Query' includes
   any valid SQL statement including table creation, alteration, updates
   etc as well as SELECTs. The \code{sqlQuery} command is a convenience
   wrapper that calls first \code{\link{odbcQuery}} and then
@@ -50,25 +52,30 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
   directly or additional arguments passed to \code{sqlQuery}.
 
   \code{sqlGetResults} is a mid-level function.  It should be called
-  after a call to \code{\link{odbcQuery}} and used to retrieve waiting
-  results into a data frame. Its main use is with \code{max} set to non
-  zero it will retrieve the result set in batches with repeated calls.
-  This is useful for very large result sets which can be subjected to
-  intermediate processing.  It makes use of the setting of
-  \code{options("dec")} to determine the character used in setting
-  decimal points.  This is set to \code{"."} when RODBC is initialized
-  if it is not already set.
+  after a call to \code{sqlQuery} or \code{\link{odbcQuery}} and used to
+  retrieve waiting results into a data frame.  Its main use is with
+  \code{max} set to non-zero when it will retrieve the result set in
+  batches with repeated calls.  This is useful for very large result sets
+  which can be subjected to intermediate processing.
 
   Where possible \code{sqlGetResults} transfers data directly: this
   happens for \code{double}, \code{real}, \code{integer} and
   \code{smallint} columns in the table.  All other SQL data types are
-  converted to character strings (of length up to 256), and then converted
-  by \code{\link{type.convert}} as controlled by the \code{as.is}
-  argument.  Note that almost all callers set \code{as.is = TRUE}.
+  converted to character strings by the ODBC interface.  If the
+  \code{as.is} is true for a column, it is returned as character.
+  Otherwise (where detected) \code{date}, \code{datetime} and
+  \code{timestamp} values are converted to \code{"Date"} and
+  \code{"POSIXct"} values respectively.  (Some drivers seem to confuse times
+  with dates, so times may get converted too.)  Other types are
+  converted by \R using \code{\link{type.convert}}.  When
+  character data are to be converted to numeric data, the setting of
+  \code{options("dec")} to map the character used up the ODBC driver in
+  setting decimal points---this is set to a locale-specific value
+  when RODBC is initialized if it is not already set.
   
-  Using \code{buffsize} will yield a
-  marginal increase in speed if set to more than the maximum number of
-  rows where \code{believeNRows = FALSE}.
+  Using \code{buffsize} will yield a marginal increase in speed if set
+  to no less than the maximum number of rows where \code{believeNRows =
+    FALSE}.
 }
 \value{
   A data frame (possibly with 0 rows) on success.
@@ -85,14 +92,15 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
   Michael Lapsley and Brian Ripley
 }
 \examples{
-\dontrun{library(RODBC)
-data(USArrests)
-channel <- odbcConnect("test", "", "") # userId and password
+\dontrun{
+data(USArrests) # R < 2.0.0 only
+channel <- odbcConnect("test")
 sqlSave(channel, USArrests, rownames = "State", verbose = TRUE)
-options(dec=".") # this is the default decimal point
+# options(dec=".") # optional, if DBMS is not locale-aware
 ## note case of State, Murder, rape are DBMS-dependent.
-sqlQuery(channel, "select State, Murder from USArrests where rape > 30 order by Murder")
-odbcClose(channel)
+sqlQuery(channel, paste("select State, Murder from USArrests",
+                        "where Rape > 30 order by Murder"))
+close(channel)
 }}
 \keyword{IO}
 \keyword{database}

@@ -1,10 +1,3 @@
 Oct 2002: taken over by B. D. Ripley
 
 Add a real test suite.
-
-Allow automated transfer of time stamps.
-
-Handle the decimal point more elegantly.  
-(Can ODBC tell us what the database uses?  Seems not.)
-
-Replace internal table of handles by external references?
