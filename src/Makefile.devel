@@ -1,0 +1,57 @@
+ifdef R_HOME
+#	include $(R_HOME)/etc/Makeconf
+else
+	SHLIBEXT=so
+	SHLIBLD=gcc -shared -g -Wall 
+	RL=
+	RL=-DREADLINE -lreadline -ltermcap
+	EF=
+	EF=/usr/lib/libefence.a
+	ALL_CPPFLAGS=-I/usr/local/lib/R/include/
+	RODBC_VER:=$(shell grep Version: ../DESCRIPTION|awk '{print $$2}')
+	RODBC_TAG:= $(shell grep Version: ../DESCRIPTION|awk '{print $$2}'|sed 's/\./_/g')
+	R_SRC=$(shell cd ../.. && pwd)
+	CVSROOT=/usr/local/src/CVSROOT
+endif
+
+all: RODBC.$(SHLIBEXT)
+
+RODBC.$(SHLIBEXT):	RODBC.o 
+	$(SHLIBLD) $(EF)   $(SHLIBLDFLAGS) $(LDFLAGS) -o $@  RODBC.o -lodbc
+
+RODBC.o:	RODBC.c
+	$(CC) -g  -O2 -Wall $(ALL_CPPFLAGS)  -o RODBC.o -c RODBC.c
+
+testing:
+	gcc -o RODBC -DTESTING  -g -lodbc -L /usr/local/src/R-1.0.0/include/ -lR -L /usr/X11R6/lib/ -lX11 $(EF) $(ALL_CPPFLAGS)   $(RL)  RODBC.c 
+	
+DMALLOC: 
+	gcc -static -g -o RODBC -DDMALLOC  -DTESTING  -g  $(RL) RODBC.c  $(RL) $(ALL_CPPFLAGS) -lodbcinst -lodbc -lodbcinst -ldl -ldmalloc
+
+
+plumber:
+	gcc -static -g -o RODBC -DPLUMBER  -DTESTING  -g  RODBC.c  /usr/local/src/plumber/c/gmalloc_LINUX.o  /usr/local/src/plumber/c/fake_locks_LINUX.o -lelf -lodbcinst -lodbc -llog -llst  -lodbcinst -lini -ldl
+
+clean:
+	- rm -f  *.o *.so *~ RODBC core ../R/*~ ../*~ ../man/*~ testhist .Rdata .Rhistory Makevars ../config.*
+
+tag:
+	cd $(R_SRC)/RODBC && \
+	cvs  -d $(CVSROOT) tag  RODBC-$(RODBC_TAG) 
+	
+dist:
+	- rm -f  *.o *.so *~ RODBC core ../R/*~ ../*~ ../man/*~ testhist .Rdata .Rhistory Makevars ../config.* &&\
+	cd /tmp &&\
+	cvs -d $(CVSROOT) export -r RODBC-$(RODBC_TAG) RODBC &&\
+	cd RODBC/src &&\
+	tar zvcf $(R_SRC)/RODBC-$(RODBC_VER).src.tgz -C ../.. RODBC/
+	@echo made $(R_SRC)/RODBC-$(RODBC_VER).src.tgz
+	@rm /tmp/RODBC/ -rf
+
+snap:
+	- rm -f  *.o *.so *~ RODBC core ../R/*~ ../*~ ../man/*~ testhist .Rdata .Rhistory Makevars ../config.* &&\
+	tar zvcf $(R_SRC)/RODBC-`date +%Y-%m-%d`.src.tgz -C ../.. RODBC/
+	@echo made $(R_SRC)/RODBC-`date +%Y-%m-%d`.src.tgz
+
+# if somethings goes wrong (like: undefined reference...), 
+# check that $RHOME/etc/Makeconf has the correct SHLIBFLAGS
