@@ -5,29 +5,48 @@
 .First.lib <- function(lib, pkg)
 {
     library.dynam("RODBC", pkg, lib)
-    .C("RODBCInit")
-    options("dec"=".")
+    .Call("RODBCInit", PACKAGE = "RODBC")
+    if(is.null(getOption("dec"))) options(dec = ".")
 }
 
-"odbcGetErrMsg" <- function(channel)
+odbcGetErrMsg <- function(channel)
 {
-    num <- .C("RODBCErrMsgCount",as.integer(channel), num=as.integer(1))$num
-    if(num == 0) return(invisible(0))
-    err <- .C("RODBCGetErrMsg", as.integer(channel),
-              err = as.character(paste("D", 1:num, sep="")))$err
-    .C("RODBCClearError", as.integer(channel))
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+#    num <- .Call("RODBCErrMsgCount", channel, PACKAGE = "RODBC")
+#    if(num == 0) return(invisible(0))
+    err <- .Call("RODBCGetErrMsg", channel, PACKAGE = "RODBC")
+    .Call("RODBCClearError", as.integer(channel), PACKAGE = "RODBC")
     return(err)
 }
 
-"odbcClearError" <- function(channel)
+odbcClearError <- function(channel)
 {
-    .C("RODBCClearError", as.integer(channel))
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    .Call("RODBCClearError", channel, PACKAGE = "RODBC")
     invisible()
 }
 
+odbcReConnect <- function(channel, case, believeNRows)
+{
+    if(!inherits(channel, "RODBC"))
+        stop("Argument `channel' must inherit from class RODBC")
+    if(missing(case)) case <- attr(channel, "case")
+    if(missing(believeNRows)) believeNRows <- attr(channel, "believeNRows")
+    odbcDriverConnect(attr(channel, "connection.string"), case, believeNRows)
+}
 
-"odbcConnect" <-
-function (dsn, uid = "", pwd = "", host = "localhost", case = "nochange")
+odbcConnect <-
+    function (dsn, uid = "", pwd = "", case = "nochange",
+              believeNRows = TRUE)
+{
+   odbcDriverConnect(paste("DSN=", dsn, ";UID=",uid, ";PWD=", pwd, sep=""),
+                     case = case, believeNRows = believeNRows)
+}
+
+odbcDriverConnect <-
+    function (connection, case = "nochange", believeNRows = TRUE)
 {
    switch(case,
 	toupper = case <- 1,
@@ -36,119 +55,173 @@ function (dsn, uid = "", pwd = "", host = "localhost", case = "nochange")
 	postgresql = case <- 2,
 	nochange = case <- 0,
 	msaccess = case <- 0,
-	mysql = case <- 0,
-	stop("Invalid case parameter: nochange | toupper | tolower | common db names")
+	mysql = case <- ifelse(.Platform$OS.type == "windows", 2, 0),
+ 	stop("Invalid case parameter: nochange | toupper | tolower | common db names")
 	)
-   stat <- .C("RODBCConnect", as.character(dsn), as.character(uid),
-             as.character(pwd), as.integer(case), stat = integer(1))$stat
-   if(stat < 0) warning("ODBC connection failed")
-   return(stat)
+   id <- as.integer(1 + runif(1, 0, 1e5))
+   stat <- .Call("RODBCDriverConnect", as.character(connection), id,
+                 as.integer(believeNRows), PACKAGE = "RODBC")
+   if(stat < 0) {
+       warning("ODBC connection failed")
+       return(stat)
+   }
+   case <- switch(case+1, "nochange", "toupper", "tolower")
+   return(structure(stat, class="RODBC", case=case, id = id,
+                    believeNRows=believeNRows))
 }
 
-"odbcQuery" <- function(channel, query)
-    .C("RODBCQuery", as.integer(channel), as.character(query),
-              stat = integer(1))$stat
-
-"odbcUpdate" <-
-function(channel, query, data, names, test = FALSE, verbose = FALSE,
-         nastring = NULL)
+odbcQuery <- function(channel, query)
 {
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    .Call("RODBCQuery", channel, as.character(query))
+}
+
+odbcUpdate <-
+    function(channel, query, data, names, test = FALSE, verbose = FALSE,
+             nastring = NULL)
+{
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
     vflag <- 0
     if(verbose) vflag <- 1
     if(test) vflag <- 2
-    nanull <- is.null(nastring)
 #apply the name mangling that was applied when the table was created
-    cnames<- gsub("[^A-Za-z0-9]+","",as.character(colnames(data)))
-    .C("RODBCUpdate", as.integer(channel), as.character(query),
-       as.character(as.matrix(data)), cnames,
-       as.integer(nrow(data)), as.integer(ncol(data)),
-       as.character(names), as.integer(length(names)),
-       as.integer(vflag), stat = integer(1),
-       ifelse(nanull, "NA", as.character(nastring)))$stat
+    cnames<- gsub("[^A-Za-z0-9]+", "", as.character(colnames(data)))
+    cnames <- switch(attr(channel, "case"),
+                     nochange = cnames,
+                     toupper = toupper(cnames),
+                     tolower = tolower(cnames))
+    for(i in 1:ncol(data))
+        if(!is.numeric(data[[i]]))
+           data[[i]] <- as.character(data[[i]])
+    .Call("RODBCUpdate", as.integer(channel), as.character(query),
+          data, cnames, as.integer(nrow(data)), as.integer(ncol(data)),
+          as.character(names), as.integer(vflag),  PACKAGE = "RODBC")
 }
 
-"odbcTables" <- function(channel)
-    .C("RODBCTables", as.integer(channel), stat = integer(1))$stat
-
-"odbcTypeInfo" <- function(channel, type)
-    .C("RODBCTypeInfo", as.integer(channel), as.integer(type),
-       stat = integer(1))$stat
-
-"odbcColumns" <- function(channel, table)
-    .C("RODBCColumns", as.integer(channel), as.character(table),
-       stat =integer(1))$stat
-
-"odbcSpecialColumns" <- function(channel, table)
-    .C("RODBCSpecialColumns", as.integer(channel),
-       as.character(table), stat = integer(1))$stat
-
-"odbcPrimaryKeys" <-
-function(channel, table)
-    .C("RODBCPrimaryKeys", as.integer(channel), as.character(table),
-       stat = as.integer(1))$stat
-
-"odbcFetchRow" <- function(channel)
+odbcTables <- function(channel)
 {
-    num <- odbcNumCols(channel)$num
-    .C("RODBCFetchRow", as.integer(channel),
-       data = as.character(paste("D", 1:num, sep="")),
-       stat = integer(1))
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    .Call("RODBCTables", channel, PACKAGE = "RODBC")
 }
 
-"odbcColData" <- function(channel)
+odbcTypeInfo <- function(channel, type)
 {
-    num <- odbcNumCols(as.integer(channel))$num
-    .C("RODBCColData", as.integer(channel),
-       names = as.character(paste("D", 1:num, sep="")),
-       type = as.character(paste("D", 1:num, sep="")),
-       length = integer(num),
-       stat = integer(1))
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    .Call("RODBCTypeInfo", channel, as.integer(type), PACKAGE = "RODBC")
+ }
+
+odbcColumns <- function(channel, table)
+{
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    .Call("RODBCColumns", channel, as.character(table), PACKAGE = "RODBC")
 }
 
-
-"odbcNumRows" <- function(channel)
-    .C("RODBCNumRows", as.integer(channel), num = as.integer(1),
-       stat = integer(1))
-
-"odbcNumFields" <- function(channel)
-    .C("RODBCNumCols", as.integer(channel), num = as.integer(1),
-              stat = as.integer(1))$num
-
-"odbcNumCols" <-
-function(channel)
-    .C("RODBCNumCols",as.integer(channel), num = as.integer(1),
-       stat = as.integer(1))
-
-"odbcClose" <- function(channel)
-    .C("RODBCClose", as.integer(channel), stat = integer(1))$stat
-
-"odbcFetchRows"<-
-    function(channel, max = 0, transposing = FALSE, buffsize = 1000,
-             nullstring = "NA")
+odbcSpecialColumns <- function(channel, table)
 {
-    erg <- .Call("RODBCFetchRows",
-                 as.integer(channel),
-                 as.integer(max),
-                 as.integer(buffsize), as.character(nullstring))
-    if(!transposing && erg$stat >= 0) erg$data <- t(erg$data)
-    erg
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    .Call("RODBCSpecialColumns", channel, as.character(table),
+          PACKAGE = "RODBC")
 }
 
-"odbcCaseFlag" <- function (channel)
+odbcPrimaryKeys <- function(channel, table)
 {
-    ans <- 0
-    erg <- .C("RODBCid_case", as.integer(channel), ans = as.integer(ans))
-    switch(erg$ans,
-	return("toupper"),
-	return("tolower")
-	)
-    return(erg$ans)
+    if(!odbcValidChannel(channel))
+        stop("first argument is not an open RODBC channel")
+    .Call("RODBCPrimaryKeys", channel, as.character(table), PACKAGE = "RODBC")
+}
+
+## this does no error checking, but may add an error message
+odbcColData <- function(channel)
+{
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    .Call("RODBCColData", channel, PACKAGE = "RODBC")
+}
+
+## currently unused
+odbcNumRows <- function(channel)
+{
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    .Call("RODBCNumRows", channel, PACKAGE = "RODBC")
+}
+
+odbcNumCols <- function(channel)
+{
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    .Call("RODBCNumCols", channel, PACKAGE = "RODBC")
+}
+
+close.RODBC <- function(con, ...) odbcClose(con)
+
+odbcClose <- function(channel)
+{
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    res <- .Call("RODBCClose", channel)
+    if(res > 0) invisible(TRUE) else {
+        warning(paste(odbcGetErrMsg(channel), sep="\n"))
+        FALSE
+    }
+}
+
+odbcCloseAll <- function()
+{
+    .Call("RODBCCloseAll")
+    invisible()
+}
+
+odbcFetchRows <-
+    function(channel, max = 0, buffsize = 1000, nullstring = NA,
+             believeNRows = TRUE)
+{
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    .Call("RODBCFetchRows", channel, max, buffsize,
+          as.character(nullstring), believeNRows, PACKAGE = "RODBC")
+}
+
+odbcCaseFlag <- function (channel)
+{
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    attr(channel, "case")
 }
 
 odbcGetInfo <- function(channel)
 {
-    res <- paste(rep("          ", 10), collapse="")
-    out <- .C("RODBCGetInfo", as.integer(channel),
-       res = res, stat = integer(1))
-    if(out$stat < 0) "error" else out$res;
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    .Call("RODBCGetInfo", channel, PACKAGE = "RODBC")
+}
+
+odbcValidChannel <-  function(channel)
+{
+    inherits(channel, "RODBC") && is.integer(channel) &&
+    .Call("RODBCcheckchannel", channel, attr(channel, "id"),
+          PACKAGE = "RODBC") > 0
+}
+
+odbcClearResults <-  function(channel)
+{
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    .Call("RODBCclearresults", channel, PACKAGE = "RODBC")
+    invisible()
+}
+
+print.RODBC <- function(x, ...)
+{
+    con <- strsplit(attr(x, "connection.string"), ";")[[1]]
+    case <- paste("case=", attr(x, "case"), sep="")
+    cat("RODB Connection ", as.vector(x), "\nDetails:\n  ", sep = "")
+    cat(case, con, sep="\n  ")
+    invisible(x)
 }

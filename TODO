@@ -1,18 +1,13 @@
 Oct 2002: taken over by B. D. Ripley
 
-Document more of the functions, split up RODBC.Rd and odbc.Rd 
-into smaller pages.
-
-Add a test suite.
-
-Change the interface to remove all this as.character(substitute(foo)).
-
-Works out what sqlCopy should do.
-
-Use the column information in the table to choose the types in the 
-data frame rather than use type.convert.
+Add a real test suite.
 
 Allow automated transfer of time stamps.
 
 Handle the decimal point more elegantly.  
-(Can ODBC tell us what the database uses?)
+(Can ODBC tell us what the database uses?  Seems not.)
+
+Replace internal table of handles by external references?
+
+Consider removing the 255 char limit, at least when reading from the 
+DBMS.

@@ -1,4 +1,14 @@
-RODBC-internal          Internal RODBC functions
 RODBC                   ODBC Database Connectivity
+RODBCtables             Operations on Tables in ODBC databases
 odbc                    Low-level ODBC functions
-odbcConnect             ODBC Open and Close
+odbcClose               ODBC Close Connections
+odbcConnect             ODBC Open Connections
+odbcErrors              RODBC Error-Handling Utility Functions
+odbcGetInfo             Request Information on an ODBC Connection
+sqlFetch                Reading Tables from ODBC Databases
+sqlQuery                Query an ODBC Database
+sqlSave                 Write a Data Frame to a Table in an ODBC
+                        Database
+sqlTables               List Tables on an ODBC Database
+sqlTypeInfo             Request Information about Column Types in an
+                        ODBC Database

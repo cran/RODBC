@@ -1,4 +1,125 @@
-Version: 0.9-1 (release candidate 2)
+Version: 1.0-1 (2003-01-20, released)
+
+	* If a character field is truncated when reading from a database,
+	  an R warning is given.
+
+	* There was no protection against writing more than 255 chars in a
+	  character vector in sqlSave/sqlUpdate(fast=TRUE).  Now the first
+	  255 characters are written and a warning given.
+
+
+Version: 0.99-9 (2003-01-17, test version)
+
+	* Testing with PostgreSQL revealed that
+	  - attempting to create a table with a primary key resulted in
+	    memory corruption inside the unixODBC PostgreSQL driver and
+	  - the special columns in PostgreSQL are pseudo-columns, so ML's
+	    stategy in sqlUpdate is doomed.
+
+	* Added `addPK' argument to sqlSave(), defaulting to FALSE, to
+	  circumvent the above.  (The latest psqlodbc client behaves.)
+
+	* Changed strategy in sqlUpdate().  Allow `index' argument, and
+	  otherwise look first for a primary key in the data frame, then
+	  special columns, then "rownames".
+
+	* Changed all C-level tests to allow for SQL_SUCCESS_WITH_INFO as
+	  the return value is driver-dependent and psqlodbc was returning
+	  SQL_SUCCESS_WITH_INFO from SQLExecute.
+
+
+Version: 0.99-8 (2003-01-15, test version)
+
+	* Result sets with no rows are now reported as 0-row data frames
+	  and not regarded as an error (return value -1).
+
+	* More consistent usage of errors, with new error code -2
+	  indicating no data (that is no result from the query, not just
+	  no rows available).  For example, failure to create a table in
+	  sqlSave() is now a fatal error.
+
+	* On Windows, convenience functions odbcConnectAccess(),
+	  odbcConnectDbase() and odbcConnectExcel() based on suggestion of
+	  Fan, <xiao.gang.fan1@libertysurf.fr>.
+
+	* A `channel' object contains a randomly generated ID, so even if
+	  a channel has been closed and the slot reused, the original R
+	  object will be declared invalid.
+
+	* options("dec") is only set when RODBC is loaded if it is not
+	  already set.
+
+	* New function odbcCloseAll().
+
+	* Improved documentation.  New README, move ML's to README.orig.
+
+
+Version: 0.99-6 (2003-01-12, test version)
+
+	* Migration to use .Call where appropriate.
+
+	* `channel' is now a classed object, with a print method and
+	  all relevant information is recorded as attributes of the
+	  object, and new function odbcReConnect() allows reconnection to
+	  a saved `channel' object.
+
+	* New function odbcDriverConnect() provides an alternative
+	  interface via ODBC driver connection strings. Under the Windows
+	  GUI this allows interactive completion of connections strings
+	  via standard ODBC dialog boxes.
+
+	* Names of tables are no longer deparsed, so normal R
+	  semantics apply and they should be quoted.
+
+	* odbcNumRows now returns the number of rows, not a list.
+
+	* odbcCaseFlag now returns character in all cases.
+
+	* New argument `believeNRows' to accommodate ORACLE (and also
+	  sqlTypeInfo() calls on MySQL).
+
+	* The limit on the number of channels was off by one.
+
+	* sqlSave() and sqlFetch() now default to rownames = TRUE, that is
+	  to include rownames in the table, and to use column `rownames'
+	  for the rownames if it exists.  It is possible to retrieve
+	  columns other than the first as rownames, as documented (but not
+	  working).
+
+	* New `safer' option to sqlSave(), which defaults to TRUE.
+
+	* When sqlSave() creates a table and includes rownames, the rownames
+	  are created as a primary key (where supported).
+
+	* sqlUpdate() has a new `tablename' argument and many internal
+	  changes (e.g. implementing case changes): it is now operational.
+
+	* sqlSave(fast=TRUE) and sqlUpdate() can now create database NULLs
+	  even on MS Access, and character strings with value "NA" are no
+	  longer automatically regarded as missing.  sqlUpdate() now has a
+	  fast=FALSE method, and for both the fast methods avoid
+	  converting numeric and integer columns to character.
+
+	* odbcFetchRow() has been removed.
+
+	* sqlCopy() is now implemented.
+
+	* odbcFetchRows() now returns a list, and sqlFetchRows() only
+	  returns a data frame, this being the most efficient storage.
+	  SQL double, real, integer and smallint columns are transferred
+	  directly to R numeric and integer columns (rather than being
+	  converted to character and back again).
+
+	* Function sqlDrop(), sqlColumns() and sqlPrimaryKeys() were not
+	  respecting case-changing (although case-altering DBMSs usually
+	  coped).
+
+	* Various memory leaks have been plugged.
+
+	* Improved documentation.
+
+
+Version: 0.9-1 (release candidate 2, released to CRAN 2002-10-30)
 
 	* Improved documentation
 

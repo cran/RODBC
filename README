@@ -1,162 +1,112 @@
-RODBC is a package to provide connectivity to databases
-supporting the ODBC interface.  The package should be platform
-independant and provide access to any database for which a driver
-exists.  The columns are limited to 255 characters and binary data
-is not supported. 
+ODBC is a package to provide connectivity to databases supporting the
+ODBC interface.  The package should be platform independent and
+provide access to any database for which a driver exists.  It has been
+tested with MySQL and PostgreSQL on both Linix and Windows (and to
+those DBMSs on Linux hosts from R under Windows), Microsoft Access,
+SQL Server and Excel spreadsheets (read-only), and users have reported
+success with connections to Oracle and DBase.
 
-See below for installation instructions.
-The willl only compile under R > 1. 
+Usage is covered in the R Data Import/Export manual.
 
-author: Michael Lapsley <lapsley@ukshells.co.uk>
-        Michael Lapsley <mlapsley@sthelier.sghms.ac.uk>
-*************************************************************************
-
-THERE IS NO WARRANTY OF ANY KIND, NO IMPLIED MERCHANTIBILITY OR
-IMPLIED FITNESS OF PURPOSE.
-
-I have no programming training and the software may contain serious
-bugs: use is entirely at the users' risk.
-
-In particular I **STRONGLY** advise that dsn access to vital database
-tables are set without write permissions.  Functions in the library
-zero or delete tables and if wrongly called either due to user error
-or a bug there may be permanent data loss.  Do not get in touch with
-me if your company's financial records are deleted or the data from
-a huge research grant are corrupted!
+Character fields in the database are limited to 255 characters, and
+will be truncated on reading.
 
 
-This is ALPHA software.  Please let me know about bugs, poor 
-design, or ideas for enhancement.
-*************************************************************************
+ODBC under Windows
+==================
 
-'RODBC' is free software; you can redistribute  it and/or modify it under 
-the terms of the GNU General Public License as published by the Free 
-Software Foundation; either version 2, or (at your option) any later 
-version.
+ODBC is often installed by applications that can use this interface
+(it is part of MDAC).  A freely available (in the free-of-charge not
+the copyleft sense) implementation can be downloaded from
+http://www.microsoft.com/data/odbc/.  Updated drivers are also
+available here for several data sources.
+
+DSNs are usually set up using the "ODBC data sources" control panel
+(`Data Sources (ODBC)' in the `Administrative Tools' section on 2000/XP).
+If using RGui a DSN can be prepared via dialog boxes using
+
+R> channel <- odbcDriverConnect("")
+
+and this is often the simplest way for new users to ODBC or for
+rarely-used data sources.  There are convenience functions
+odbcConnectAccess/Dbase/Excel to ease connecting to one of these systems.
 
 
-A copy of the GNU General Public License is available on the World Wide
-Web at http://www.gnu.org/copyleft/gpl.html.  You can also obtain it by
-writing to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge,
-MA 02139, USA.
+ODBC under Unix/Linux
+=====================
 
-*************************************************************************
+An ODBC driver manager needs to be installed, as well as an ODBC
+driver for each database to be used.  Testing is done using unixODBC
+(http://www.unixODBC.org), but iOBDC (http://www.iODBC.org) has also
+been used.  The RODBC package is installed in the standard way (R CMD
+INSTALL RODBC) and needs the ODBC driver manager library (-lodbc or
+-lodbc32 or -liodbc) to be in the library search path (and library run
+path).
 
-ACKNOWLEDGEMENTS:  The library was inspired by RmSQL by 
-Torsten Hothorn <hothorn@amadeus.statistik.uni-dortmund.de>,
-with some code and documentation showing its lineage from RmSQL.
-The bugs are mine, however.
-Prof Brian Ripley provided help and advice especially on making the 
-code MS Windows compliant and on efficiency-tuning some functions.  
+DSNs are described in files: the user's file is ~/.odbc.ini.  Mine is:
 
-*************************************************************************
-
-INSTALLATION:
-
-R INSTALL RODBC
-
-Under unix the package was developed using unixODBC available
-from genix.net/unixODBC and mysql from www.mysql.com
-iODBC also works.  The package has been used to query MySQL, oracle
-postgreSQL and MSaccess with success.  Other database back ends
-should work as long as a driver for your driver manager is available
-for your platform.  Using ODBC-ODBC-bridge from Easysoft (see link
-at www.unixODBC.org) I have used R (linux) to interrogate MSaccess
-over a LAN.
-
-Note that under version of unixODBC (1.7) the txt driver does not work.
-In myodbc 2.50.26 there is a makefile bug which does not build the shared library.
-This has to be done by hand after the main build,
-
-ODBC Concepts.
-
-The user defines a data source name (DSN) which identifies the database,
-server and driver that the application can connect with.
-
-Under unix this is via the file .odbc.ini:  mine as follows.
- 
+gannet% cat .odbc.ini
 [test]
-Description	= myodbc
-Driver		= myodbc
-Trace		= No
-TraceFile		= 
-Server		= localhost
-Port		= 3306
-Socket		= 
-Database	= test
+Description     = myodbc
+Driver          = myodbc3
+Trace           = No
+TraceFile       =
+Server          = localhost
+Port            = 3306
+Socket          =
+Database        = test
 
-[results]
-Description	= myodbc
-Driver		= myodbc
-Trace		= No
-TraceFile		= 
-Server		= localhost
-Port		= 3306
-Socket		= 
-Database	= results
-
-(the Driver = myodbc line is resolved in a system wide config file)
-
-Under MS Windows: (thanks to David Middleton)
-
-Under Microsoft OSs ODBC is often installed by applications that can
-use this interface.  A freely available (in the MS sense not the copyleft
-sense) implementation can be downloaded from
-http://www.microsoft.com/data/odbc/.  Updated drivers are also available
-here for several data sources.
-
-DSNs are usually set up using the "ODBC data sources" control panel,
-previously known as the "ODBC Administrator".  There are other options:
-the Perl module Win32::ODBC has routines for setting up DSNs."
+[testpg]
+Description     = testpg
+Driver          = PostgreSQL
+Trace           = No
+TraceFile       =
+ServerName      = localhost
+UserName        = ripley
+Port            = 5432
+Socket          =
+Database        = testdb
 
 
-One can now issue the command:
+This can be used via
 
-channel<-odbcConnect("test","user","password",case="<DATABASE SPECIFIC>")
-or
-channel<-odbcConnect("results","user","password",case="<DB SPECIFIC>")
+R> channel <- odbcConnect("test")
 
-Note that the password is defined in the database backend,
-not (necessarily/usually) the dsn.
+as MySQL provides open access to the `test' database, but for real
+examples you will need to provide a uid and pwd entry as in
 
-Various ideas:
+R> channel <- odbcConnect("test", uid="ripley", pwd="secret")
 
-dataframe<-sqlQuery(channel,"select * from table where ...")
-sqlSave(channel,dataframe)
+More sophisticated connections, e.g. to remote machines, can be built
+using odbcDriverConnect or as DSNs.
 
-The above covers 90% of usage.
+Note that you need to ensure that .../etc/odbcinst.ini contains the
+driver information.  We have
 
-sqlCopy(readChannel,"select * from HugeSlowDatabase where ..complicatedCondition..",
- workingTable,writeChannel)
-sqlQuery(writeChannel,workingSelects)....
+gannet% cat /usr/local/etc/odbcinst.ini
+[myodbc3]
+Description = MySQL driver.
+Driver      = /usr/local/lib/libmyodbc3.so
+Setup       = /usr/local/lib/libodbcmyS.so
+FileUsage   = 1
 
-sqlSave will write into an existing table, or create one with columns of
-type varchar(255) if necessary.  sqlCopyTable will copy the table structure
-within the limitations of odbc, which is a lowest common denominator.
-If you need to use your database's unique features you can always do it
-manually with sqlQuery.
-
-There are a number of database specific issues that frustrate the attempt
-to have a truly generic interface.  The handling of case varies: oracle
-translates everting to upper case, Postgres to lower case, and MySql
-leaves as is.  This cannot be autodetected and must be specified in
-odbcConnect with the case parameter, which accepts the names of common 
-databases or 'tolower|toupper'.   
-Where column names are translated information is lost.
-Optionally row and column names can be stored in the tables
-with sqlSave.  This strategy fails if the engine does not return
-rows in the order in which they are saved.  sqlFetch will attempt to
-restore them if asked; your mileage will vary.  In general this is not
-a good idea, but I can think of no other.  Suggestions?
-
-Some databases also have pseudocolumns eg oracle and postgres.
-Attempts to save a dataframe contining these will fail:  conversly
-attempts to sqlUpdate a dataframe _without_ them will fail.
-
-Finally, I have paid little attention to record locking issues.
-Anyone in a multiuser environment should keep an eye out for
-concurrency problems and let me know if they arise.
-**********************************
+[PostgreSQL]
+Description  = PostgreSQL driver
+Driver       = /usr/local/lib/psqlodbc.so
+Setup        = /usr/local/lib/libodbcpsqlS.so
+FileUsage    = 1
 
 
+for use with MySQL using the MyODBC 3.51 driver (both from
+http://www.mysql.com), and PostgreSQL using the latest unbundled
+driver from the psqlodbc project
+(http://gborg.postgresql.org/project/psqlodbc).
 
+One quirk to be watched is the use of connections to the DBMS via the
+Unix sockets vs ports.  The PostgreSQL driver bundled with unixODBC
+will use Unix sockets to `localhost', but this driver seems unreliable
+(see the ChangeLog).  The current driver will only use a TCP/IP port,
+and to use that needs postmaster started with the -i flag (which is
+not the default) and with tcp/ip enables in the configuration file
+(which is the default).  The PostgreSQL drivers are seriously
+under-documented!

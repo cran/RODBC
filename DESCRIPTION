@@ -1,9 +1,10 @@
 Package: RODBC
-Version: 0.9-1
-Date: 2002-10-29
-Author: Michael Lapsley <mlapsley@sthelier.sghms.ac.uk>
+Version: 1.0-1
+Date: 2003-01-20
+Author: Originally Michael Lapsley <mlapsley@sthelier.sghms.ac.uk>,
+	later B. D. Ripley <ripley@stats.ox.ac.uk>
 Maintainer: B. D. Ripley <ripley@stats.ox.ac.uk>
 Title: ODBC database access
 Description: An ODBC database interface
-Depends: R (>= 1.5.0)
+Depends: R (>= 1.6.0)
 License: GPL2
