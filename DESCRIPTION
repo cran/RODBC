@@ -1,6 +1,6 @@
 Package: RODBC
-Version: 1.0-2
-Date: 2003-05-13
+Version: 1.0-3
+Date: 2003-05-25
 Author: Originally Michael Lapsley <mlapsley@sthelier.sghms.ac.uk>,
 	later B. D. Ripley <ripley@stats.ox.ac.uk>
 Maintainer: B. D. Ripley <ripley@stats.ox.ac.uk>

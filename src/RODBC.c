@@ -991,8 +991,8 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
     /* datanames are in sequence that matches data,
        colnames are sequence for parameters */
     for(i = 0, j = 0; i < ncolnames; i += 5, j++) {
-	strcpy(handles[channel].ColData[j].ColName,
-	       (SQLCHAR *) CHAR(STRING_ELT(colnames, i))); /* signedness */
+	strcpy((char *) handles[channel].ColData[j].ColName,
+	       CHAR(STRING_ELT(colnames, i))); /* signedness */
 	handles[channel].ColData[j].DataType =
 	    atoi(CHAR(STRING_ELT(colnames,i+1)));
 	handles[channel].ColData[j].ColSize =
