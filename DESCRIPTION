@@ -1,7 +1,9 @@
 Package: RODBC
-Version: 0.8-2
-Date: 2000-11-29
+Version: 0.8-3
+Date: 2001-06-21
 Author: Michael Lapsley <mlapsley@sthelier.sghms.ac.uk>
+Maintainer: Michael Lapsley <mlapsley@sthelier.sghms.ac.uk>
+Title: ODBC database access
 Description: An ODBC database interface
 Depends: ODBC support and a back end database
 License: GPL 

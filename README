@@ -47,7 +47,7 @@ Torsten Hothorn <hothorn@amadeus.statistik.uni-dortmund.de>,
 with some code and documentation showing its lineage from RmSQL.
 The bugs are mine, however.
 Prof Brian Ripley provided help and advice especially on making the 
-code MS Windows compliant.
+code MS Windows compliant and on efficiency-tuning some functions.  
 
 *************************************************************************
 

@@ -243,7 +243,7 @@ odbcNumCols(channel)
   alternate address \email{mlapsley@ndirect.co.uk}
 }
 \examples{
-library(RODBC)
+\dontrun{library(RODBC)
 data(USArrests)
 channel <- odbcConnect("test", "", "") # userId and password
 sqlSave(channel, USArrests, rownames = "State", verbose = TRUE)
@@ -252,7 +252,6 @@ sqlQuery(channel, "select State, Murder from USArrests where rape > 30 order by 
 sqlFetch(channel, "USArrests") # get the lot
 sqlDrop(channel, USArrests)
 odbcClose(channel)
-rm(USArrests)
+rm(USArrests)}
 }
-\keyword{database, SQL, odbc, access, mysql, postgresql, sybase, sqlserver,
-oracle}
+\keyword{database, SQL, odbc, access, mysql, postgresql, sybase, sqlserver, oracle}
