@@ -66,7 +66,9 @@ odbcConnectExcel(xls.file)
   \code{odbcConnectExcel} are convenience wrappers to generate
   connection strings for those file types.  The files given can be
   relative to the \R working directory or absolute paths (and it seems
-  that the drivers will also look relative to the user's home directory).
+  that the drivers will also look relative to the user's home
+  directory).  \bold{Note:} they will only work with English versions of
+  the MicroSoft drivers, which may or may not be installed in other locales.
 #endif
 }
 \value{

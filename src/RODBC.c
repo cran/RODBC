@@ -46,7 +46,7 @@ typedef struct cols{
     SQLUINTEGER	ColSize;
     SQLSMALLINT	DecimalDigits;
     SQLSMALLINT	Nullable;
-    char	Data[COLMAX + 1]; /* allow for null terminator */
+    char	*pData;
     SQLDOUBLE	RData;
     SQLREAL	R4Data;
     SQLINTEGER	IData;
@@ -70,6 +70,7 @@ struct RODBCHandles  {
     int         id;
     int         useNRows;
     COLUMNS	*ColData;	/* This will be allocated as an array of columns */
+    int		nAllocated;
     SQLMSG	*msglist;	/* root of linked list of messages */
 } static handles[CHANMAX];
 
@@ -578,12 +579,19 @@ static int cachenbind(int channel)
 	return -1;
     }
     /* Allocate storage for ColData array ,first freeing what was there last */
-    if(handles[channel].ColData) Free(handles[channel].ColData);
+    if(handles[channel].ColData) {
+	for (i = 0; i < handles[channel].nAllocated; i++)
+	    if(handles[channel].ColData[i].pData)
+	    Free(handles[channel].ColData[i].pData);
+	Free(handles[channel].ColData);
+    }
     handles[channel].ColData = Calloc(NCOLS, COLUMNS);
+    /* this allocates Data as zero */
+    handles[channel].nAllocated = NCOLS;
 
     /* step through each col and cache metadata: cols are numbered from 1!
      */
-    for (i = 0; i < (SQLUSMALLINT) NCOLS; i++) {
+    for (i = 0; i < NCOLS; i++) {
 	retval = SQLDescribeCol(handles[channel].hStmt, i+1,
 				handles[channel].ColData[i].ColName, 256,
 				&handles[channel].ColData[i].NameLength,
@@ -620,11 +628,17 @@ static int cachenbind(int channel)
 				&handles[channel].ColData[i].I2Data,
 				COLMAX,
 				&handles[channel].ColData[i].IndPtr);
-	} else {
+	} else { /* transfer as character */
+	    int datalen = handles[channel].ColData[i].ColSize;
+	    if (datalen < COLMAX) datalen = COLMAX;
+	    /* sanity check as the reports are sometimes unreliable */
+	    if (datalen > 65535) datalen = 65535;
+	    handles[channel].ColData[i].pData = Calloc(datalen + 1, char);
+	    handles[channel].ColData[i].IData = datalen;
 	    retval = SQLBindCol(handles[channel].hStmt, i+1,
 				SQL_C_CHAR,
-				handles[channel].ColData[i].Data,
-				COLMAX,
+				handles[channel].ColData[i].pData,
+				datalen,
 				&handles[channel].ColData[i].IndPtr);
 	}
 	if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
@@ -739,9 +753,9 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 		}
 	    }
 
-	    /* looks like we have to zero the cols explicitly :(*/
+	    /* looks like we have to zero the cols explicitly :(
 	    for (i = 0; i < nc; i++)
-		handles[channel].ColData[i].Data[0] = '\0';
+		handles[channel].ColData[i].Data[0] = '\0'; */
 
 	    retval = SQLFetch(handles[channel].hStmt);
 	    if(retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO) break;
@@ -758,7 +772,7 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 		   == SQL_SUCCESS) {
 		    if(strcmp(sqlstate, "O1004") == 0)
 			warning("character data truncated in column `%s'",
-				handles[channel].ColData[i].ColName);
+				(char *)handles[channel].ColData[i].ColName);
 		}
 	    }
 
@@ -795,7 +809,7 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 				       STRING_ELT(nas, 0));
 		    else
 			SET_STRING_ELT(VECTOR_ELT(data, i), j-1,
-				       mkChar(handles[channel].ColData[i].Data));
+				       mkChar(handles[channel].ColData[i].pData));
 		}
 	    }
 	}
@@ -963,14 +977,22 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
     }
     /* Allocate storage for ColData array,
        first freeing what was there last */
-    if(handles[channel].ColData) Free(handles[channel].ColData);
+        if(handles[channel].ColData) {
+	for (i = 0; i < handles[channel].nAllocated; i++)
+	    if(handles[channel].ColData[i].pData)
+	    Free(handles[channel].ColData[i].pData);
+	Free(handles[channel].ColData);
+    }
     handles[channel].ColData = Calloc(NCOLS, COLUMNS);
+    /* this allocates Data as zero */
+    handles[channel].nAllocated = NCOLS;
+
     /* extract the column data and put it somewhere easy to read */
     /* datanames are in sequence that matches data,
        colnames are sequence for parameters */
     for(i = 0, j = 0; i < ncolnames; i += 5, j++) {
 	strcpy(handles[channel].ColData[j].ColName,
-	       CHAR(STRING_ELT(colnames, i)));
+	       (SQLCHAR *) CHAR(STRING_ELT(colnames, i))); /* signedness */
 	handles[channel].ColData[j].DataType =
 	    atoi(CHAR(STRING_ELT(colnames,i+1)));
 	handles[channel].ColData[j].ColSize =
@@ -998,7 +1020,7 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 	}
 	if(vtest)
 	    Rprintf("Binding: %s: DataType %d\n",
-		    handles[channel].ColData[j].ColName,
+		    (char *) handles[channel].ColData[j].ColName,
 		    handles[channel].ColData[j].DataType);
 	if(TYPEOF(VECTOR_ELT(data, sequence[j])) == REALSXP) {
 	    res <- SQLBindParameter(handles[channel].hStmt,
@@ -1019,12 +1041,13 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 				    0,
 				    &handles[channel].ColData[j].IndPtr);
 	} else {
+	    handles[channel].ColData[j].pData = Calloc(COLMAX+1, char);
 	    res <- SQLBindParameter(handles[channel].hStmt,
 				    j+1, SQL_PARAM_INPUT, SQL_C_CHAR,
 				    handles[channel].ColData[j].DataType,
 				    handles[channel].ColData[j].ColSize,
 				    handles[channel].ColData[j].DecimalDigits,
-				    handles[channel].ColData[j].Data,
+				    handles[channel].ColData[j].pData,
 				    0,
 				    &handles[channel].ColData[j].IndPtr);
 	}
@@ -1048,7 +1071,7 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 		    REAL(VECTOR_ELT(data, k))[i];
 		if(vtest)
 		    Rprintf("no: %d: %s %g/***/", j + 1,
-			    handles[channel].ColData[j].ColName,
+			    (char *) handles[channel].ColData[j].ColName,
 			    REAL(VECTOR_ELT(data, k))[i]);
 		if(ISNAN(REAL(VECTOR_ELT(data, k))[i]))
 		    handles[channel].ColData[j].IndPtr = SQL_NULL_DATA;
@@ -1059,7 +1082,7 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 		    INTEGER(VECTOR_ELT(data, k))[i];
 		if(vtest)
 		    Rprintf("no: %d: %s %d/***/", j + 1,
-			    handles[channel].ColData[j].ColName,
+			    (char *) handles[channel].ColData[j].ColName,
 			    INTEGER(VECTOR_ELT(data, k))[i]);
 		if(INTEGER(VECTOR_ELT(data, k))[i] == NA_INTEGER)
 		    handles[channel].ColData[j].IndPtr = SQL_NULL_DATA;
@@ -1067,14 +1090,15 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 		    handles[channel].ColData[j].IndPtr = SQL_NTS;
 	    } else {
 		char *cData = CHAR(STRING_ELT(VECTOR_ELT(data, k), i));
-		strncpy(handles[channel].ColData[j].Data, cData, 255);
-		handles[channel].ColData[j].Data[256] = '\0';
-		if(strlen(cData) >= 256)
+		strncpy(handles[channel].ColData[j].pData, cData, COLMAX);
+		handles[channel].ColData[j].pData[COLMAX+1] = '\0';
+		if(strlen(cData) > COLMAX)
 		    warning("character data truncated in column `%s'",
-			    handles[channel].ColData[j].ColName);
+			    (char *) handles[channel].ColData[j].ColName);
 		if(vtest)
 		    Rprintf("no: %d: %s %s/***/", j + 1,
-			    handles[channel].ColData[j].ColName, cData);
+			    (char *) handles[channel].ColData[j].ColName,
+			    cData);
 		if(STRING_ELT(VECTOR_ELT(data, k), i) == NA_STRING)
 		    handles[channel].ColData[j].IndPtr = SQL_NULL_DATA;
 		else

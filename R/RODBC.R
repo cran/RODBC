@@ -74,7 +74,7 @@ odbcQuery <- function(channel, query)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
-    .Call("RODBCQuery", channel, as.character(query))
+    .Call("RODBCQuery", channel, as.character(query), PACKAGE = "RODBC")
 }
 
 odbcUpdate <-
@@ -165,7 +165,7 @@ odbcClose <- function(channel)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
-    res <- .Call("RODBCClose", channel)
+    res <- .Call("RODBCClose", channel, PACKAGE = "RODBC")
     if(res > 0) invisible(TRUE) else {
         warning(paste(odbcGetErrMsg(channel), sep="\n"))
         FALSE
@@ -174,7 +174,7 @@ odbcClose <- function(channel)
 
 odbcCloseAll <- function()
 {
-    .Call("RODBCCloseAll")
+    .Call("RODBCCloseAll", PACKAGE = "RODBC")
     invisible()
 }
 

@@ -30,8 +30,8 @@ sqlCopyTable(channel, srctable, desttable, destchannel = channel,
   low level access to the odbc functions of similar name.
   \code{sql*} commands are higher level constructs to read, save, copy and
   manipulate data between data frames and sql tables.  Up to 16 connections
-  can be open at once to any combination of dsn/hosts.  Columns are limited
-  to 255 chars of non-binary data.
+  can be open at once to any combination of dsn/hosts.
+  Writing columns is limited to 255 characters wide.
 
   \code{sqlCopy} as is like \code{\link{sqlQuery}},
   but saves the output of \code{query} in table \code{destination} on

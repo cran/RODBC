@@ -1,3 +1,14 @@
+Version: 1.0-2 (2003-05-13, released)
+
+	* Add inst/ directory and install README.
+
+	* Allow reading of character fields up to 64K bytes (limited
+	  as the driver may report silly sizes).
+
+	* Note that convenience wrappers for Excel etc need
+	  English-language drivers to be installed.
+
+
 Version: 1.0-1 (2003-01-20, released)
 
 	* If a character field is truncated when reading from a database,

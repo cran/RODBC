@@ -8,6 +8,3 @@ Handle the decimal point more elegantly.
 (Can ODBC tell us what the database uses?  Seems not.)
 
 Replace internal table of handles by external references?
-
-Consider removing the 255 char limit, at least when reading from the 
-DBMS.
