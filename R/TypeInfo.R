@@ -53,9 +53,8 @@ getSqlTypeInfo <- function(driver)
 setSqlTypeInfo <- function(driver, value)
 {
     if(!is.character(driver) || length(driver) != 1)
-        stop("Argument ", sQuote("driver"), " must be a character string")
+        stop("argument 'driver' must be a character string")
     if(!is.list(value) || length(value) < 4 || is.null(names(value)) )
-        stop("Argument ", sQuote("value"),
-             " must be a named list of length >= 4")
+        stop("argument 'value' must be a named list of length >= 4")
     typesR2DBMS[driver] <- value[c("double", "integer", "character", "logical")]
 }

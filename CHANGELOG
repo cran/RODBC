@@ -1,8 +1,20 @@
+Version: 1.1-3 (2005-02-05, released)
+
+	* Improve error messages for possible translation.
+
+	* Fix typo in regexp in mangleColNames.
+
+	* Add tests for native PostgreSQL on Windows.
+
+	* Workaround problem with MyODBC 3.15-10 driver that needs
+	  SQL_DRIVER_NOPROMPT when the window handle is null.
+
+
 Version: 1.1-2 (2004-10-24, released)
 
 	* Operating on a closed channel might crash in RODBCcheckchannel.
 
-        * Report that DBase driver description in odbcConnectDbase was wrong.
+	* Report that DBase driver description in odbcConnectDbase was wrong.
 
 	* Add settings for SQLite.
 
@@ -22,7 +34,7 @@ Version: 1.1-0 (2004-09-06, test version)
 
 	* Add NAMESPACE.
 
-        * odbcConnect{Access,Dbase,Excel} allow a missing file name
+	* odbcConnect{Access,Dbase,Excel} allow a missing file name
 	  (and will bring up a dialog box to search for it).
 
 	* odbcGetInfo returns more information in a 8-element character
@@ -54,14 +66,14 @@ Version: 1.1-0 (2004-09-06, test version)
 
 Version: 1.0-4 (2003-07-19, released)
 
-        * RODBC.c: iodbc was not recognizing the SQLTCHAR cast
+	* RODBC.c: iodbc was not recognizing the SQLTCHAR cast
 
-        * odbcClose.Rd, odbcConnect.Rd: tidy up
+	* odbcClose.Rd, odbcConnect.Rd: tidy up
 
 
 Version: 1.0-3 (2003-05-25, released)
 
-        * RODBC.c: remove unneeded SQLCHAR cast
+	* RODBC.c: remove unneeded SQLCHAR cast
 
 
 Version: 1.0-2 (2003-05-13, released)
@@ -219,4 +231,5 @@ Version: 0.9-0 (release candidate 1)
 
 Version: 0.8-3
 
-       * Minor changes to make documentation and examples R CMD check compliant
+	* Minor changes to make documentation and examples
+	  R CMD check compliant

@@ -76,6 +76,7 @@ UserName        = ripley
 Port            = 5432
 Socket          =
 Database        = testdb
+ReadOnly        = 0
 
 
 This can be used via
@@ -98,20 +99,25 @@ gannet% cat /usr/local/etc/odbcinst.ini
 [myodbc3]
 Description = MySQL driver.
 Driver      = /usr/local/lib/libmyodbc3.so
-Setup       = /usr/local/lib/libodbcmyS.so
+Setup       = /usr/local/liblibmyodbc3S/.so
 FileUsage   = 1
 
 [PostgreSQL]
 Description  = PostgreSQL driver
-Driver       = /usr/local/lib/psqlodbc.so
-Setup        = /usr/local/lib/libodbcpsqlS.so
+Driver       = /usr/lib/libodbcpsql.so
+Setup        = /usr/lib/libodbcpsqlS.so
 FileUsage    = 1
 
+[sqlite]
+Description = sqliteodbc-0.64
+Driver = /usr/local/lib/libsqliteodbc.so
+FileUsage = 1
 
 for use with MySQL using the MyODBC 3.51 driver (both from
-http://www.mysql.com), and PostgreSQL using the driver psqlodbc-07.03.0200
-from the psqlODBC project (http://gborg.postgresql.org/project/psqlodbc).
-For PostgreSQL, CommLog = 1 adds user-level logging.
+http://www.mysql.com), and PostgreSQL using the driver from the
+psqlODBC project (http://gborg.postgresql.org/project/psqlodbc).  For
+PostgreSQL, CommLog = 1 adds user-level logging.  The Sqlite ODBC
+driver is from http://www.ch-werner.de/sqliteodbc/.
 
 One quirk to be watched is the use of connections to the DBMS via the
 Unix sockets vs ports.  The PostgreSQL driver bundled with unixODBC
@@ -120,8 +126,10 @@ will use Unix sockets to 'localhost', but this driver seems unreliable
 and to use that needs postmaster started with the -i flag (which is
 not the default) and with tcp/ip enabled in the configuration file
 (which is the default).  The PostgreSQL drivers are seriously
-under-documented (but some older docs exists at 
-http://www.postgresql.org/docs/7.2/static/odbc.html)!
+under-documented (but some older docs exists at
+http://www.postgresql.org/docs/7.2/static/odbc.html)!  It seems that
+recently they default to readonly, so ReadOnly = 0 has to be added as
+above.
 
 Users of unixODBC and iODBC can use gODBCConfig and iodbcadm-gtk
 repspectively to prepare user and systems DSNs: they are reworkings of

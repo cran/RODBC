@@ -1,0 +1,116 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2005-02-02 11:32+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/RODBC.c:108
+msgid "[RODBC] ERROR: Could not SQLAllocEnv"
+msgstr ""
+
+#: ../src/RODBC.c:109
+msgid "[RODBC] ERROR: Could not SQLAllocConnect"
+msgstr ""
+
+#: ../src/RODBC.c:110
+msgid "[RODBC] ERROR: Could not SQLDriverConnect"
+msgstr ""
+
+#: ../src/RODBC.c:111
+msgid "[RODBC] Error SQLFreeconnect"
+msgstr ""
+
+#: ../src/RODBC.c:112
+msgid "[RODBC] Error SQLDisconnect"
+msgstr ""
+
+#: ../src/RODBC.c:113
+msgid "[RODBC] Error in SQLFreeEnv"
+msgstr ""
+
+#: ../src/RODBC.c:114
+msgid "[RODBC] ERROR: Could not SQLExecDirect"
+msgstr ""
+
+#: ../src/RODBC.c:115
+msgid "[RODBC] ERROR: Could not SQLPrepare"
+msgstr ""
+
+#: ../src/RODBC.c:116
+msgid "[RODBC] ERROR: SQLTables failed"
+msgstr ""
+
+#: ../src/RODBC.c:117
+msgid "[RODBC] ERROR: Could not SQLAllocStmt"
+msgstr ""
+
+#: ../src/RODBC.c:118
+msgid "[RODBC] ERROR: Row count failed"
+msgstr ""
+
+#: ../src/RODBC.c:119
+msgid "[RODBC] ERROR: SQLDescribe Col failed"
+msgstr ""
+
+#: ../src/RODBC.c:120
+msgid "[RODBC] ERROR: SQLBindCol failed"
+msgstr ""
+
+#: ../src/RODBC.c:121
+msgid "[RODBC] ERROR: Failure in SQLPrimary keys"
+msgstr ""
+
+#: ../src/RODBC.c:122
+msgid "[RODBC] ERROR: Failure in SQLColumns"
+msgstr ""
+
+#: ../src/RODBC.c:170
+msgid "[RODBC] ERROR:invalid connection argument"
+msgstr ""
+
+#: ../src/RODBC.c:226
+#, c-format
+msgid "[RODBC] ERROR: state %s, code %d, message %s"
+msgstr ""
+
+#: ../src/RODBC.c:657 ../src/RODBC.c:692 ../src/RODBC.c:854
+msgid "[RODBC] No results available"
+msgstr ""
+
+#: ../src/RODBC.c:698
+msgid "No Data"
+msgstr ""
+
+#: ../src/RODBC.c:756 ../src/RODBC.c:1084
+#, c-format
+msgid "character data truncated in column '%s'"
+msgstr ""
+
+#: ../src/RODBC.c:1003
+msgid "Missing column name"
+msgstr ""
+
+#: ../src/RODBC.c:1044
+msgid "[RODBC] Failed Bind Param in Update"
+msgstr ""
+
+#: ../src/RODBC.c:1100
+msgid "[RODBC] Failed exec in Update"
+msgstr ""
+
+#: ../src/RODBC.c:1172
+#, c-format
+msgid "closing unused RODBC handle %d\n"
+msgstr ""

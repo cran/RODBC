@@ -9,10 +9,10 @@ sqlDrop <- function(channel, sqtable, errors = TRUE)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
-    if(missing(sqtable)) stop("Missing argument 'sqtable'")
+    if(missing(sqtable)) stop("missing argument 'sqtable'")
     dbname <- odbcTableExists(channel, sqtable, abort = errors)
     if(!length(dbname)) {
-        if(errors) stop("table '", sqtable, "' not found");
+        if(errors) stop("table ", sQuote(sqtable), " not found");
         return(-1);
     }
     res <- sqlQuery(channel, paste ("DROP TABLE", dbname), errors = errors)
@@ -27,7 +27,7 @@ sqlFetch <-
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
-    if(missing(sqtable)) stop("Missing argument 'sqtable'")
+    if(missing(sqtable)) stop("missing argument 'sqtable'")
     dbname <- odbcTableExists(channel, sqtable)
     DBMS <- odbcGetInfo(channel)[1]
     if(DBMS == "ACCESS" && length(grep(" ", dbname)))
@@ -77,7 +77,7 @@ sqlClear <- function(channel, sqtable, errors = TRUE)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
-    if(missing(sqtable)) stop("Missing argument 'sqtable'")
+    if(missing(sqtable)) stop("missing argument 'sqtable'")
     if(!length(odbcTableExists(channel, sqtable, abort = errors)))
         return(-1);
     sqlQuery(channel, paste ("DELETE FROM", sqtable), errors = errors)
@@ -92,7 +92,7 @@ sqlCopy <-
     if(!odbcValidChannel(destchannel))
        stop("destination argument is not an open RODBC channel")
     if( missing(query) || missing(destination))
-        stop("Missing parameter")
+        stop("missing parameter")
     if(length(destination) != 1)
         stop("destination should be a name")
     dataset <- sqlQuery(channel, query, errors = errors)
@@ -108,10 +108,10 @@ sqlCopyTable <-
     if(!odbcValidChannel(destchannel))
        stop("destination argument is not an open RODBC channel")
     if(missing(srctable) || missing(desttable))
-        stop("Missing parameter")
+        stop("missing parameter")
     dtablename <- as.character(desttable)
     if(length(dtablename) != 1)
-        stop("'", dtablename, "' should be a name")
+        stop(sQuote(dtablename), " should be a name")
     stablename <- as.character(srctable)
     if(!length(odbcTableExists(channel, stablename, abort = errors)))
         return(-1);
@@ -139,16 +139,16 @@ sqlSave <-
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
     if(missing(dat))
-        stop("Missing parameter")
+        stop("missing parameter")
     if(!is.data.frame(dat))
-        stop("Should be a dataframe")
+        stop("should be a data frame")
     if(is.null(tablename))
         tablename <- if(length(substitute(dat)) == 1)
             as.character(substitute(dat))
         else
             as.character(substitute(dat)[[2]])
     if(length(tablename) != 1)
-        stop("'", tablename, "' should be a name")
+        stop(sQuote(tablename), " should be a name")
     switch(attr(channel, "case"),
            nochange = {},
            toupper={tablename <- toupper(tablename)
@@ -176,7 +176,7 @@ sqlSave <-
     ## find out if table already exists
     if(length(odbcTableExists(channel, tablename, FALSE))) {
         if(!append) {
-            if(safer) stop("table '", tablename, "' already exists")
+            if(safer) stop("table ", sQuote(tablename), " already exists")
             ## zero table, return if no perms
             query <- paste ("DELETE FROM", tablename)
             if(verbose) cat("Query: ", query, "\n", sep = "")
@@ -185,7 +185,7 @@ sqlSave <-
                 stop(paste(odbcGetErrMsg(channel), sep="\n"))
         }
         if(sqlwrite(channel ,tablename, dat, verbose=verbose, ...) == -1) {
-            if(safer) stop("unable to append to table %s", tablename)
+            if(safer) stop("unable to append to table ", sQuote(tablename))
             ##cannot write: try dropping table
             query <- paste("DROP TABLE", tablename)
             if(verbose) {
@@ -258,14 +258,13 @@ sqlSave <-
     names(colspecs) <- names(dat)
     if(!missing(varTypes)) {
         if(!length(nm <- names(varTypes)))
-            warning("Argument ", sQuote("varTypes"),
-                    " has no names and will be ignored")
+            warning("argument 'varTypes' has no names and will be ignored")
         OK <- names(colspecs) %in% nm
         colspecs[OK] <- varTypes[names(colspecs)[OK]]
         notOK <- !(nm %in% names(colspecs))
         if(any(notOK))
-            warning("Column(s) ", paste(nm[notOK], collapse=", "),
-                    " named in ", sQuote("varTypes"), " are unknown")
+            warning("column(s) ", paste(nm[notOK], collapse=", "),
+                    " named in 'varTypes' are unknown")
     }
     query <- sqltablecreate(tablename, colspecs = colspecs, keys = keys)
     if(verbose) cat("Query: ", query, "\n", sep = "")
@@ -276,7 +275,7 @@ sqlSave <-
     if(sqlwrite(channel, tablename, dat, verbose = verbose, ...) < 0) {
         err <- odbcGetErrMsg(channel)
         msg <- paste(err,  sep="\n")
-        if("Missing column name" %in% err)
+        if("missing column name" %in% err)
             msg <- paste(msg,
                          "Check case conversion parameter in odbcConnect",
                          sep="\n")
@@ -285,7 +284,7 @@ sqlSave <-
     invisible(1)
 }
 
-mangleColNames <- function(colnames) gsub("[^[:alnum]_]+", "", colnames)
+mangleColNames <- function(colnames) gsub("[^[:alnum:]_]+", "", colnames)
 
 ################################################
 # utility function
@@ -394,7 +393,7 @@ sqlTables <- function(channel, errors = FALSE, as.is = TRUE)
     stat <- odbcTables(channel)
     if(stat < 0) {
         if(errors) {
-            if(stat == -2) stop("Invalid channel")
+            if(stat == -2) stop("invalid channel")
             else return(odbcGetErrMsg(channel))
         } else return(-1)
     } else return(sqlGetResults(channel, as.is = as.is))
@@ -406,19 +405,19 @@ sqlColumns <-
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
     if(length(sqtable) != 1)
-        stop("'", sqtable, "' should be a name")
+        stop(sQuote(sqtable), " should be a name")
     if(!length(dbname <- odbcTableExists(channel, sqtable, FALSE, FALSE))) {
         caseprob <- ""
         if(is.data.frame(nm <- sqlTables(channel)) &&
            tolower(sqtable) %in% tolower(nm[,3]))
             caseprob <-  "\nCheck case parameter in odbcConnect"
-        stop(paste(sqtable, ": table not found on channel", caseprob))
+        stop(sQuote(sqtable), ": table not found on channel", caseprob)
     }
     stat <- if(special) odbcSpecialColumns(channel, dbname)
     else odbcColumns(channel, dbname)
     if(stat < 0) {
         if(errors) {
-            if(stat == -2) stop("Invalid channel")
+            if(stat == -2) stop("invalid channel")
             else return(odbcGetErrMsg(channel))
         } else return(-1)
     } else return(sqlGetResults(channel, as.is = as.is))
@@ -430,18 +429,18 @@ sqlPrimaryKeys <-
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
     if(length(sqtable) != 1)
-        stop("'", sqtable, "' should be a name")
+        stop(sQuote(sqtable), " should be a name")
     if(!length(dbname <- odbcTableExists(channel, sqtable, FALSE))) {
         caseprob <- ""
         if(is.data.frame(nm <- sqlTables(channel)) &&
            tolower(sqtable) %in% tolower(nm[,3]))
             caseprob <-  "\nCheck case parameter in odbcConnect"
-        stop(paste(sqtable, ": table not found on channel", caseprob))
+        stop(sQuote(sqtable), ": table not found on channel", caseprob)
     }
     stat <- odbcPrimaryKeys(channel, dbname)
     if(stat < 0) {
         if(errors) {
-            if(stat == -2) stop("Invalid channel")
+            if(stat == -2) stop("invalid channel")
             else return(odbcGetErrMsg(channel))
         } else return(-1)
     } else return(sqlGetResults(channel, as.is = as.is))
@@ -453,7 +452,7 @@ sqlQuery <-
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
     if(missing(query))
-        stop("Missing parameter")
+        stop("missing parameter")
     stat <- odbcQuery(channel, query)
     if(stat == -1)
     {
@@ -503,13 +502,13 @@ sqlGetResults <-
             as.is <- rep(as.is, length = cols)
         } else if(is.numeric(as.is)) {
             if(any(as.is < 1 | as.is > cols))
-                stop("invalid numeric as.is expression")
+                stop("invalid numeric 'as.is' expression")
             i <- rep(FALSE, cols)
             i[as.is] <- TRUE
             as.is <- i
         } else if(length(as.is) != cols)
-            stop(paste("as.is has the wrong length", length(as.is),
-                       "!= cols =", cols))
+            stop("'as.is' has the wrong length ", length(as.is),
+                 " != cols = ", cols)
         for (i in 1:cols) {
             if(as.is[i]) next
             if(is.numeric(data[[i]])) next
@@ -533,15 +532,15 @@ sqlUpdate <-
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
-    if(missing(dat)) stop("Missing parameter")
-    if(!is.data.frame(dat)) stop("Should be a dataframe or matrix")
+    if(missing(dat)) stop("missing parameter")
+    if(!is.data.frame(dat)) stop("should be a data frame or matrix")
     if(is.null(tablename))
         tablename <- if(length(substitute(dat)) == 1)
             as.character(substitute(dat))
         else
             as.character(substitute(dat)[[2]])
     if(length(tablename) != 1)
-        stop("'", tablename, "' should be a name")
+        stop(sQuote(tablename), " should be a name")
     dbname <- odbcTableExists(channel, tablename)
     ## test for missing values.
     cnames <- colnames(dat)
@@ -558,13 +557,13 @@ sqlUpdate <-
     coldata <- cdata[c(4,5,7,8,9)]
     if(is.character(index)) {
         intable <- index %in% coldata[ ,1]
-        if(any(!intable)) stop("index column(s) '",
+        if(any(!intable)) stop("index column(s) ",
                                paste(index[!intable], collapse=" "),
-                               "' not in database table")
+                               " not in database table")
         intable <- index %in% cnames
-        if(any(!intable)) stop("index column(s) '",
+        if(any(!intable)) stop("index column(s) ",
                                paste(index[!intable], collapse=" "),
-                               "' not in data frame")
+                               " not in data frame")
         indexcols <- index
     } else {
         haveKey <- FALSE
@@ -601,8 +600,8 @@ sqlUpdate <-
         if(!haveKey){
             ## can we use a column 'rownames' as index column?
             if(! "rownames" %in% coldata[,1])
-                stop(paste("Cannot update", tablename,
-                           "without unique column"))
+                stop("cannot update ", sQuote(tablename),
+                     " without unique column")
             indexcols <- "rownames"
             dat <- cbind(row.names(dat), dat)
             names(dat)[1] <- "rownames"
@@ -610,9 +609,9 @@ sqlUpdate <-
     }
     ## check that no columns are present in the df that are not in the table
     intable <- cnames %in% coldata[ ,1]
-    if(any(!intable)) stop("data frame column(s) '",
+    if(any(!intable)) stop("data frame column(s) ",
                            paste(cnames[!intable], collapse=" "),
-                           "' not in database table")
+                           " not in database table")
     cn1 <- cnames[!cnames %in% indexcols]
     if(fast) {
         query <- paste("UPDATE", tablename, "SET")
@@ -666,7 +665,7 @@ odbcTableExists <- function(channel, tablename, abort = TRUE, forQuery = TRUE)
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
     if(length(tablename) != 1)
-        stop(paste(tablename, "should be a name"))
+        stop(sQuote(tablename), " should be a name")
     tablename <- as.character(tablename)
     switch(attr(channel, "case"),
            nochange = {},
@@ -679,7 +678,7 @@ odbcTableExists <- function(channel, tablename, abort = TRUE, forQuery = TRUE)
     stables <- sub("\\$$", "", tables)
     ans <- tablename %in% stables
     if(abort && !ans)
-        stop(paste(tablename,": table not found on channel"))
+        stop(sQuote(tablename), ": table not found on channel")
     if(ans)
         if(odbcGetInfo(channel)[1] == "EXCEL") {
             dbname <- tables[match(tablename, stables)]
