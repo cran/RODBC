@@ -1,0 +1,4 @@
+RODBC-internal          Internal RODBC functions
+RODBC                   ODBC Database Connectivity
+odbc                    Low-level ODBC functions
+odbcConnect             ODBC Open and Close

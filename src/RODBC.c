@@ -19,12 +19,6 @@
 #include <R.h>
 #include <Rdefines.h>
 
-#if R_VERSION < R_Version(1, 2, 0)
-# define STRING_ELT(x,i)        (STRING(x)[i])
-# define VECTOR_ELT(x,i)        (VECTOR(x)[i])
-# define SET_STRING_ELT(x,i,v)  (STRING(x)[i] = (v))
-# define SET_VECTOR_ELT(x,i,v)  (VECTOR(x)[i] = (v))
-#endif
 
 #define CHANMAX 16	/* Number of open channels allowed */
 #define COLMAX 256
@@ -38,7 +32,6 @@
 #define NCOLS handles[channel].nColumns /*save some column space for typing*/
 #define NROWS handles[channel].nRows
 
-char VersionString[]="$Id: RODBC.c,v 0.19 2000/05/21 23:23:04 ml Exp $";
 
 typedef struct cols{
     SQLSMALLINT	ColNo;
@@ -438,6 +431,114 @@ void RODBCTables(int *sock,  int *stat)
     handles[channel].fStmt = 1; /* flag the hStmt in use */
 
 }
+/*****************************************************
+ *
+ *    get Type Info
+ *
+ * ***************************************/
+
+void RODBCTypeInfo(int *sock,  int *ptype, int *stat)
+{
+    int channel = sock[0];
+    short type;
+
+    stat[0] = 1;
+    if(!checkchannel(channel)) {
+	stat[0]=-2;
+	return;
+    }
+/* First free any resources left from the previous query */
+    if(handles[channel].fStmt> -1) {
+	(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
+	handles[channel].fStmt = -1;
+    }
+    errorFree(handles[channel].msglist);
+    handles[channel].msglist = NULL;
+
+    if( SQLAllocStmt( handles[channel].hDbc, &handles[channel].hStmt ) != SQL_SUCCESS )
+    {
+	errlistAppend(channel, err_SQLAllocStmt);
+	stat[0] = -1;
+	return;
+    }
+
+    switch(*ptype){
+    case 0: type = SQL_ALL_TYPES; break; /* all */
+    case 1: type = SQL_CHAR; break;
+    case 2: type = SQL_VARCHAR; break;
+    case 3: type = SQL_REAL; break;
+    case 4: type = SQL_DOUBLE; break;
+    case 5: type = SQL_INTEGER; break;
+    case 8: type = SQL_SMALLINT; break;
+#if (ODBCVER >= 0x0300)
+    case 7: type = SQL_TYPE_TIMESTAMP; break;
+#endif
+    default: type = SQL_ALL_TYPES;
+    }
+
+    if( SQLGetTypeInfo( handles[channel].hStmt, type) != SQL_SUCCESS )
+    {
+	geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
+	       handles[channel].hStmt);
+	(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
+	errlistAppend(channel, err_SQLTables);
+	stat[0] = -1;
+	return;
+    }
+    if(cachenbind(channel) < 0) {
+	(void)SQLFreeStmt( handles[channel].hStmt, SQL_DROP );
+	stat[0] = -1;
+	return ;
+    }
+    handles[channel].fStmt = 1; /* flag the hStmt in use */
+
+}
+
+void RODBCGetInfo(int *sock,  char **res, int *stat)
+{
+    int channel = sock[0];
+    char buf[1000];
+    SQLSMALLINT nbytes;
+    
+
+    stat[0] = 1;
+    if(!checkchannel(channel)) {
+	stat[0]=-2;
+	return;
+    }
+    if( SQLGetInfo(handles[channel].hDbc, 
+		   SQL_DBMS_NAME,
+		   buf, (SQLSMALLINT)1000, &nbytes
+		   ) != SQL_SUCCESS )
+    { 
+	geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
+	       handles[channel].hStmt);
+	stat[0] = -1; return;
+    } else strcpy(res[0], buf);
+    strcat(res[0], " version ");
+
+    if( SQLGetInfo(handles[channel].hDbc, 
+		   SQL_DBMS_VER,
+		   buf, (SQLSMALLINT)1000, &nbytes
+		   ) != SQL_SUCCESS )
+    { 
+	geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
+	       handles[channel].hStmt);
+	stat[0] = -1; return;
+    } else strcat(res[0], buf);
+    strcat(res[0], ". Driver ODBC version ");
+
+    if( SQLGetInfo(handles[channel].hDbc, 
+		   SQL_DRIVER_ODBC_VER,
+		   buf, (SQLSMALLINT)1000, &nbytes
+		   ) != SQL_SUCCESS )
+    { 
+	geterr(channel, handles[channel].hEnv, handles[channel].hDbc,
+	       handles[channel].hStmt);
+	stat[0] = -1; return;
+    } else strcat(res[0], buf);
+}
+
 
 /********************************************
  *

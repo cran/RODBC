@@ -1,13 +1,10 @@
 #  Low level wrapper for odbc driver
-#  $Id: RODBC.R,v 0.14 2000/05/23 23:25:26 ml Exp $
 #
 #
 #
 .First.lib <- function(lib, pkg)
 {
-    if(version$major < 1)
-        stop("RODBC requires R version 1 or better")
-    library.dynam(pkg, lib.loc = lib)
+    library.dynam("RODBC", pkg, lib)
     .C("RODBCInit")
     options("dec"=".")
 }
@@ -73,6 +70,10 @@ function(channel, query, data, names, test = FALSE, verbose = FALSE,
 "odbcTables" <- function(channel)
     .C("RODBCTables", as.integer(channel), stat = integer(1))$stat
 
+"odbcTypeInfo" <- function(channel, type)
+    .C("RODBCTypeInfo", as.integer(channel), as.integer(type),
+       stat = integer(1))$stat
+
 "odbcColumns" <- function(channel, table)
     .C("RODBCColumns", as.integer(channel), as.character(table),
        stat =integer(1))$stat
@@ -107,14 +108,11 @@ function(channel, table)
 
 "odbcNumRows" <- function(channel)
     .C("RODBCNumRows", as.integer(channel), num = as.integer(1),
-              stat = integer(1))
+       stat = integer(1))
 
 "odbcNumFields" <- function(channel)
-{
-    erg <- .C("RODBCNumCols", as.integer(channel), num = as.integer(1),
-              stat = as.integer(1))
-    return(erg$num)
-}
+    .C("RODBCNumCols", as.integer(channel), num = as.integer(1),
+              stat = as.integer(1))$num
 
 "odbcNumCols" <-
 function(channel)
@@ -125,7 +123,7 @@ function(channel)
     .C("RODBCClose", as.integer(channel), stat = integer(1))$stat
 
 "odbcFetchRows"<-
-    function(channel, max = 0, transposing = FALSE, buffsize=1000,
+    function(channel, max = 0, transposing = FALSE, buffsize = 1000,
              nullstring = "NA")
 {
     erg <- .Call("RODBCFetchRows",
@@ -145,4 +143,12 @@ function(channel)
 	return("tolower")
 	)
     return(erg$ans)
+}
+
+odbcGetInfo <- function(channel)
+{
+    res <- paste(rep("          ", 10), collapse="")
+    out <- .C("RODBCGetInfo", as.integer(channel),
+       res = res, stat = integer(1))
+    if(out$stat < 0) "error" else out$res;
 }
