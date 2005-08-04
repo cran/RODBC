@@ -229,3 +229,11 @@ print.RODBC <- function(x, ...)
     cat(case, con, sep="\n  ")
     invisible(x)
 }
+
+odbcSetAutoCommit <- function(channel, autoCommit=TRUE)
+{
+    if(!odbcValidChannel(channel))
+         stop("first argument is not an open RODBC channel")
+    .Call("RODBCSetAutoCommit", attr(channel, "handle_ptr"), autoCommit,
+           PACKAGE = "RODBC")
+}

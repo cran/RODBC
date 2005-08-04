@@ -1,7 +1,6 @@
 # These tests are only for BDR's Windows & Linux systems
 
 library(RODBC)
-data(USArrests)
 USArrests[1,2] <- NA
 
 # MySQL

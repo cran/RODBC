@@ -1,3 +1,17 @@
+Version: 1.1-4 (2005-08-04, released)
+
+	* Add configure arguments and look at env vars - see README
+
+	* Use collapse="\n" for possible multiple error messages.
+
+	* Add odbcSetAutocommit() contributed by Yasser El-Zein.
+
+	* Attempts to open and close more than 100 channels in a session
+	  might have segfaulted.
+
+	* sqlSave(test) was documented with the wrong default.
+
+
 Version: 1.1-3 (2005-02-05, released)
 
 	* Improve error messages for possible translation.

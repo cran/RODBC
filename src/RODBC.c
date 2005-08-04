@@ -86,7 +86,7 @@ typedef struct rodbcHandle  {
 } RODBCHandle, *pRODBCHandle;
 
 static unsigned int nChannels = 0; /* number of channels opened in session */
-static pRODBCHandle opened_handles[101];
+static pRODBCHandle opened_handles[1001];
 
 /* prototypes */
 SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows);
@@ -98,6 +98,7 @@ SEXP RODBCInit(void);
 SEXP RODBCTables(SEXP chan);
 SEXP RODBCPrimaryKeys(SEXP chan, SEXP table);
 SEXP RODBCColumns(SEXP chan, SEXP table);
+SEXP RODBCSetAutoCommit(SEXP chan, SEXP autoCommit);
 static void geterr(pRODBCHandle thisHandle);
 static void errorFree(SQLMSG *node);
 static void errlistAppend(pRODBCHandle thisHandle, char *string);
@@ -218,7 +219,7 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows)
 		setAttrib(ans, install("handle_ptr"), ptr);
 		/* Rprintf("opening %d (%p, %p)\n", nChannels, 
 		           ptr, thisHandle); */
-		if(nChannels <= 100) opened_handles[nChannels] = thisHandle;
+		if(nChannels <= 1000) opened_handles[nChannels] = thisHandle;
 		UNPROTECT(2);
 		return ans;
 	    } else {
@@ -1132,7 +1133,7 @@ static int inRODBCClose(pRODBCHandle thisHandle)
     SQLRETURN retval;
 
     /* Rprintf("closing %p\n", thisHandle); */
-    opened_handles[thisHandle->channel] = NULL;
+    if(thisHandle->channel <= 1000) opened_handles[thisHandle->channel] = NULL;
     retval = SQLDisconnect( thisHandle->hDbc );
     if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
 	/* was errlist_append, but errorlist is squashed before return! */
@@ -1374,5 +1375,29 @@ SEXP RODBCcheckchannel(SEXP chan, SEXP id)
     LOGICAL(ans)[0] = thisHandle && TYPEOF(ptr) == EXTPTRSXP &&
 	thisHandle->channel == asInteger(chan) && 
 	thisHandle->id == asInteger(id);
+    return ans;
+}
+
+/***********************
+ * Set connection auto-commit mode
+ */
+SEXP RODBCSetAutoCommit(SEXP chan, SEXP autoCommit)
+{
+    SEXP ans;
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
+    int iAutoCommit = asLogical(autoCommit) != 0;
+    int rc;
+
+    if (!iAutoCommit) {
+        rc = SQLSetConnectOption(thisHandle->hDbc, SQL_AUTOCOMMIT,
+                                 SQL_AUTOCOMMIT_OFF);
+    } else {
+        rc = SQLSetConnectOption(thisHandle->hDbc, SQL_AUTOCOMMIT,
+                                 SQL_AUTOCOMMIT_ON);
+    }
+
+    PROTECT(ans = allocVector(INTSXP, 1));
+    INTEGER(ans)[0] = rc;
+    UNPROTECT(1);
     return ans;
 }

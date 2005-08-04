@@ -49,9 +49,14 @@ An ODBC driver manager needs to be installed, as well as an ODBC
 driver for each database to be used.  Testing is done using unixODBC
 (http://www.unixODBC.org), but iOBDC (http://www.iODBC.org) has also
 been used.  The RODBC package is installed in the standard way (R CMD
-INSTALL RODBC) and needs the ODBC driver manager library (-lodbc or
--lodbc32 or -liodbc) to be in the library search path (and library run
-path).
+INSTALL RODBC) and needs the ODBC driver manager header files and
+library (-lodbc or -lodbc32 or -liodbc) to be available.  Use the
+configure options --with-odbc-include and --with-odbc-lib or
+environment variables ODBC_INCLUDE and ODBC_LIBS to set the include
+and library paths as needed.
+
+A specific ODBC driver manager can be specified by the --with-odbc-manager
+configure option, with likely values odbc or iodbc.
 
 DSNs are described in files: the user's file is ~/.odbc.ini.  Mine is:
 

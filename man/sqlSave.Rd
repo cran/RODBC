@@ -6,20 +6,12 @@
 \description{
   Write or update a table in an ODBC database.
 }
-\synopsis{
-sqlSave(channel, dat, tablename = NULL, append = FALSE,rownames = TRUE,
-        colnames = FALSE, verbose = FALSE, oldstyle = FALSE,
-        safer = TRUE, addPK = FALSE, typeInfo, varTypes, ...)
-
-sqlUpdate(channel, dat, tablename = NULL, index = NULL,
-          verbose = FALSE, test = FALSE, nastring = NULL, fast = TRUE)
-}
 \usage{
 sqlSave(channel, dat, tablename = NULL, append = FALSE,
         rownames = TRUE, colnames = FALSE,
         verbose = FALSE, oldstyle = FALSE,
         safer = TRUE, addPK = FALSE, typeInfo, varTypes,
-        fast = TRUE, test = TRUE, nastring = NULL)
+        fast = TRUE, test = FALSE, nastring = NULL)
 
 sqlUpdate(channel, dat, tablename = NULL, index = NULL,
           verbose = FALSE, test = FALSE,

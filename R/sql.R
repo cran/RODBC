@@ -134,7 +134,8 @@ sqlCopyTable <-
 sqlSave <-
     function(channel, dat, tablename = NULL, append = FALSE, rownames = TRUE,
              colnames = FALSE, verbose = FALSE, oldstyle = FALSE,
-             safer = TRUE, addPK = FALSE, typeInfo, varTypes, ...)
+             safer = TRUE, addPK = FALSE, typeInfo, varTypes,
+             fast = TRUE, test = FALSE, nastring = NULL)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
@@ -182,9 +183,10 @@ sqlSave <-
             if(verbose) cat("Query: ", query, "\n", sep = "")
             res <- sqlQuery(channel, query, errors = FALSE)
             if(is.numeric(res) && res == -1) # No Data is fine
-                stop(paste(odbcGetErrMsg(channel), sep="\n"))
+                stop(paste(odbcGetErrMsg(channel), collapse="\n"))
         }
-        if(sqlwrite(channel ,tablename, dat, verbose=verbose, ...) == -1) {
+        if(sqlwrite(channel ,tablename, dat, verbose=verbose, fast=fast,
+                    test=test, nastring=nastring) == -1) {
             if(safer) stop("unable to append to table ", sQuote(tablename))
             ##cannot write: try dropping table
             query <- paste("DROP TABLE", tablename)
@@ -195,7 +197,7 @@ sqlSave <-
             }
             res <- sqlQuery(channel, query, errors = FALSE)
             if(is.numeric(res) && res == -1) # No Data is fine
-                stop(paste(odbcGetErrMsg(channel), sep="\n"))
+                stop(paste(odbcGetErrMsg(channel), collapse="\n"))
         } else { #success
             return (invisible(1))
         }
@@ -271,10 +273,11 @@ sqlSave <-
     ##last chance:  let it die if fails
     res <- sqlQuery(channel, query, errors = FALSE)
     if(is.numeric(res) && res == -1) # No Data is fine
-        stop(paste(odbcGetErrMsg(channel), sep="\n"))
-    if(sqlwrite(channel, tablename, dat, verbose = verbose, ...) < 0) {
+        stop(paste(odbcGetErrMsg(channel), collapse="\n"))
+    if(sqlwrite(channel, tablename, dat, verbose=verbose, fast=fast,
+                test=test, nastring=nastring) < 0) {
         err <- odbcGetErrMsg(channel)
-        msg <- paste(err,  sep="\n")
+        msg <- paste(err,  collapse="\n")
         if("missing column name" %in% err)
             msg <- paste(msg,
                          "Check case conversion parameter in odbcConnect",
@@ -297,10 +300,10 @@ sqlwrite <-
               nastring = NULL, verbose = FALSE)
 {
     if(!odbcValidChannel(channel))
-       stop("first argument is not an open RODBC channel")
+        stop("first argument is not an open RODBC channel")
     coldata <- sqlColumns(channel, tablename)[6]
     colnames <- as.character(sqlColumns(channel, tablename)[4][, 1])
-    # match the transform in tablecreate (get rid of inval chars in col names)
+    ## match the transform in tablecreate (get rid of inval chars in col names)
     colnames <- mangleColNames(colnames)
     cnames <- paste(colnames, collapse = ", ")
     if(!fast) {
@@ -325,8 +328,8 @@ sqlwrite <-
         if(any(is.na(m <- match(colnames, coldata[, 1])))) return(-1)
         paramdata <- t(as.matrix(coldata))[, m]
 	if(odbcUpdate(channel, query, mydata, paramdata,
-                           test = test, verbose = verbose,
-                           nastring = nastring) < 0) return(-1)
+                      test = test, verbose = verbose,
+                      nastring = nastring) < 0) return(-1)
     }
     return(invisible(1))
 }
