@@ -1,7 +1,7 @@
 export(getSqlTypeInfo, odbcClearError, odbcClose, odbcCloseAll,
        odbcColumns, odbcConnect, odbcDriverConnect, odbcFetchRows,
        odbcGetErrMsg, odbcGetInfo , odbcPrimaryKeys, odbcQuery,
-       odbcReConnect, odbcTables, odbcUpdate, setSqlTypeInfo,
+       odbcReConnect, odbcSetAutoCommit, odbcTables, odbcUpdate, setSqlTypeInfo,
        sqlClear, sqlColumns, sqlCopy, sqlCopyTable, sqlDrop, sqlFetch,
        sqlFetchMore, sqlGetResults, sqlPrimaryKeys, sqlQuery, sqlSave,
        sqlTables, sqlTypeInfo, sqlUpdate)

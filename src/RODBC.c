@@ -758,7 +758,7 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 			    thisHandle->hStmt, sqlstate, &NativeError,
 			    msg, (SQLSMALLINT)sizeof(msg), &MsgLen)
 		   == SQL_SUCCESS) {
-		    if(strcmp(sqlstate, "O1004") == 0)
+		    if(strcmp((char *)sqlstate, "O1004") == 0)
 			warning(_("character data truncated in column '%s'"),
 				(char *)thisHandle->ColData[i].ColName);
 		}

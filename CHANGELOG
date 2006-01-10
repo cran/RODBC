@@ -1,3 +1,17 @@
+Version: 1.1-5 (2006-01-10, released)
+
+	* Added a cast in RODBC.c to counteract a warning Dirk Edelbeuttel
+	  got (and I do not on either Linux or Windows).
+
+	* Autoconf 2.59 goes into undocumented back-compatibility mode with
+	  a one-argument AC_INIT, so use full form (with version no).
+
+	* odbcSetAutocommit was not exported.
+
+	* sqlSave: if verbose and safer write out verbose message before
+	  error message.
+
+
 Version: 1.1-4 (2005-08-04, released)
 
 	* Add configure arguments and look at env vars - see README

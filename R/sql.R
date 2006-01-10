@@ -187,7 +187,6 @@ sqlSave <-
         }
         if(sqlwrite(channel ,tablename, dat, verbose=verbose, fast=fast,
                     test=test, nastring=nastring) == -1) {
-            if(safer) stop("unable to append to table ", sQuote(tablename))
             ##cannot write: try dropping table
             query <- paste("DROP TABLE", tablename)
             if(verbose) {
@@ -195,6 +194,7 @@ sqlSave <-
                     "\n", sep = "\n")
                 cat("Query: ", query, "\n", sep = "")
             }
+            if(safer) stop("unable to append to table ", sQuote(tablename))
             res <- sqlQuery(channel, query, errors = FALSE)
             if(is.numeric(res) && res == -1) # No Data is fine
                 stop(paste(odbcGetErrMsg(channel), collapse="\n"))

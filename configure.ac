@@ -1,6 +1,6 @@
 # original by Friedrich Leisch, much changed by BDR
 
-AC_INIT([RODBC])
+AC_INIT([RODBC], 1.1.5, [ripley@stats.ox.ac.uk])
 
 dnl Select an optional include path, from a configure option
 dnl or from an environment variable.
