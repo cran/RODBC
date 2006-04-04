@@ -1,6 +1,6 @@
 # original by Friedrich Leisch, much changed by BDR
 
-AC_INIT([RODBC], 1.1.5, [ripley@stats.ox.ac.uk])
+AC_INIT([RODBC], 1.1.6, [ripley@stats.ox.ac.uk])
 
 dnl Select an optional include path, from a configure option
 dnl or from an environment variable.
@@ -9,10 +9,12 @@ AC_ARG_WITH([odbc-include],
                            [the location of ODBC header files]),
             [odbc_include_path=$withval])
 if test [ -n "$odbc_include_path" ] ; then
-   AC_SUBST([CPPFLAGS],["-I${odbc_include_path} ${CPPFLAGS}"])
+   AC_SUBST([CPPFLAGS],["-I. -I${odbc_include_path} ${CPPFLAGS}"])
 else
   if test [ -n "${ODBC_INCLUDE}" ] ; then
-     AC_SUBST([CPPFLAGS],["-I${ODBC_INCLUDE} ${CPPFLAGS}"])
+     AC_SUBST([CPPFLAGS],["-I. -I${ODBC_INCLUDE} ${CPPFLAGS}"])
+  else
+     AC_SUBST([CPPFLAGS],["-I. ${CPPFLAGS}"])
   fi
 fi
 
@@ -60,8 +62,15 @@ else
 	         AC_MSG_ERROR("no ODBC driver manager found"))
 fi
 
+dnl for 64-bit ODBC need SQL[U]LEN, and it is unclear where they are defined.
+AC_CHECK_TYPES([SQLLEN, SQLULEN], , , [# include <sql.h>])
+dnl for unixODBC header
+AC_CHECK_SIZEOF(long, 4)
+
 dnl substitute CPPFLAGS and LIBS
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LIBS)
-dnl and do subsitution in the src/Makevars.in
-AC_OUTPUT(src/Makevars)
+AC_CONFIG_HEADERS([src/config.h])
+dnl and do subsitution in the src/Makevars.in and src/config.h
+AC_CONFIG_FILES([src/Makevars])
+AC_OUTPUT

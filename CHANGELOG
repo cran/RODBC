@@ -1,6 +1,20 @@
+Version: 1.1-6 (2006-04-04, released)
+
+	* Use SQL[U]LEN to agree with ODBC 64-bit headers.
+
+	* Add config.h.in to show if the above are defined, and also
+	  SIZEOF_LONG for unixODBC headers.
+
+	* Add more info on sqlite3 in README and tests.R.  (I failed to
+	  make sqlite 2.8.17 work on a 64-bit platform, and also failed
+	  to save to other types such as 'date' and 'text'.)
+
+	* Add info on 64-bit builds (especially Debian) in README.
+
+
 Version: 1.1-5 (2006-01-10, released)
 
-	* Added a cast in RODBC.c to counteract a warning Dirk Edelbeuttel
+	* Added a cast in RODBC.c to counteract a warning Dirk Eddelbuettel
 	  got (and I do not on either Linux or Windows).
 
 	* Autoconf 2.59 goes into undocumented back-compatibility mode with
@@ -8,7 +22,7 @@ Version: 1.1-5 (2006-01-10, released)
 
 	* odbcSetAutocommit was not exported.
 
-	* sqlSave: if verbose and safer write out verbose message before
+	* sqlSave: if 'verbose' and 'safer' write out verbose message before
 	  error message.
 
 

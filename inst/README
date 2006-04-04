@@ -5,8 +5,7 @@ tested with MySQL and PostgreSQL on both Linux and Windows (and to
 those DBMSs on Linux hosts from R under Windows), Microsoft Access,
 SQL Server and Excel spreadsheets (read-only), and users have reported
 success with connections to Oracle and DBase.  We have also used
-SQLite-2.8.15 with sqliteodbc-0.64 for simple tasks (but not long
-text strings nor dates).
+SQLite-3.3.4 with sqliteodbc-0.67 for simple tasks.
 
 Basic usage is covered in the R Data Import/Export manual.
 
@@ -49,9 +48,14 @@ An ODBC driver manager needs to be installed, as well as an ODBC
 driver for each database to be used.  Testing is done using unixODBC
 (http://www.unixODBC.org), but iOBDC (http://www.iODBC.org) has also
 been used.  The RODBC package is installed in the standard way (R CMD
-INSTALL RODBC) and needs the ODBC driver manager library (-lodbc or
--lodbc32 or -liodbc) to be in the library search path (and library run
-path).
+INSTALL RODBC) and needs the ODBC driver manager header files and
+library (-lodbc or -lodbc32 or -liodbc) to be available.  Use the
+configure options --with-odbc-include and --with-odbc-lib or
+environment variables ODBC_INCLUDE and ODBC_LIBS to set the include
+and library paths as needed.
+
+A specific ODBC driver manager can be specified by the --with-odbc-manager
+configure option, with likely values odbc or iodbc.
 
 DSNs are described in files: the user's file is ~/.odbc.ini.  Mine is:
 
@@ -78,6 +82,10 @@ Socket          =
 Database        = testdb
 ReadOnly        = 0
 
+[test]
+Description     = sqlite3
+Driver          = sqlite3
+Database	= /tmp/mysqlite3.db
 
 This can be used via
 
@@ -93,13 +101,14 @@ using odbcDriverConnect or as DSNs.
 
 Note that you need to ensure that .../etc/odbcinst.ini contains the
 rest of the driver information.  (UnixODBC uses /usr/local/etc/odbcinst.ini
-and iODBC /etc/odbcinst.ini, by default.) We have
+and iODBC /etc/odbcinst.ini, by default. However, some RPM-based installations
+will differ.)  We have (with paths differing by platform)
 
 gannet% cat /usr/local/etc/odbcinst.ini
 [myodbc3]
 Description = MySQL driver.
 Driver      = /usr/local/lib/libmyodbc3.so
-Setup       = /usr/local/liblibmyodbc3S/.so
+Setup       = /usr/local/liblibmyodbc3S.so
 FileUsage   = 1
 
 [PostgreSQL]
@@ -108,9 +117,9 @@ Driver       = /usr/lib/libodbcpsql.so
 Setup        = /usr/lib/libodbcpsqlS.so
 FileUsage    = 1
 
-[sqlite]
-Description = sqliteodbc-0.64
-Driver = /usr/local/lib/libsqliteodbc.so
+[sqlite3]
+Description = sqliteodbc-0.67
+Driver = /usr/local/lib/libsqlite3odbc.so
 FileUsage = 1
 
 for use with MySQL using the MyODBC 3.51 driver (both from
@@ -135,3 +144,23 @@ Users of unixODBC and iODBC can use gODBCConfig and iodbcadm-gtk
 repspectively to prepare user and systems DSNs: they are reworkings of
 the Window's ODBC administation multi-tabbed dialog box.  Both write in
 ~/.odbc.ini, in slightly different formats.
+
+
+64-bit versions
+===============
+
+Microsoft altered some of the ODBC types to allow 64-bit operation on
+Windows Server 2003 and later.  However, they did not change the corresponding
+ODBC declaration.  MS increased the ODBCVER to 3.52, but it seems few of
+those who adopted the change did so.
+
+As from RODBC 1.1-6, the new types are used, and configure defines
+replacements if they are not found.  This works fine on MinGW and iodbc,
+which will use 64-bit types if ODBC was compiled to use them.  However,
+on unixODBC on a system with 64-bit longs, whether 64-bit types are 
+declared in the headers depends on the define BUILD_REAL_64_BIT_MODE.
+So if unixODBC was compiled with that defined, RODBC also needs to be.
+It seems that most systems (including Fedora Core 3/4/5) do not define the
+macro, but Debian does (and, I am told, has altered the headers so the 
+default is to assume it is defined so no further action is then needed).
+

@@ -3,6 +3,7 @@
 library(RODBC)
 USArrests[1,2] <- NA
 
+
 # MySQL
 channel <- odbcConnect("testdb3", uid="ripley", case="tolower")
 odbcGetInfo(channel)
@@ -110,6 +111,7 @@ hills <- sqlQuery(channel, "select * from [hills$]")
 sqlFetch(channel, "testit")
 close(channel)
 
+
 # MSDE 2000
 channel <- odbcConnect("MSDE")
 odbcGetInfo(channel)
@@ -147,10 +149,12 @@ names(varspec) <- names(Dtest)
 sqlSave(channel, Dtest, varTypes = varspec, verbose=TRUE, fast=FALSE)
 sqlColumns(channel, "Dtest")
 sqlFetch(channel, "Dtest")
+# This retrieves TRUE as " TRUE" and so returns a factor.
 sqlDrop(channel, "Dtest")
 close(channel)
 
-# PostgreSQL on Windows
+
+# PostgreSQL 8.x on Windows
 channel <- odbcConnect("testpg", case="tolower")
 odbcGetInfo(channel)
 sqlTypeInfo(channel)
@@ -204,6 +208,43 @@ sqlFetch(channel, "Atest")
 sqlDrop(channel, "Atest")
 close(channel)
 
+
+# SQLite 3.x.y
+channel <- odbcConnect("sqlite3")
+odbcGetInfo(channel)
+sqlTypeInfo(channel)
+sqlTables(channel)
+sqlDrop(channel, "USArrests", errors = FALSE)
+sqlSave(channel, USArrests)
+sqlTables(channel)
+sqlColumns(channel, "USArrests")
+sqlFetch(channel, "USArrests")
+sqlQuery(channel, "select rownames, Murder from USArrests where Rape > 30 order by Murder")
+foo <-  USArrests[1:3, 2, drop = FALSE]
+foo[1,1] <- 236
+sqlUpdate(channel, foo, "USArrests")
+sqlFetch(channel, "USArrests", max = 5)
+sqlDrop(channel, "USArrests")
+## close the connection
+close(channel)
+
+channel <- odbcConnect("sqlite3")
+dates <- as.character(seq(as.Date("2004-01-01"), by="week", length=10))
+times <- paste(1:10, "05", "00", sep=":")
+Dtest <- data.frame(dates, times, logi=c(TRUE, NA, FALSE, FALSE, FALSE))
+sqlDrop(channel, "Dtest", errors = FALSE)
+varspec <- c("date", "time", "varchar(5)"); names(varspec) <- names(Dtest)
+sqlSave(channel, Dtest, varTypes = varspec, fast=FALSE)
+# fast=TRUE fails
+sqlColumns(channel, "Dtest")
+sqlFetch(channel, "Dtest")
+# This retrieves TRUE as " TRUE" and so returns a factor.
+sqlDrop(channel, "Dtest")
+close(channel)
+
+
+
+
 ###---------------------------------------------------------------------
 
 # MySQL on Unix
@@ -223,6 +264,26 @@ foo <- cbind(State=row.names(USArrests), USArrests)[1:3, c(1,3)]
 foo[1,2] <- 236
 sqlUpdate(channel, foo, "USArrests")
 sqlFetch(channel, "USArrests", rownames = "State", max = 5)
+sqlDrop(channel, "USArrests")
+## close the connection
+close(channel)
+
+
+# sqlite on Unix
+channel <- odbcConnect("sqlite3")
+odbcGetInfo(channel)
+sqlTypeInfo(channel)
+sqlTables(channel)
+sqlDrop(channel, "USArrests", errors = FALSE)
+sqlSave(channel, USArrests)
+sqlTables(channel)
+sqlColumns(channel, "USArrests")
+sqlFetch(channel, "USArrests")
+sqlQuery(channel, "select rownames, Murder from USArrests where Rape > 30 order by Murder")
+foo <-  USArrests[1:3, 2, drop = FALSE]
+foo[1,1] <- 236
+sqlUpdate(channel, foo, "USArrests")
+sqlFetch(channel, "USArrests", max = 5)
 sqlDrop(channel, "USArrests")
 ## close the connection
 close(channel)

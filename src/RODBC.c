@@ -1,6 +1,7 @@
 /* RODBC low level interface
  *
  */
+#include <config.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -48,12 +49,39 @@ __declspec(dllimport) window RConsole;
 #define NCOLS thisHandle->nColumns /* save some column space for typing*/
 #define NROWS thisHandle->nRows
 
+/* For 64-bit ODBC, Microsoft did some redefining, see
+   http://msdn.microsoft.com/library/default.asp?url=/library/en-us/odbc/htm/dasdkodbcoverview_64bit.asp
+   Some people think this corresponded to increasing the version to 3.52,
+   but none of MinGW, unixODBC or iodbc seem to have done so.
+
+   Given that, how do we know what these mean?
+
+   MinGW: if _WIN64 is defined, they are 64-bit, otherwise (unsigned) long.
+
+   unixODBC: if SIZEOF_LONG == 8 && BUILD_REAL_64_BIT_MODE they are
+   64-bit.  In applications, SIZEOF_LONG == 8 is determined by
+   if defined(__alpha) || defined(__sparcv9) || defined(__LP64__)
+   We have no way of knowing if BUILD_REAL_64_BIT_MODE was defined,
+   but Debian which does define also modifies the headers.
+
+   iobdc: if _WIN64 is defined, they are 64-bit
+   Otherwise, they are (unsigned) long.
+ */
+
+#ifndef HAVE_SQLLEN
+#define SQLLEN SQLINTEGER
+#endif
+
+#ifndef HAVE_SQLULEN
+#define SQLULEN SQLUINTEGER
+#endif
+
 
 typedef struct cols {
     SQLCHAR	ColName[256];
     SQLSMALLINT	NameLength;
     SQLSMALLINT	DataType;
-    SQLUINTEGER	ColSize;
+    SQLULEN	ColSize;
     SQLSMALLINT	DecimalDigits;
     SQLSMALLINT	Nullable;
     char	*pData;
@@ -61,7 +89,7 @@ typedef struct cols {
     SQLREAL	R4Data;
     SQLINTEGER	IData;
     SQLSMALLINT	I2Data;
-    SQLINTEGER	IndPtr;
+    SQLLEN	IndPtr;
 } COLUMNS;
 
 typedef struct mess {
@@ -74,7 +102,7 @@ typedef struct rodbcHandle  {
     SQLHDBC	hDbc;
     SQLHSTMT	hStmt;
     int		fStmt;
-    SQLINTEGER 	nRows;
+    SQLLEN 	nRows;
     SQLSMALLINT	nColumns;
     int		channel;
     int         id;
@@ -633,7 +661,7 @@ static int cachenbind(pRODBCHandle thisHandle)
 				COLMAX,
 				&thisHandle->ColData[i].IndPtr);
 	} else { /* transfer as character */
-	    int datalen = thisHandle->ColData[i].ColSize;
+	    SQLLEN datalen = thisHandle->ColData[i].ColSize;
 	    if (datalen <= 0 || datalen < COLMAX) datalen = COLMAX;
 	    /* sanity check as the reports are sometimes unreliable */
 	    if (datalen > 65535) datalen = 65535;
