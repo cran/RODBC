@@ -55,7 +55,10 @@ environment variables ODBC_INCLUDE and ODBC_LIBS to set the include
 and library paths as needed.
 
 A specific ODBC driver manager can be specified by the --with-odbc-manager
-configure option, with likely values odbc or iodbc.
+configure option, with likely values odbc or iodbc.  If this is done for
+odbc and the program odbc_config is found, it is used to set the libpath
+as a last resort (it is often wrong), and to add any additional CFLAGS.
+(Note that it does not contain information on the include path.)
 
 DSNs are described in files: the user's file is ~/.odbc.ini.  Mine is:
 

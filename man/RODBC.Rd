@@ -31,8 +31,7 @@
   Michael Lapsley and Brian Ripley
 }
 \examples{
-\dontrun{data(USArrests) # R < 2.0.0 only
-channel <- odbcConnect("test")
+\dontrun{channel <- odbcConnect("test")
 sqlSave(channel, USArrests, rownames = "State", verbose = TRUE)
 sqlQuery(channel, paste("select State, Murder from USArrests",
                         "where Rape > 30 order by Murder"))

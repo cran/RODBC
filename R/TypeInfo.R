@@ -56,5 +56,5 @@ setSqlTypeInfo <- function(driver, value)
         stop("argument 'driver' must be a character string")
     if(!is.list(value) || length(value) < 4 || is.null(names(value)) )
         stop("argument 'value' must be a named list of length >= 4")
-    typesR2DBMS[driver] <- value[c("double", "integer", "character", "logical")]
+    typesR2DBMS[[driver]] <- value[c("double", "integer", "character", "logical")]
 }

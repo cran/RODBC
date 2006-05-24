@@ -7,7 +7,7 @@
   Submit an SQL query to an ODBC database, and retrieve the results.
 }
 \usage{
-sqlQuery(channel, query, errors = TRUE, ...)
+sqlQuery(channel, query, errors = TRUE, ..., rows_at_time = 1)
 
 sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
               max = 0, buffsize = 1000,
@@ -19,7 +19,8 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
   \item{query}{any valid SQL statement}
   \item{errors}{if TRUE halt and display error, else return -1}
   \item{\dots}{additional arguments to be passed to \code{sqlGetResults}.}
-
+  \item{rows_at_time}{The number of rows to fetch at a time, up to 1024.  Not
+    all drivers work correctly with values > 1.  See Details.}
   \item{as.is}{which (if any) character columns should be converted,
     as in \code{\link{read.table}}?  See the details.}
   \item{max}{limit on the number of rows to fetch, with 0 indicating no limit.}
@@ -76,6 +77,13 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
   Using \code{buffsize} will yield a marginal increase in speed if set
   to no less than the maximum number of rows where \code{believeNRows =
     FALSE}.
+
+  Modern drivers should work (and work faster, especially if
+  communicating with a remote machine) with \code{rows_a_time = 1024}.
+  However, some drivers will mis-fetch multiple rows: for example the
+  \code{MyODBC} driver that ships with AMD64 Fedora Core 3 fetches
+  integer fields as 64-bit quantities and so returns every other value
+  as zero.
 }
 \value{
   A data frame (possibly with 0 rows) on success.
@@ -93,7 +101,6 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
 }
 \examples{
 \dontrun{
-data(USArrests) # R < 2.0.0 only
 channel <- odbcConnect("test")
 sqlSave(channel, USArrests, rownames = "State", verbose = TRUE)
 # options(dec=".") # optional, if DBMS is not locale-aware

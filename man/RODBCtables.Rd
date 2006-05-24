@@ -58,7 +58,6 @@ sqlPrimaryKeys(channel, sqtable, errors = FALSE, as.is = TRUE)
 }
 \examples{
 \dontrun{## example results from MySQL
-data(USArrests) # R < 2.0.0 only
 channel <- odbcConnect("test")
 sqlDrop(channel, "USArrests", errors = FALSE) # precautionary
 sqlSave(channel, USArrests)

@@ -17,8 +17,9 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
     This should be either a character string or a character vector of
     length 1.}
   \item{\dots}{additional arguments to be passed to
-    \code{\link{sqlGetResults}}.}
-  \item{colnames}{logical: retrieve column names from first row of table?}
+    \code{\link{sqlQuery}} or \code{\link{sqlGetResults}}. See Details.}
+  \item{colnames}{logical: retrieve column names from first row of table?
+    (For use when \code{sqlSave(colnames = TRUE)} was used.)}
   \item{rownames}{either logical or character.
     If logical, retrieve row names from the first column
     (\code{rownames}) in the table?  If character, the column name to
@@ -26,7 +27,9 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
 }
 \details{
   \code{sqlFetch} retrieves the the entire contents of the table
-  \code{sqtable}.  Rownames and column names are restored as indicated.
+  \code{sqtable}.  Rownames and column names are restored as indicated
+  (assuming that they have been placed in the table by the corresponding
+  arguments to \code{\link{sqlSave}}).
   \code{sqlFetchMore} will retrieve further results from the query
   (provided there has been no other ODBC query on that channel in the
   meantime).
@@ -49,6 +52,9 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
     
     \item{\code{dec}:}{The character for the decimal place to be assumed
       when converting character columns to numeric.}
+
+    \item{\code{rows_at_time}:}{Allow for multiple rows to be retrieved at
+      once.  Only works correctly on some drivers.}
   }
 }
 \value{
@@ -70,9 +76,8 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
 }
 \examples{
 \dontrun{
-data(USArrests) # R < 2.0.0 only
 channel <- odbcConnect("test")
-sqlSave(channel, USArrests, verbose = TRUE)
+sqlSave(channel, USArrests)
 sqlFetch(channel, "USArrests") # get the lot
 sqlFetch(channel, "USArrests", max=20)
 sqlFetchMore(channel, max=20)

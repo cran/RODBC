@@ -50,8 +50,7 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   \item{test}{show what would be done, only.}
   \item{nastring}{character string to be used for writing \code{NA}s
     to the database.  The default, \code{NULL}, attempts to write
-    a missing value as a database null.}
-%  \item{\dots}{any additional arguments are passed to \code{\link{sqlwrite}}.}
+    a missing value as a database null.  Only supported for \code{fast=FALSE}.}
 }
 \details{
   \code{sqlSave} saves the data frame \code{dat} in the table
@@ -66,7 +65,7 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   If \code{rownames = TRUE} the first column of the table will be the
   row labels with colname \code{rowname}: \code{rownames} can also be a
   string giving the desired column name (see example). \code{colnames}
-  copied the column names into row 1.  This is intended for cases where
+  copies the column names into row 1.  This is intended for cases where
   case conversion alters the original column names and it is desired
   that they are retained.  Note that there are drawbacks to this
   approach: it presupposes that the rows will be returned in correct
@@ -76,8 +75,8 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   Argument \code{addPK = TRUE} causes the rownames to be marked as a
   primary key.  This is usually a good idea, and may allow updates to be
   done.  However, some DBMSs (e.g. Access) do not support primary keys,
-  and the PostgreSQL ODBC driver has generated internal memory
-  corruption if this option is used.
+  and some versions of the PostgreSQL ODBC driver have generated
+  internal memory corruption if this option is used.
   
   \code{sqlUpdate} updates the table where the rows already exist. Data
   frame \code{dat} should columns with names that map to (some of) the
@@ -100,7 +99,8 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   If \code{fast = TRUE}, integer and double vectors are sent as types
   \code{SQL_C_SLONG} and \code{SQL_C_DOUBLE} respectively.  Some drivers
   seem to require \code{fast = FALSE} to send other types,
-  e.g. \code{datetime}.
+  e.g. \code{datetime}.  SQLite's approach is to use the data to determine
+  how it is stored, and this does not work well with \code{fast = TRUE}.
 }
 \section{Warning}{
   \code{sqlSave(safer = FALSE)} uses the 'great white shark'
@@ -124,7 +124,6 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
 }
 \examples{
 \dontrun{
-data(USArrests) # R < 2.0.0 only
 channel <- odbcConnect("test")
 sqlSave(channel, USArrests, rownames = "state", addPK=TRUE)
 sqlFetch(channel, "USArrests", rownames = "state") # get the lot

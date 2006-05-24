@@ -1,6 +1,17 @@
 # original by Friedrich Leisch, much changed by BDR
 
-AC_INIT([RODBC], 1.1.6, [ripley@stats.ox.ac.uk])
+AC_INIT([RODBC], 1.1.7, [ripley@stats.ox.ac.uk])
+
+dnl A user-specifiable option
+odbc_mgr=""
+AC_ARG_WITH([odbc-manager],
+            AC_HELP_STRING([--with-odbc-manager=MGR],
+                           [specify the ODBC manager, e.g. odbc or iodbc]),
+            [odbc_mgr=$withval])
+
+if test "$odbc_mgr" = "odbc" ; then
+  AC_PATH_PROGS(ODBC_CONFIG, odbc_config)
+fi
 
 dnl Select an optional include path, from a configure option
 dnl or from an environment variable.
@@ -24,18 +35,17 @@ AC_ARG_WITH([odbc-lib],
                            [the location of ODBC libraries]),
             [odbc_lib_path=$withval])
 if test [ -n "$odbc_lib_path" ] ; then
-   AC_SUBST([LIBS],[" -L${odbc_lib_path} ${LIBS}"])
+   AC_SUBST([LIBS],["-L${odbc_lib_path} ${LIBS}"])
 else 
   if test [ -n "${ODBC_LIBS}" ] ; then
-     AC_SUBST([LIBS],["-I${ODBC_LIBS} ${LIBS}"])
+     AC_SUBST([LIBS],["-L${ODBC_LIBS} ${LIBS}"])
+  else
+    if test -n "${ODBC_CONFIG}"; then
+      odbc_lib_path=`odbc_config --libs | sed s/-lodbc//`
+      AC_SUBST([LIBS],["${odbc_lib_path} ${LIBS}"])
+    fi
   fi
 fi
-
-dnl Another user-specifiable option
-AC_ARG_WITH([odbc-manager],
-            AC_HELP_STRING([--with-odbc-manager=MGR],
-                           [specify the ODBC manager, e.g. odbc or iodbc]),
-            [odbc_mgr=$withval])
 
 dnl Now find the compiler and compiler flags to use
 : ${R_HOME=`R RHOME`}
@@ -45,6 +55,10 @@ if test -z "${R_HOME}"; then
 fi
 CC=`"${R_HOME}/bin/R" CMD config CC`
 CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
+
+if test -n "${ODBC_CONFIG}"; then
+  CPPFLAGS="${CPPFLAGS} `odbc_config --cflags`"
+fi
 
 dnl Check the headers can be found
 AC_CHECK_HEADERS(sql.h sqlext.h)
@@ -56,7 +70,7 @@ fi
 dnl search for a library containing an ODBC function
 if test [ -n "${odbc_mgr}" ] ; then
   AC_SEARCH_LIBS(SQLTables, ${odbc_mgr}, ,
-	         AC_MSG_ERROR("ODBC driver manager ${odbc_mgr} not found"))
+	         AC_MSG_ERROR("ODBC driver manager '${odbc_mgr}' not found"))
 else
   AC_SEARCH_LIBS(SQLTables, odbc odbc32 iodbc, ,
 	         AC_MSG_ERROR("no ODBC driver manager found"))

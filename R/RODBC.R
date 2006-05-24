@@ -82,12 +82,12 @@ odbcDriverConnect <-
                     believeNRows=believeNRows))
 }
 
-odbcQuery <- function(channel, query)
+odbcQuery <- function(channel, query, rows_at_time = 1)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
     .Call("RODBCQuery", attr(channel, "handle_ptr"), as.character(query),
-          PACKAGE = "RODBC")
+          as.integer(rows_at_time), PACKAGE = "RODBC")
 }
 
 odbcUpdate <-

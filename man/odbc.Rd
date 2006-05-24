@@ -15,7 +15,7 @@ odbcTables(channel)
 odbcColumns(channel, table)
 odbcPrimaryKeys(channel, table)
 
-odbcQuery(channel, query)
+odbcQuery(channel, query, rows_at_time = 1)
 odbcFetchRows(channel, max = 0, buffsize = 1000, nullstring = NA,
               believeNRows = TRUE) 
 }
@@ -25,6 +25,8 @@ odbcFetchRows(channel, max = 0, buffsize = 1000, nullstring = NA,
   \item{query}{any valid SQL statement}
   \item{table}{a database table name accessible from the connected dsn.
     This can be either a character string or an (unquoted) symbol.}
+  \item{rows_at_time}{The number of rows to fetch at a time, up to 1024.  Not
+    all drivers work correctly with values > 1: see \code{\link{sqlQuery}}.}
   \item{max}{limit on the number of rows to fetch, with 0 indicating no limit.}
   \item{buffsize}{the number of records to be transferred at a time.}
   \item{nullstring}{

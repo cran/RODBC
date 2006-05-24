@@ -1,3 +1,17 @@
+Version: 1.1-7 (2006-05-24, released)
+
+	* configure.ac: make use of odbc_config if --with-odbc-manager=odbc.
+
+	* sqlSave: change wording of one error message
+	(Matthew Dowle, 2006-04-11).
+
+	* sqlFetch can now fetch up to 1024 rows at a time,
+	which can be substantially faster when using a remote server.
+	(Based on code suggested by Nick Gorman to Matthew Dowle.)
+	Note that this fails with some drivers.
+	
+	* Typo in setSqlTypeInfo.
+
 Version: 1.1-6 (2006-04-04, released)
 
 	* Use SQL[U]LEN to agree with ODBC 64-bit headers.

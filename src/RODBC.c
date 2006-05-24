@@ -77,6 +77,9 @@ __declspec(dllimport) window RConsole;
 #endif
 
 
+/* #define SINGLE_ROW_AT_A_TIME */
+#define COL_ARRAY_SIZE	1024
+
 typedef struct cols {
     SQLCHAR	ColName[256];
     SQLSMALLINT	NameLength;
@@ -85,11 +88,12 @@ typedef struct cols {
     SQLSMALLINT	DecimalDigits;
     SQLSMALLINT	Nullable;
     char	*pData;
-    SQLDOUBLE	RData;
-    SQLREAL	R4Data;
-    SQLINTEGER	IData;
-    SQLSMALLINT	I2Data;
-    SQLLEN	IndPtr;
+    int		datalen;
+    SQLDOUBLE	RData [COL_ARRAY_SIZE];
+    SQLREAL	R4Data[COL_ARRAY_SIZE];
+    SQLINTEGER	IData [COL_ARRAY_SIZE];
+    SQLSMALLINT	I2Data[COL_ARRAY_SIZE];
+    SQLLEN	IndPtr[COL_ARRAY_SIZE];
 } COLUMNS;
 
 typedef struct mess {
@@ -109,6 +113,8 @@ typedef struct rodbcHandle  {
     int         useNRows;
     COLUMNS	*ColData;	/* This will be allocated as an array of columns */
     int		nAllocated;
+    SQLUINTEGER	rowsFetched;	/* use to indicate the number of rows fetched */
+    SQLUINTEGER	rowArraySize;	/* use to indicate the number of rows we expect back */
     SQLMSG	*msglist;	/* root of linked list of messages */
     SEXP        extPtr;
 } RODBCHandle, *pRODBCHandle;
@@ -118,7 +124,7 @@ static pRODBCHandle opened_handles[1001];
 
 /* prototypes */
 SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows);
-SEXP RODBCQuery(SEXP chan, SEXP query);
+SEXP RODBCQuery(SEXP chan, SEXP query, SEXP sRows);
 SEXP RODBCNumCols(SEXP chan);
 SEXP RODBCColData(SEXP chan);
 SEXP RODBCClose(SEXP chan);
@@ -130,7 +136,7 @@ SEXP RODBCSetAutoCommit(SEXP chan, SEXP autoCommit);
 static void geterr(pRODBCHandle thisHandle);
 static void errorFree(SQLMSG *node);
 static void errlistAppend(pRODBCHandle thisHandle, char *string);
-static int cachenbind(pRODBCHandle thisHandle);
+static int cachenbind(pRODBCHandle thisHandle, int nRows);
 
 /* Error messages */
 
@@ -282,11 +288,14 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows)
  * 		cache col descriptor data in handles[channel].ColData
  * 		return -1 in stat on error or 1
  * *****************************************************/
-SEXP RODBCQuery(SEXP chan, SEXP query)
+SEXP RODBCQuery(SEXP chan, SEXP query, SEXP sRows)
 {
     SEXP ans;
     pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     SQLRETURN res;
+    int nRows = asInteger(sRows);
+    
+    if(nRows == NA_INTEGER || nRows < 1) nRows = 1;
 
     PROTECT(ans = allocVector(INTSXP, 1));
 
@@ -312,7 +321,7 @@ SEXP RODBCQuery(SEXP chan, SEXP query)
 	return ans;
     }
 
-    if(cachenbind(thisHandle) < 0) {
+    if(cachenbind(thisHandle, nRows) < 0) {
 	(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 	INTEGER(ans)[0] = -1;
 	UNPROTECT(1);
@@ -355,7 +364,7 @@ SEXP RODBCPrimaryKeys(SEXP chan, SEXP table)
 	    errlistAppend(thisHandle, _(err_SQLPrimaryKeys));
 	    stat = -1;
 	} else {
-	    if(cachenbind(thisHandle) < 0) {
+	    if(cachenbind(thisHandle, 1) < 0) {
 		(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 		stat = -1;
 	    } else
@@ -397,7 +406,7 @@ SEXP RODBCColumns(SEXP chan, SEXP table)
 	    errlistAppend(thisHandle, _(err_SQLColumns));
 	    stat = -1;
 	} else {
-	    if(cachenbind(thisHandle) < 0) {
+	    if(cachenbind(thisHandle, 1) < 0) {
 		(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 		stat = -1;
 	    } else
@@ -438,7 +447,7 @@ SEXP RODBCSpecialColumns(SEXP chan, SEXP table)
 	    errlistAppend(thisHandle, _(err_SQLColumns));
 	    stat = -1;
 	} else {
-	    if(cachenbind(thisHandle) < 0) {
+	    if(cachenbind(thisHandle, 1) < 0) {
 		(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 		stat = -1;
 	    } else
@@ -483,7 +492,7 @@ SEXP RODBCTables(SEXP chan)
 	UNPROTECT(1);
 	return ans;
     }
-    if(cachenbind(thisHandle) < 0) {
+    if(cachenbind(thisHandle, 1) < 0) {
 	(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 	INTEGER(ans)[0] = -1;
 	UNPROTECT(1);
@@ -545,7 +554,7 @@ SEXP RODBCTypeInfo(SEXP chan,  SEXP ptype)
 	UNPROTECT(1);
 	return ans;
     }
-    if(cachenbind(thisHandle) < 0) {
+    if(cachenbind(thisHandle, 1) < 0) {
 	(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 	LOGICAL(ans)[0] = FALSE;
 	UNPROTECT(1);
@@ -592,7 +601,7 @@ SEXP RODBCGetInfo(SEXP chan)
  * 	Common column cache and bind for query-like routines
  *
  * 	*******************************************/
-static int cachenbind(pRODBCHandle thisHandle)
+static int cachenbind(pRODBCHandle thisHandle, int nRows)
 {
 
     SQLUSMALLINT i;
@@ -610,7 +619,8 @@ static int cachenbind(pRODBCHandle thisHandle)
 	errlistAppend(thisHandle, _(err_SQLRowCount));
 	return -1;
     }
-    /* Allocate storage for ColData array ,first freeing what was there last */
+    /* Allocate storage for ColData array,
+       first freeing what was there before */
     if(thisHandle->ColData) {
 	for (i = 0; i < thisHandle->nAllocated; i++)
 	    if(thisHandle->ColData[i].pData)
@@ -620,6 +630,33 @@ static int cachenbind(pRODBCHandle thisHandle)
     thisHandle->ColData = Calloc(NCOLS, COLUMNS);
     /* this allocates Data as zero */
     thisHandle->nAllocated = NCOLS;
+
+	/* attempt to set the row array size
+	 */
+
+    thisHandle->rowArraySize = my_min(nRows, COL_ARRAY_SIZE);
+
+    /* passing unsigned integer values via casts is a bad idea.
+       But here double casting works because long and a pointer
+       are the same size on all relevant platforms (since
+       Win64 is not relevant). */
+    retval = SQLSetStmtAttr(thisHandle->hStmt, SQL_ATTR_ROW_ARRAY_SIZE, 
+			    (SQLPOINTER) (unsigned long) thisHandle->rowArraySize, 0 );
+    if (retval != SQL_SUCCESS) thisHandle->rowArraySize = 1;
+
+    /* Set pointer to report number of rows fetched
+     */
+
+    if (thisHandle->rowArraySize != 1) {
+	retval = SQLSetStmtAttr(thisHandle->hStmt, 
+				SQL_ATTR_ROWS_FETCHED_PTR, 
+				&thisHandle->rowsFetched, 0);
+	if (retval != SQL_SUCCESS) {
+	    thisHandle->rowArraySize = 1;
+	    SQLSetStmtAttr(thisHandle->hStmt, SQL_ATTR_ROW_ARRAY_SIZE,
+			   (SQLPOINTER) 1, 0 );
+	}
+    }
 
     /* step through each col and cache metadata: cols are numbered from 1!
      */
@@ -636,42 +673,45 @@ static int cachenbind(pRODBCHandle thisHandle)
 	    return -1;
 	}
 	/* now bind the col to its data buffer */
+	/* MSDN say the BufferLength is ignored for fixed-size
+	   types, but this is not so for UnixODBC */
 	if (thisHandle->ColData[i].DataType == SQL_DOUBLE) {
 	    retval = SQLBindCol(thisHandle->hStmt, i+1,
 				SQL_C_DOUBLE,
-				&thisHandle->ColData[i].RData,
-				COLMAX,
-				&thisHandle->ColData[i].IndPtr);
+				thisHandle->ColData[i].RData,
+				sizeof(double),
+				thisHandle->ColData[i].IndPtr);
 	} else if (thisHandle->ColData[i].DataType == SQL_REAL) {
 	    retval = SQLBindCol(thisHandle->hStmt, i+1,
 				SQL_C_FLOAT,
-				&thisHandle->ColData[i].R4Data,
-				COLMAX,
-				&thisHandle->ColData[i].IndPtr);
+				thisHandle->ColData[i].R4Data,
+				sizeof(float),
+				thisHandle->ColData[i].IndPtr);
 	} else if (thisHandle->ColData[i].DataType == SQL_INTEGER) {
 	    retval = SQLBindCol(thisHandle->hStmt, i+1,
 				SQL_C_SLONG,
-				&thisHandle->ColData[i].IData,
-				COLMAX,
-				&thisHandle->ColData[i].IndPtr);
+				thisHandle->ColData[i].IData,
+				sizeof(int), /* despite the name */
+				thisHandle->ColData[i].IndPtr);
 	} else if (thisHandle->ColData[i].DataType == SQL_SMALLINT) {
 	    retval = SQLBindCol(thisHandle->hStmt, i+1,
 				SQL_C_SSHORT,
-				&thisHandle->ColData[i].I2Data,
-				COLMAX,
-				&thisHandle->ColData[i].IndPtr);
+				thisHandle->ColData[i].I2Data,
+				sizeof(short),
+				thisHandle->ColData[i].IndPtr);
 	} else { /* transfer as character */
 	    SQLLEN datalen = thisHandle->ColData[i].ColSize;
 	    if (datalen <= 0 || datalen < COLMAX) datalen = COLMAX;
 	    /* sanity check as the reports are sometimes unreliable */
 	    if (datalen > 65535) datalen = 65535;
-	    thisHandle->ColData[i].pData = Calloc(datalen + 1, char);
-	    thisHandle->ColData[i].IData = datalen;
+	    thisHandle->ColData[i].pData = 
+		Calloc(COL_ARRAY_SIZE * (datalen + 1), char);
+	    thisHandle->ColData[i].datalen = datalen;
 	    retval = SQLBindCol(thisHandle->hStmt, i+1,
 				SQL_C_CHAR,
 				thisHandle->ColData[i].pData,
 				datalen,
-				&thisHandle->ColData[i].IndPtr);
+				thisHandle->ColData[i].IndPtr);
 	}
 	if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
 	    errlistAppend(thisHandle, _(err_SQLBindCol));
@@ -700,9 +740,10 @@ SEXP RODBCNumCols(SEXP chan)
 
 
 
-SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
+SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows,
+		    SEXP natime)
 {
-    int status = 1, i, j, blksize, nc, n;
+    int status = 1, i, j, blksize, nc, n, row;
     int maximum = asInteger(max);
     pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     int useNRows = asLogical(believeNRows) != 0;
@@ -756,7 +797,7 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 	    else
 		SET_VECTOR_ELT(data, i, allocVector(STRSXP, blksize));
 
-	for(j = 1; j <= maximum; j++) {
+	for(j = 1; j <= maximum; ) {
 	    if(j > blksize) {
 		blksize *= 2;
 		for (i = 0; i < nc; i++) {
@@ -769,11 +810,11 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 		}
 	    }
 
-	    /* looks like we have to zero the cols explicitly :(
-	    for (i = 0; i < nc; i++)
-		thisHandle->ColData[i].Data[0] = '\0'; */
-
-	    retval = SQLFetch(thisHandle->hStmt);
+	    if (thisHandle->rowArraySize == 1) {
+		retval = SQLFetch(thisHandle->hStmt);
+		thisHandle->rowsFetched = 1;
+	    } else 
+		retval = SQLFetchScroll(thisHandle->hStmt, SQL_FETCH_NEXT, 0);
 	    if(retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO) break;
 
 	    /* SQL_SUCCESS_WITH_INFO if column(s) truncated
@@ -792,40 +833,54 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 		}
 	    }
 
-	    for (i = 0; i < nc; i++) {
-		if(thisHandle->ColData[i].DataType == SQL_DOUBLE) {
-		    if(thisHandle->ColData[i].IndPtr == SQL_NULL_DATA)
-			REAL(VECTOR_ELT(data, i))[j-1] = NA_REAL;
-		    else
-			REAL(VECTOR_ELT(data, i))[j-1] =
-			    thisHandle->ColData[i].RData;
-		} else if(thisHandle->ColData[i].DataType == SQL_REAL) {
-		    if(thisHandle->ColData[i].IndPtr == SQL_NULL_DATA)
-			REAL(VECTOR_ELT(data, i))[j-1] = NA_REAL;
-		    else
-			REAL(VECTOR_ELT(data, i))[j-1] =
-			    (double) thisHandle->ColData[i].R4Data;
-		} else if(thisHandle->ColData[i].DataType ==
-			  SQL_INTEGER) {
-		    if(thisHandle->ColData[i].IndPtr == SQL_NULL_DATA)
-			INTEGER(VECTOR_ELT(data, i))[j-1] = NA_INTEGER;
-		    else
-			INTEGER(VECTOR_ELT(data, i))[j-1] =
-			    thisHandle->ColData[i].IData;
-		} else if(thisHandle->ColData[i].DataType ==
-			  SQL_SMALLINT) {
-		    if(thisHandle->ColData[i].IndPtr == SQL_NULL_DATA)
-			INTEGER(VECTOR_ELT(data, i))[j-1] = NA_INTEGER;
-		    else
-			INTEGER(VECTOR_ELT(data, i))[j-1] =
-			    (int) thisHandle->ColData[i].I2Data;
-		} else {
-		    if(thisHandle->ColData[i].IndPtr == SQL_NULL_DATA)
-			SET_STRING_ELT(VECTOR_ELT(data, i), j-1,
-				       STRING_ELT(nas, 0));
-		    else
-			SET_STRING_ELT(VECTOR_ELT(data, i), j-1,
-				       mkChar(thisHandle->ColData[i].pData));
+	    for(row = 0; row < thisHandle->rowsFetched && j <= maximum; 
+		j++, row++)
+	    {
+	    	if(j > blksize) {
+		    blksize *= 2;
+		    for (i = 0; i < nc; i++) {
+			old = VECTOR_ELT(data, i);
+			if(!isNull(old)) {
+			    new = allocVector(TYPEOF(old), blksize);
+			    copyVector(new, old);
+			    SET_VECTOR_ELT(data, i, new);
+			}
+		    }
+		}
+	    	for (i = 0; i < nc; i++) {
+		    if(thisHandle->ColData[i].DataType == SQL_DOUBLE) {
+			if(thisHandle->ColData[i].IndPtr[row] == SQL_NULL_DATA)
+			    REAL(VECTOR_ELT(data, i))[j-1] = NA_REAL;
+			else
+			    REAL(VECTOR_ELT(data, i))[j-1] =
+				thisHandle->ColData[i].RData[row];
+		    } else if(thisHandle->ColData[i].DataType == SQL_REAL) {
+			if(thisHandle->ColData[i].IndPtr[row] == SQL_NULL_DATA)
+			    REAL(VECTOR_ELT(data, i))[j-1] = NA_REAL;
+			else
+			    REAL(VECTOR_ELT(data, i))[j-1] =
+				(double) thisHandle->ColData[i].R4Data[row];
+		    } else if(thisHandle->ColData[i].DataType ==
+			      SQL_INTEGER) {
+			if(thisHandle->ColData[i].IndPtr[row] == SQL_NULL_DATA)
+			    INTEGER(VECTOR_ELT(data, i))[j-1] = NA_INTEGER;
+			else
+			    INTEGER(VECTOR_ELT(data, i))[j-1] =
+				thisHandle->ColData[i].IData[row];
+		    } else if(thisHandle->ColData[i].DataType == SQL_SMALLINT) {
+			if(thisHandle->ColData[i].IndPtr[row] == SQL_NULL_DATA)
+			    INTEGER(VECTOR_ELT(data, i))[j-1] = NA_INTEGER;
+			else
+			    INTEGER(VECTOR_ELT(data, i))[j-1] =
+				(int) thisHandle->ColData[i].I2Data[row];
+		    } else {
+			if(thisHandle->ColData[i].IndPtr[row] == SQL_NULL_DATA)
+			    SET_STRING_ELT(VECTOR_ELT(data, i), j-1,
+					   STRING_ELT(nas, 0));
+			else
+			    SET_STRING_ELT(VECTOR_ELT(data, i), j-1,
+					   mkChar(thisHandle->ColData[i].pData + ((thisHandle->ColData[i].datalen) * row)));
+		    }
 		}
 	    }
 	}
@@ -1001,7 +1056,7 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
         if(thisHandle->ColData) {
 	for (i = 0; i < thisHandle->nAllocated; i++)
 	    if(thisHandle->ColData[i].pData)
-	    Free(thisHandle->ColData[i].pData);
+		Free(thisHandle->ColData[i].pData);
 	Free(thisHandle->ColData);
     }
     thisHandle->ColData = Calloc(NCOLS, COLUMNS);
@@ -1034,10 +1089,10 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 	    }
 	}
 	if(!found) {
+	    (void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 	    errlistAppend(thisHandle, _("Missing column name"));
-	    INTEGER(ans)[0] = -1;
-	    UNPROTECT(1);
-	    return ans;
+	    stat = -1;
+	    goto end;
 	}
 	if(vtest)
 	    Rprintf("Binding: %s: DataType %d\n",
@@ -1049,18 +1104,18 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 				    thisHandle->ColData[j].DataType,
 				    thisHandle->ColData[j].ColSize,
 				    thisHandle->ColData[j].DecimalDigits,
-				    &thisHandle->ColData[j].RData,
+				    thisHandle->ColData[j].RData,
 				    0,
-				    &thisHandle->ColData[j].IndPtr);
+				    thisHandle->ColData[j].IndPtr);
 	} else if(TYPEOF(VECTOR_ELT(data, sequence[j])) == INTSXP) {
 	    res <- SQLBindParameter(thisHandle->hStmt,
 				    j+1, SQL_PARAM_INPUT, SQL_C_SLONG,
 				    thisHandle->ColData[j].DataType,
 				    thisHandle->ColData[j].ColSize,
 				    thisHandle->ColData[j].DecimalDigits,
-				    &thisHandle->ColData[j].IData,
+				    thisHandle->ColData[j].IData,
 				    0,
-				    &thisHandle->ColData[j].IndPtr);
+				    thisHandle->ColData[j].IndPtr);
 	} else {
 	    int datalen = thisHandle->ColData[j].ColSize;
 	    thisHandle->ColData[j].pData = Calloc(datalen+1, char);
@@ -1071,15 +1126,14 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 				    thisHandle->ColData[j].DecimalDigits,
 				    thisHandle->ColData[j].pData,
 				    0,
-				    &thisHandle->ColData[j].IndPtr);
+				    thisHandle->ColData[j].IndPtr);
 	}
 	if(res  != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
 	    (void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 	    errlistAppend(thisHandle, _("[RODBC] Failed Bind Param in Update"));
 	    geterr(thisHandle);
-	    INTEGER(ans)[0] = -1;
-	    UNPROTECT(1);
-	    return ans;
+	    stat = -1;
+	    goto end;
 	}
     }
     /* now the data */
@@ -1088,27 +1142,27 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 	for(j = 0; j < cols; j++) {
 	    k = sequence[j]; /* get the right column */
 	    if(TYPEOF(VECTOR_ELT(data, k)) == REALSXP) {
-		thisHandle->ColData[j].RData =
+		thisHandle->ColData[j].RData[0] =
 		    REAL(VECTOR_ELT(data, k))[i];
 		if(vtest)
 		    Rprintf("no: %d: %s %g/***/", j + 1,
 			    (char *) thisHandle->ColData[j].ColName,
 			    REAL(VECTOR_ELT(data, k))[i]);
 		if(ISNAN(REAL(VECTOR_ELT(data, k))[i]))
-		    thisHandle->ColData[j].IndPtr = SQL_NULL_DATA;
+		    thisHandle->ColData[j].IndPtr[0] = SQL_NULL_DATA;
 		else
-		    thisHandle->ColData[j].IndPtr = SQL_NTS;
+		    thisHandle->ColData[j].IndPtr[0] = SQL_NTS;
 	    } else if(TYPEOF(VECTOR_ELT(data, k)) == INTSXP) {
-		thisHandle->ColData[j].IData =
+		thisHandle->ColData[j].IData[0] =
 		    INTEGER(VECTOR_ELT(data, k))[i];
 		if(vtest)
 		    Rprintf("no: %d: %s %d/***/", j + 1,
 			    (char *) thisHandle->ColData[j].ColName,
 			    INTEGER(VECTOR_ELT(data, k))[i]);
 		if(INTEGER(VECTOR_ELT(data, k))[i] == NA_INTEGER)
-		    thisHandle->ColData[j].IndPtr = SQL_NULL_DATA;
+		    thisHandle->ColData[j].IndPtr[0] = SQL_NULL_DATA;
 		else
-		    thisHandle->ColData[j].IndPtr = SQL_NTS;
+		    thisHandle->ColData[j].IndPtr[0] = SQL_NTS;
 	    } else {
 		char *cData = CHAR(STRING_ELT(VECTOR_ELT(data, k), i));
 		int datalen = thisHandle->ColData[j].ColSize;
@@ -1122,9 +1176,9 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 			    (char *) thisHandle->ColData[j].ColName,
 			    cData);
 		if(STRING_ELT(VECTOR_ELT(data, k), i) == NA_STRING)
-		    thisHandle->ColData[j].IndPtr = SQL_NULL_DATA;
+		    thisHandle->ColData[j].IndPtr[0] = SQL_NULL_DATA;
 		else
-		    thisHandle->ColData[j].IndPtr = SQL_NTS;
+		    thisHandle->ColData[j].IndPtr[0] = SQL_NTS;
 	    }
 	}
 	if(vtest) Rprintf("\n");
@@ -1135,13 +1189,13 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 		geterr(thisHandle);
 		(void)SQLFreeStmt( thisHandle->hStmt, SQL_RESET_PARAMS );
 		(void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
-		INTEGER(ans)[0] = -1;
-		UNPROTECT(1);
-		return ans;
+		stat = -1;
+		goto end;
 	    }
 	}
     }
     (void)SQLFreeStmt( thisHandle->hStmt, SQL_RESET_PARAMS );
+    (void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
 end:
     Free(sequence);
     INTEGER(ans)[0] = stat;

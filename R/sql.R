@@ -266,7 +266,7 @@ sqlSave <-
         notOK <- !(nm %in% names(colspecs))
         if(any(notOK))
             warning("column(s) ", paste(nm[notOK], collapse=", "),
-                    " named in 'varTypes' are unknown")
+                    " 'dat' are not in the names of 'varTypes'")
     }
     query <- sqltablecreate(tablename, colspecs = colspecs, keys = keys)
     if(verbose) cat("Query: ", query, "\n", sep = "")
@@ -450,15 +450,14 @@ sqlPrimaryKeys <-
 }
 
 sqlQuery <-
-    function(channel, query, errors = TRUE, ...)
+    function(channel, query, errors = TRUE, ..., rows_at_time = 1)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
     if(missing(query))
         stop("missing parameter")
-    stat <- odbcQuery(channel, query)
-    if(stat == -1)
-    {
+    stat <- odbcQuery(channel, query, rows_at_time)
+    if(stat == -1) {
         if(errors) return(odbcGetErrMsg(channel))
         else return(stat)
     } else return(sqlGetResults(channel, errors = errors, ...))
