@@ -24,7 +24,8 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
   \item{as.is}{which (if any) character columns should be converted,
     as in \code{\link{read.table}}?  See the details.}
   \item{max}{limit on the number of rows to fetch, with 0 indicating no limit.}
-  \item{buffsize}{the number of rows to be transferred at a time.}
+  \item{buffsize}{an initial guess at the number of rows, used if
+    \code{max = 0} and \code{believeNRows == FALSE} for the driver.}
   \item{nullstring}{
     character string to be used when reading \code{SQL_NULL_DATA}
     character items from the database.
@@ -75,15 +76,14 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
   when RODBC is initialized if it is not already set.
   
   Using \code{buffsize} will yield a marginal increase in speed if set
-  to no less than the maximum number of rows where \code{believeNRows =
-    FALSE}.
+  to no less than the maximum number of rows when \code{believeNRows =
+    FALSE}.  (If set too small it can result in unnecessarily high
+  memory use as the buffers will need to be expanded.)
 
   Modern drivers should work (and work faster, especially if
   communicating with a remote machine) with \code{rows_a_time = 1024}.
-  However, some drivers will mis-fetch multiple rows: for example the
-  \code{MyODBC} driver that ships with AMD64 Fedora Core 3 fetches
-  integer fields as 64-bit quantities and so returns every other value
-  as zero.
+  However, some drivers may mis-fetch multiple rows, so set this to
+  \code{1} if the results are incorrect.
 }
 \value{
   A data frame (possibly with 0 rows) on success.

@@ -60,6 +60,9 @@ odbc and the program odbc_config is found, it is used to set the libpath
 as a last resort (it is often wrong), and to add any additional CFLAGS.
 (Note that it does not contain information on the include path.)
 
+A tutorial on using unixODBC on Linux can be found at
+http://www.easysoft.com/developer/interfaces/odbc/linux.html
+
 DSNs are described in files: the user's file is ~/.odbc.ini.  Mine is:
 
 gannet% cat .odbc.ini
@@ -111,7 +114,6 @@ gannet% cat /usr/local/etc/odbcinst.ini
 [myodbc3]
 Description = MySQL driver.
 Driver      = /usr/local/lib/libmyodbc3.so
-Setup       = /usr/local/liblibmyodbc3S.so
 FileUsage   = 1
 
 [PostgreSQL]
@@ -129,7 +131,10 @@ for use with MySQL using the MyODBC 3.51 driver (both from
 http://www.mysql.com), and PostgreSQL using the driver from the
 psqlODBC project (http://gborg.postgresql.org/project/psqlodbc).  For
 PostgreSQL, CommLog = 1 adds user-level logging.  The Sqlite ODBC
-driver is from http://www.ch-werner.de/sqliteodbc/.
+driver is from http://www.ch-werner.de/sqliteodbc/.  (UnixODBC allows
+Driver64 here to allow for different paths on 32-bit and 64=bit
+platforms.)
+
 
 One quirk to be watched is the use of connections to the DBMS via the
 Unix sockets vs ports.  The PostgreSQL driver bundled with unixODBC
@@ -161,7 +166,7 @@ As from RODBC 1.1-6, the new types are used, and configure defines
 replacements if they are not found.  This works fine on MinGW and iodbc,
 which will use 64-bit types if ODBC was compiled to use them.  However,
 on unixODBC on a system with 64-bit longs, whether 64-bit types are 
-declared in the headers depends on the define BUILD_REAL_64_BIT_MODE.
+declared in the headers depends on the macro BUILD_REAL_64_BIT_MODE.
 So if unixODBC was compiled with that defined, RODBC also needs to be.
 It seems that most systems (including Fedora Core 3/4/5) do not define the
 macro, but Debian does (and, I am told, has altered the headers so the 

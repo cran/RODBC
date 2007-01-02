@@ -1,10 +1,15 @@
+useDynLib(RODBC, .registration = TRUE, .fixes = "C_")
+
+importFrom(stats, runif)
+
 export(getSqlTypeInfo, odbcClearError, odbcClose, odbcCloseAll,
-       odbcColumns, odbcConnect, odbcDriverConnect, odbcFetchRows,
-       odbcGetErrMsg, odbcGetInfo , odbcPrimaryKeys, odbcQuery,
-       odbcReConnect, odbcSetAutoCommit, odbcTables, odbcUpdate, setSqlTypeInfo,
-       sqlClear, sqlColumns, sqlCopy, sqlCopyTable, sqlDrop, sqlFetch,
-       sqlFetchMore, sqlGetResults, sqlPrimaryKeys, sqlQuery, sqlSave,
-       sqlTables, sqlTypeInfo, sqlUpdate)
+       odbcColumns, odbcConnect, odbcDataSources, odbcDriverConnect,
+       odbcEndTran, odbcFetchRows, odbcGetErrMsg, odbcGetInfo,
+       odbcPrimaryKeys, odbcQuery, odbcReConnect, odbcSetAutoCommit,
+       odbcTables, odbcUpdate, setSqlTypeInfo, sqlClear, sqlColumns,
+       sqlCopy, sqlCopyTable, sqlDrop, sqlFetch, sqlFetchMore,
+       sqlGetResults, sqlPrimaryKeys, sqlQuery, sqlSave, sqlTables,
+       sqlTypeInfo, sqlUpdate)
 
 # not exported
 # odbcCaseFlag, odbcClearResults, odbcColData, odbcNumCols,
@@ -13,6 +18,7 @@ export(getSqlTypeInfo, odbcClearError, odbcClose, odbcCloseAll,
 
 S3method(close, RODBC)
 S3method(print, RODBC)
+
 if(tools:::.OStype() == "windows") {
 export(odbcConnectAccess, odbcConnectDbase, odbcConnectExcel)
 }

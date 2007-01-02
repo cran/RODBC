@@ -748,7 +748,7 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows,
     pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     int useNRows = asLogical(believeNRows) != 0;
     int buffsize = asInteger(bs);
-    SEXP data, names, ans, stat, old, new;
+    SEXP data, names, ans, stat;
     SQLRETURN retval;
 
     nc = NCOLS;
@@ -800,16 +800,10 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows,
 	for(j = 1; j <= maximum; ) {
 	    if(j > blksize) {
 		blksize *= 2;
-		for (i = 0; i < nc; i++) {
-		    old = VECTOR_ELT(data, i);
-		    if(!isNull(old)) {
-			new = allocVector(TYPEOF(old), blksize);
-			copyVector(new, old);
-			SET_VECTOR_ELT(data, i, new);
-		    }
-		}
+		for (i = 0; i < nc; i++)
+		    SET_VECTOR_ELT(data, i, 
+				   lengthgets(VECTOR_ELT(data, i), blksize));
 	    }
-
 	    if (thisHandle->rowArraySize == 1) {
 		retval = SQLFetch(thisHandle->hStmt);
 		thisHandle->rowsFetched = 1;
@@ -838,14 +832,9 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows,
 	    {
 	    	if(j > blksize) {
 		    blksize *= 2;
-		    for (i = 0; i < nc; i++) {
-			old = VECTOR_ELT(data, i);
-			if(!isNull(old)) {
-			    new = allocVector(TYPEOF(old), blksize);
-			    copyVector(new, old);
-			    SET_VECTOR_ELT(data, i, new);
-			}
-		    }
+		    for (i = 0; i < nc; i++)
+			SET_VECTOR_ELT(data, i, 
+				       lengthgets(VECTOR_ELT(data, i), blksize));
 		}
 	    	for (i = 0; i < nc; i++) {
 		    if(thisHandle->ColData[i].DataType == SQL_DOUBLE) {
@@ -890,31 +879,9 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows,
 	if (n > 0 && !(maximum && n >= maximum))
 	    NCOLS = -1; /* reset for next call */
 	if (n < blksize) { /* need to trim vectors */
-	    /* if (n == 0) errlistAppend(thisHandle, "No Data"); */
-	    for (i = 0; i < nc; i++) {
-		old = VECTOR_ELT(data, i);
-		new = allocVector(TYPEOF(old), n);
-		switch (TYPEOF(old)) {
-/*		case LGLSXP: */
-		case INTSXP:
-		    for (j = 0; j < n; j++)
-			INTEGER(new)[j] = INTEGER(old)[j];
-		    break;
-		case REALSXP:
-		    for (j = 0; j < n; j++)
-			REAL(new)[j] = REAL(old)[j];
-		    break;
-/*		case CPLXSXP:
-		    for (j = 0; j < n; j++)
-			COMPLEX(new)[j] = COMPLEX(old)[j];
-			break;*/
-		case STRSXP:
-		    for (j = 0; j < n; j++)
-			SET_STRING_ELT(new, j, STRING_ELT(old, j));
-		    break;
-		}
-		SET_VECTOR_ELT(data, i, new);
-	    }
+	    for (i = 0; i < nc; i++)
+		    SET_VECTOR_ELT(data, i, 
+				   lengthgets(VECTOR_ELT(data, i), n));
 	}
     }
 
@@ -1099,34 +1066,34 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 		    (char *) thisHandle->ColData[j].ColName,
 		    thisHandle->ColData[j].DataType);
 	if(TYPEOF(VECTOR_ELT(data, sequence[j])) == REALSXP) {
-	    res <- SQLBindParameter(thisHandle->hStmt,
-				    j+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
-				    thisHandle->ColData[j].DataType,
-				    thisHandle->ColData[j].ColSize,
-				    thisHandle->ColData[j].DecimalDigits,
-				    thisHandle->ColData[j].RData,
-				    0,
-				    thisHandle->ColData[j].IndPtr);
+	    res = SQLBindParameter(thisHandle->hStmt,
+				   j+1, SQL_PARAM_INPUT, SQL_C_DOUBLE,
+				   thisHandle->ColData[j].DataType,
+				   thisHandle->ColData[j].ColSize,
+				   thisHandle->ColData[j].DecimalDigits,
+				   thisHandle->ColData[j].RData,
+				   0,
+				   thisHandle->ColData[j].IndPtr);
 	} else if(TYPEOF(VECTOR_ELT(data, sequence[j])) == INTSXP) {
-	    res <- SQLBindParameter(thisHandle->hStmt,
-				    j+1, SQL_PARAM_INPUT, SQL_C_SLONG,
-				    thisHandle->ColData[j].DataType,
-				    thisHandle->ColData[j].ColSize,
-				    thisHandle->ColData[j].DecimalDigits,
-				    thisHandle->ColData[j].IData,
-				    0,
-				    thisHandle->ColData[j].IndPtr);
+	    res = SQLBindParameter(thisHandle->hStmt,
+				   j+1, SQL_PARAM_INPUT, SQL_C_SLONG,
+				   thisHandle->ColData[j].DataType,
+				   thisHandle->ColData[j].ColSize,
+				   thisHandle->ColData[j].DecimalDigits,
+				   thisHandle->ColData[j].IData,
+				   0,
+				   thisHandle->ColData[j].IndPtr);
 	} else {
 	    int datalen = thisHandle->ColData[j].ColSize;
 	    thisHandle->ColData[j].pData = Calloc(datalen+1, char);
-	    res <- SQLBindParameter(thisHandle->hStmt,
-				    j+1, SQL_PARAM_INPUT, SQL_C_CHAR,
-				    thisHandle->ColData[j].DataType,
-				    datalen,
-				    thisHandle->ColData[j].DecimalDigits,
-				    thisHandle->ColData[j].pData,
-				    0,
-				    thisHandle->ColData[j].IndPtr);
+	    res = SQLBindParameter(thisHandle->hStmt,
+				   j+1, SQL_PARAM_INPUT, SQL_C_CHAR,
+				   thisHandle->ColData[j].DataType,
+				   datalen,
+				   thisHandle->ColData[j].DecimalDigits,
+				   thisHandle->ColData[j].pData,
+				   0,
+				   thisHandle->ColData[j].IndPtr);
 	}
 	if(res  != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
 	    (void)SQLFreeStmt( thisHandle->hStmt, SQL_DROP );
@@ -1183,7 +1150,7 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 	}
 	if(vtest) Rprintf("\n");
 	if(vtest < 2) {
-	    res <- SQLExecute(thisHandle->hStmt);
+	    res = SQLExecute(thisHandle->hStmt);
 	    if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
 		errlistAppend(thisHandle, _("[RODBC] Failed exec in Update"));
 		geterr(thisHandle);
@@ -1482,4 +1449,108 @@ SEXP RODBCSetAutoCommit(SEXP chan, SEXP autoCommit)
     INTEGER(ans)[0] = rc;
     UNPROTECT(1);
     return ans;
+}
+/***********************
+ * Commit or rollback a transaction
+ */
+SEXP RODBCEndTran(SEXP chan, SEXP sCommit)
+{
+    SEXP ans;
+    pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
+    int Commit = asLogical(sCommit) != 0;
+    int rc;
+
+    rc = SQLEndTran(SQL_HANDLE_DBC, thisHandle->hDbc,
+		    Commit ? SQL_COMMIT : SQL_ROLLBACK);
+
+    PROTECT(ans = allocVector(INTSXP, 1));
+    INTEGER(ans)[0] = rc;
+    UNPROTECT(1);
+    return ans;
+}
+
+SEXP RODBCListDataSources(SEXP stype)
+{
+    SEXP ans, nm;
+    PROTECT_INDEX pidx, nidx;
+    SQLHENV hEnv;
+
+    UWORD fDirection = SQL_FETCH_FIRST;
+    SQLRETURN retval;
+    SQLCHAR szDSN[SQL_MAX_DSN_LENGTH+1];
+    SQLCHAR szDescription[100];
+    char message[SQL_MAX_DSN_LENGTH+101];
+    int i = 0, ni = 100, type = asInteger(stype);
+
+    SQLAllocEnv(&hEnv);
+    switch(type) {
+    case 2:  fDirection = SQL_FETCH_FIRST_USER; break;
+    case 3:  fDirection = SQL_FETCH_FIRST_SYSTEM; break;
+    default: fDirection = SQL_FETCH_FIRST; break;
+    }
+    
+    PROTECT_WITH_INDEX(ans = allocVector(STRSXP, ni), &pidx);
+    PROTECT_WITH_INDEX(nm = allocVector(STRSXP, ni), &nidx);
+    do {
+        retval = SQLDataSources(hEnv, fDirection,
+				(UCHAR *)szDSN, sizeof(szDSN), NULL,
+				(UCHAR *)szDescription,
+				sizeof(szDescription), NULL);
+	if(retval == SQL_NO_DATA) break;
+        if(retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO) {
+            sprintf(message, "SQLDataSources returned: %d", retval);
+	    SET_STRING_ELT(ans, i, mkChar(message));
+        } else {
+	    SET_STRING_ELT(nm, i, mkChar((char *)szDSN));
+	    SET_STRING_ELT(ans, i, mkChar((char *)szDescription));
+	}
+        fDirection = SQL_FETCH_NEXT;
+	i++;
+	if(i >= ni - 1) {
+	    ni *= 2;
+	    REPROTECT(ans = lengthgets(ans, ni), pidx);
+	    REPROTECT(nm = lengthgets(nm, ni), nidx);
+	}
+    } while(retval == SQL_SUCCESS || retval == SQL_SUCCESS_WITH_INFO);
+    
+    (void)SQLFreeEnv(hEnv);
+    ans = lengthgets(ans, i);
+    nm = lengthgets(nm, i);
+    setAttrib(ans, R_NamesSymbol, nm);
+    UNPROTECT(2);
+    return ans;
+}
+
+#include <R_ext/Rdynload.h>
+
+static const R_CallMethodDef CallEntries[] = {
+    {"RODBCGetErrMsg", (DL_FUNC) &RODBCGetErrMsg, 1},
+    {"RODBCClearError", (DL_FUNC) &RODBCClearError, 1},
+    {"RODBCDriverConnect", (DL_FUNC) &RODBCDriverConnect, 3},
+    {"RODBCQuery", (DL_FUNC) &RODBCQuery, 3},
+    {"RODBCUpdate", (DL_FUNC) &RODBCUpdate, 8},
+    {"RODBCTables", (DL_FUNC) &RODBCTables, 1},
+    {"RODBCColumns", (DL_FUNC) &RODBCColumns, 2},
+    {"RODBCSpecialColumns", (DL_FUNC) &RODBCSpecialColumns, 2},
+    {"RODBCPrimaryKeys", (DL_FUNC) &RODBCPrimaryKeys, 2},
+    {"RODBCColData", (DL_FUNC) &RODBCColData, 1},
+    {"RODBCNumCols", (DL_FUNC) &RODBCNumCols, 1},
+    {"RODBCClose", (DL_FUNC) &RODBCClose, 1},
+    {"RODBCCloseAll", (DL_FUNC) &RODBCCloseAll, 0},
+    {"RODBCFetchRows", (DL_FUNC) &RODBCFetchRows, 5},
+    {"RODBCGetInfo", (DL_FUNC) &RODBCGetInfo, 1},
+    {"RODBCcheckchannel", (DL_FUNC) &RODBCcheckchannel, 2},
+    {"RODBCclearresults", (DL_FUNC) &RODBCclearresults, 1},
+    {"RODBCSetAutoCommit", (DL_FUNC) &RODBCSetAutoCommit, 2},
+    {"RODBCEndTran", (DL_FUNC) &RODBCEndTran, 2},
+    {"RODBCTypeInfo", (DL_FUNC) &RODBCTypeInfo, 2},
+    {"RODBCListDataSources", (DL_FUNC) &RODBCListDataSources, 1},
+    {NULL, NULL, 0}
+};
+
+
+void R_init_RODBC(DllInfo *dll)
+{
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }

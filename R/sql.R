@@ -309,13 +309,13 @@ sqlwrite <-
     if(!fast) {
         data <- as.matrix(mydata)
         ## quote character columns
-        cc <- grep("char|date|time", tolower(as.character(coldata[, 1])))
+        cc <- grep("char|text|date|time", tolower(as.character(coldata[, 1])))
         if(length(cc)) data[, cc] <- paste("'", data[, cc], "'", sep = "")
         data[is.na(mydata)] <- if(is.null(nastring)) "NULL" else nastring[1]
         for (i in 1:nrow(data)) {
             query <- paste("INSERT INTO", tablename, "(", cnames,
                            ") VALUES (",
-                           paste(data[i, ], collapse = ", "),
+                           paste(data[i, colnames], collapse = ", "),
                            ")")
             if(verbose) cat("Query: ", query, "\n", sep = "")
             if(odbcQuery(channel, query) < 0) return(-1)
@@ -641,7 +641,7 @@ sqlUpdate <-
         data <- as.matrix(dat)
         colnames(data) <- cnames
         ## quote character columns
-        cc <- grep("char", tolower(as.character(cdata[, 6])))
+        cc <- grep("char|date|time", tolower(as.character(coldata[, 1])))
         if(length(cc)) data[, cc] <- paste("'", data[, cc], "'", sep = "")
         data[is.na(dat)] <- if(is.null(nastring)) "NULL" else nastring
         for (i in 1:nrow(data)) {

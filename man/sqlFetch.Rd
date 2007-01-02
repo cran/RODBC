@@ -37,16 +37,18 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
   It tries to cope with the peculiar way the Excel ODBC driver handles
   table names, and to quote Access table names which contain spaces.
 
-  Useful additional parameters to pass to \code{\link{sqlGetResults}} include
+  Useful additional parameters to pass to \code{\link{sqlQuery}} or
+  \code{\link{sqlGetResults}} include
   \describe{
     \item{\code{max}:}{limit on the number of rows to fetch, with
       0 (the default) indicating no limit.}
     
     \item{\code{nullstring}:}{character string to be used when reading
-      \code{SQL_NULL_DATA} character items from the database.}
+      \code{SQL_NULL_DATA} character items from the database:
+      default \code{NA}.}
     
     \item{\code{na.strings}:}{character string(s) to be mapped to
-      \code{NA} when reading character data.}
+      \code{NA} when reading character data: default \code{"NA"}.}
     
     \item{\code{as.is}:}{as in \code{\link{sqlGetResults}}.}
     

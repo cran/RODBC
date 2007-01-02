@@ -5,7 +5,7 @@ USArrests[1,2] <- NA
 
 
 # MySQL
-channel <- odbcConnect("testdb3", uid="ripley", case="tolower")
+channel <- odbcConnect("testdb3", uid="ripley", case="mysql")
 odbcGetInfo(channel)
 sqlTypeInfo(channel)
 sqlTables(channel)
@@ -26,7 +26,7 @@ sqlDrop(channel, "USArrests")
 ## close the connection
 close(channel)
 
-channel <- odbcConnect("testdb3", uid="ripley", case="tolower")
+channel <- odbcConnect("testdb3", uid="ripley", case="mysql")
 Btest <- Atest <-
     data.frame(x = c(paste(1:100, collapse="+"), letters[2:4]), rn=1:4)
 Btest[,1] <- Atest[c(4,1:3),1]
@@ -47,7 +47,7 @@ sqlFetch(channel, "Atest")
 sqlDrop(channel, "Atest")
 close(channel)
 
-channel <- odbcConnect("testdb3", uid="ripley", case="tolower")
+channel <- odbcConnect("testdb3", uid="ripley", case="mysql")
 dates <- as.character(seq(as.Date("2004-01-01"), by="week", length=10))
 times <- paste(1:10, "05", "00", sep=":")
 Dtest <- data.frame(dates, times, logi=c(TRUE, NA, FALSE, FALSE, FALSE))
@@ -155,7 +155,7 @@ close(channel)
 
 
 # PostgreSQL 8.x on Windows
-channel <- odbcConnect("testpg", case="tolower")
+channel <- odbcConnect("testpg", case="postgresql")
 odbcGetInfo(channel)
 sqlTypeInfo(channel)
 sqlTables(channel)
@@ -175,7 +175,7 @@ sqlDrop(channel, "USArrests")
 ## close the connection
 close(channel)
 
-channel <- odbcConnect("testpg", case="tolower")
+channel <- odbcConnect("testpg", case="postgresql")
 dates <- as.character(seq(as.Date("2004-01-01"), by="week", length=10))
 times <- paste(1:10, "05", "00", sep=":")
 Dtest <- data.frame(dates, times, logi=c(TRUE, NA, FALSE, FALSE, FALSE))
@@ -187,7 +187,7 @@ sqlFetch(channel, "Dtest")
 sqlDrop(channel, "Dtest")
 close(channel)
 
-channel <- odbcConnect("testpg", case="tolower")
+channel <- odbcConnect("testpg", case="postgresql")
 Btest <- Atest <-
     data.frame(x = c(paste(1:100, collapse="+"), letters[2:4]), rn=1:4)
 Btest[,1] <- Atest[c(4,1:3),1]
@@ -231,9 +231,11 @@ close(channel)
 channel <- odbcConnect("sqlite3")
 dates <- as.character(seq(as.Date("2004-01-01"), by="week", length=10))
 times <- paste(1:10, "05", "00", sep=":")
-Dtest <- data.frame(dates, times, logi=c(TRUE, NA, FALSE, FALSE, FALSE))
+dt <- paste(dates, times)
+Dtest <- data.frame(dates, times, dt, logi=c(TRUE, NA, FALSE, FALSE, FALSE))
 sqlDrop(channel, "Dtest", errors = FALSE)
-varspec <- c("date", "time", "varchar(5)"); names(varspec) <- names(Dtest)
+varspec <- c("date", "time", "timestamp", "varchar(5)")
+names(varspec) <- names(Dtest)
 sqlSave(channel, Dtest, varTypes = varspec, fast=FALSE)
 # fast=TRUE fails
 sqlColumns(channel, "Dtest")
@@ -248,7 +250,7 @@ close(channel)
 ###---------------------------------------------------------------------
 
 # MySQL on Unix
-channel <- odbcConnect("test", uid="ripley")
+channel <- odbcConnect("test")
 odbcGetInfo(channel)
 sqlTypeInfo(channel)
 sqlTables(channel)
@@ -266,6 +268,42 @@ sqlUpdate(channel, foo, "USArrests")
 sqlFetch(channel, "USArrests", rownames = "State", max = 5)
 sqlDrop(channel, "USArrests")
 ## close the connection
+close(channel)
+
+channel <- odbcConnect("test")
+Btest <- Atest <-
+    data.frame(x = c(paste(1:100, collapse="+"), letters[2:4]), rn=1:4)
+Btest[,1] <- Atest[c(4,1:3),1]
+sqlDrop(channel, "Atest", errors = FALSE)
+# sqlSave(channel, Atest, addPK = TRUE)
+colspec <- list(character="mediumtext", double="double",
+                integer="integer", logical="varchar(5)")
+sqlSave(channel, Atest, typeInfo = colspec)
+sqlColumns(channel, "Atest")
+sqlFetch(channel, "Atest")
+sqlUpdate(channel, Btest, "Atest", index = "rn")
+sqlFetch(channel, "Atest")
+sqlDrop(channel, "Atest")
+varspec <- "mediumtext"; names(varspec) <- "x"
+sqlSave(channel, Atest, varTypes = varspec)
+sqlColumns(channel, "Atest")
+sqlFetch(channel, "Atest")
+sqlDrop(channel, "Atest")
+close(channel)
+
+channel <- odbcConnect("test")
+dates <- as.character(seq(as.Date("2004-01-01"), by="week", length=10))
+times <- paste(1:10, "05", "00", sep=":")
+dt <- paste(dates, " ", times, ".", round(runif(10),3), sep="")
+Dtest <- data.frame(dates, times, dt, logi=c(TRUE, NA, FALSE, FALSE, FALSE))
+sqlDrop(channel, "Dtest", errors = FALSE)
+varspec <- c("date", "time", "timestamp", "varchar(5)")
+names(varspec) <- names(Dtest)
+sqlDrop(channel, "Dtest", errors = FALSE)
+sqlSave(channel, Dtest, varTypes = varspec, verbose=TRUE)
+sqlColumns(channel, "Dtest")
+sqlFetch(channel, "Dtest")
+sqlDrop(channel, "Dtest")
 close(channel)
 
 
@@ -290,7 +328,7 @@ close(channel)
 
 
 # PostgreSQL on Unix
-channel <- odbcConnect("testpg", uid="ripley", case="tolower")
+channel <- odbcConnect("testpg", uid="ripley", case="postgresql")
 odbcGetInfo(channel)
 sqlTypeInfo(channel)
 sqlTables(channel)
@@ -308,5 +346,40 @@ sqlUpdate(channel, foo, "USArrests", index = "state")
 sqlFetch(channel, "USArrests", rownames = "state", max = 5)
 sqlDrop(channel, "USArrests")
 ## close the connection
+close(channel)
+
+channel <- odbcConnect("testpg", case="postgresql")
+dates <- as.character(seq(as.Date("2004-01-01"), by="week", length=10))
+times <- paste(1:10, "05", "00", sep=":")
+dt <- paste(dates, " ", times, ".", round(1000*runif(10)), sep="")
+Dtest <- data.frame(dates, times, dt, logi=c(TRUE, NA, FALSE, FALSE, FALSE))
+sqlDrop(channel, "Dtest", errors = FALSE)
+varspec <- c("date", "time", "timestamp", "varchar(5)")
+names(varspec) <- names(Dtest)
+sqlSave(channel, Dtest, varTypes = varspec, verbose=TRUE)
+sqlColumns(channel, "Dtest")
+sqlFetch(channel, "Dtest")
+sqlDrop(channel, "Dtest")
+close(channel)
+
+channel <- odbcConnect("testpg", case="postgresql")
+Btest <- Atest <-
+    data.frame(x = c(paste(1:100, collapse="+"), letters[2:4]), rn=1:4)
+Btest[,1] <- Atest[c(4,1:3),1]
+sqlDrop(channel, "Atest", errors = FALSE)
+# sqlSave(channel, Atest, addPK = TRUE)
+colspec <- list(character="text", double="double",
+                integer="integer", logical="varchar(5)")
+sqlSave(channel, Atest, typeInfo = colspec)
+sqlColumns(channel, "Atest")
+sqlFetch(channel, "Atest")
+sqlUpdate(channel, Btest, "Atest", index = "rn")
+sqlFetch(channel, "Atest")
+sqlDrop(channel, "Atest")
+varspec <- "text"; names(varspec) <- "x"
+sqlSave(channel, Atest, varTypes = varspec)
+sqlColumns(channel, "Atest")
+sqlFetch(channel, "Atest")
+sqlDrop(channel, "Atest")
 close(channel)
 

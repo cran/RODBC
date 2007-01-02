@@ -1,6 +1,6 @@
 # original by Friedrich Leisch, much changed by BDR
 
-AC_INIT([RODBC], 1.1.7, [ripley@stats.ox.ac.uk])
+AC_INIT([RODBC], 1.1.8, [ripley@stats.ox.ac.uk])
 
 dnl A user-specifiable option
 odbc_mgr=""
@@ -19,13 +19,12 @@ AC_ARG_WITH([odbc-include],
             AC_HELP_STRING([--with-odbc-include=INCLUDE_PATH],
                            [the location of ODBC header files]),
             [odbc_include_path=$withval])
+RODBC_CPPFLAGS="-I."
 if test [ -n "$odbc_include_path" ] ; then
-   AC_SUBST([CPPFLAGS],["-I. -I${odbc_include_path} ${CPPFLAGS}"])
+   RODBC_CPPFLAGS="-I. -I${odbc_include_path}"
 else
   if test [ -n "${ODBC_INCLUDE}" ] ; then
-     AC_SUBST([CPPFLAGS],["-I. -I${ODBC_INCLUDE} ${CPPFLAGS}"])
-  else
-     AC_SUBST([CPPFLAGS],["-I. ${CPPFLAGS}"])
+     RODBC_CPPFLAGS="-I. -I${ODBC_INCLUDE}"
   fi
 fi
 
@@ -35,14 +34,14 @@ AC_ARG_WITH([odbc-lib],
                            [the location of ODBC libraries]),
             [odbc_lib_path=$withval])
 if test [ -n "$odbc_lib_path" ] ; then
-   AC_SUBST([LIBS],["-L${odbc_lib_path} ${LIBS}"])
+   LIBS="-L${odbc_lib_path} ${LIBS}"
 else 
   if test [ -n "${ODBC_LIBS}" ] ; then
-     AC_SUBST([LIBS],["-L${ODBC_LIBS} ${LIBS}"])
+     LIBS="-L${ODBC_LIBS} ${LIBS}"
   else
     if test -n "${ODBC_CONFIG}"; then
       odbc_lib_path=`odbc_config --libs | sed s/-lodbc//`
-      AC_SUBST([LIBS],["${odbc_lib_path} ${LIBS}"])
+      LIBS="${odbc_lib_path} ${LIBS}"
     fi
   fi
 fi
@@ -55,10 +54,12 @@ if test -z "${R_HOME}"; then
 fi
 CC=`"${R_HOME}/bin/R" CMD config CC`
 CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
+CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
 
 if test -n "${ODBC_CONFIG}"; then
-  CPPFLAGS="${CPPFLAGS} `odbc_config --cflags`"
+  RODBC_CPPFLAGS=`odbc_config --cflags`
 fi
+CPPFLAGS="${CPPFLAGS} ${RODBC_CPPFLAGS}"
 
 dnl Check the headers can be found
 AC_CHECK_HEADERS(sql.h sqlext.h)
@@ -81,8 +82,8 @@ AC_CHECK_TYPES([SQLLEN, SQLULEN], , , [# include <sql.h>])
 dnl for unixODBC header
 AC_CHECK_SIZEOF(long, 4)
 
-dnl substitute CPPFLAGS and LIBS
-AC_SUBST(CPPFLAGS)
+dnl substitute RODBC_CPPFLAGS and LIBS
+AC_SUBST(RODBC_CPPFLAGS)
 AC_SUBST(LIBS)
 AC_CONFIG_HEADERS([src/config.h])
 dnl and do subsitution in the src/Makevars.in and src/config.h

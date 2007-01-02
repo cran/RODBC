@@ -1,3 +1,19 @@
+Version: 1.1-8 (2007-01-02, released)
+
+	* make use of symbol registration for .Call entry points.
+
+	* add odbcEndTran function for use when odbcSetAutoCommit has been
+	used to disable auto-commit.
+
+	* add odbcDataSources function to list User and System DSNs.
+
+	* sqlUpdate(fast=FALSE) now quotes date and time columns as some
+	drivers appear to need it.
+
+	* sqlwrite{fast=FALSE, append=TRUE) works better with out-of-order
+	columns on some drivers.
+
+	
 Version: 1.1-7 (2006-05-24, released)
 
 	* configure.ac: make use of odbc_config if --with-odbc-manager=odbc.
@@ -8,9 +24,9 @@ Version: 1.1-7 (2006-05-24, released)
 	* sqlFetch can now fetch up to 1024 rows at a time,
 	which can be substantially faster when using a remote server.
 	(Based on code suggested by Nick Gorman to Matthew Dowle.)
-	Note that this fails with some drivers.
-	
-	* Typo in setSqlTypeInfo.
+
+	* setSqlTypeInfo: corrected typo.
+
 
 Version: 1.1-6 (2006-04-04, released)
 
