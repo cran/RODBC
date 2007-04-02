@@ -25,7 +25,7 @@ odbcCaseFlag(channel)
 odbcSpecialColumns(channel, table)
 sqlwrite(channel, tablename, mydata, test = FALSE, fast = TRUE,
          nastring = NULL, verbose = FALSE)
-sqltablecreate(tablename, coldata = NULL, colspecs, keys = -1)
+sqltablecreate(channel, tablename, coldata = NULL, colspecs, keys = -1)
 odbcTableExists(channel, tablename, abort = TRUE, forQuery = TRUE)
 odbcTypeInfo(channel, type)
 odbcClearResults(channel)

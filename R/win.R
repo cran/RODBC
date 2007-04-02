@@ -1,6 +1,6 @@
 if(.Platform$OS.type == "windows") {
-    ## based on suggestions from xiao.gang.fan1@libertysurf.fr
-    odbcConnectExcel <- function(xls.file)
+    ## originally based on suggestions from xiao.gang.fan1@libertysurf.fr
+    odbcConnectExcel <- function(xls.file, readOnly = TRUE, ...)
     {
         full.path <- function(filename) {
             fn <- chartr("\\", "/", filename)
@@ -16,10 +16,11 @@ if(.Platform$OS.type == "windows") {
             paste("Driver={Microsoft Excel Driver (*.xls)};DriverId=790;Dbq=",
                   fp, ";DefaultDir=", dirname(fp), ";", sep = "")
         }
-        odbcDriverConnect(con)
+	if(!readOnly) con = paste(con, "ReadOnly=False", sep=";")
+        odbcDriverConnect(con, tabQuote=c("[", "]"), ...)
     }
 
-    odbcConnectAccess <- function(access.file, uid = "", pwd = "")
+    odbcConnectAccess <- function(access.file, uid = "", pwd = "", ...)
     {
         full.path <- function(filename) {
             fn <- chartr("\\", "/", filename)
@@ -34,10 +35,10 @@ if(.Platform$OS.type == "windows") {
             paste("Driver={Microsoft Access Driver (*.mdb)};Dbq=",
                   full.path(access.file),
                   ";Uid=", uid, ";Pwd=", pwd, ";", sep="")
-        odbcDriverConnect(con)
+        odbcDriverConnect(con, ...)
     }
 
-    odbcConnectDbase <- function(dbf.file)
+    odbcConnectDbase <- function(dbf.file, ...)
     {
         full.path <- function(filename) {
             fn <- chartr("\\", "/", filename)
@@ -51,6 +52,6 @@ if(.Platform$OS.type == "windows") {
         else
             paste("Driver={Microsoft dBASE Driver (*.dbf)};DriverID=277;Dbq=",
                      dirname(full.path(dbf.file)), ";", sep="")
-        odbcDriverConnect(con)
+        odbcDriverConnect(con, tabQuote=c("[", "]"), ...)
     }
 }

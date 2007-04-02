@@ -1,11 +1,13 @@
 # These tests are only for BDR's Windows & Linux systems
 
 library(RODBC)
+library(MASS)
 USArrests[1,2] <- NA
-
+hills <- hills[1:15,]
+row.names(hills)[12] <- "Dollar ('$')"
 
 # MySQL
-channel <- odbcConnect("testdb3", uid="ripley", case="mysql")
+channel <- odbcConnect("testdb3", uid="ripley")
 odbcGetInfo(channel)
 sqlTypeInfo(channel)
 sqlTables(channel)
@@ -47,7 +49,7 @@ sqlFetch(channel, "Atest")
 sqlDrop(channel, "Atest")
 close(channel)
 
-channel <- odbcConnect("testdb3", uid="ripley", case="mysql")
+channel <- odbcConnect("testdb3", uid="ripley")
 dates <- as.character(seq(as.Date("2004-01-01"), by="week", length=10))
 times <- paste(1:10, "05", "00", sep=":")
 Dtest <- data.frame(dates, times, logi=c(TRUE, NA, FALSE, FALSE, FALSE))
@@ -57,6 +59,15 @@ sqlSave(channel, Dtest, varTypes = varspec, verbose=TRUE)
 sqlColumns(channel, "Dtest")
 sqlFetch(channel, "Dtest")
 sqlDrop(channel, "Dtest")
+
+sqlDrop(channel, "hills test", errors = FALSE)
+sqlSave(channel, hills, "hills test", verbose=TRUE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=TRUE)
+sqlFetch(channel, "hills test")
+sqlDrop(channel, "hills test")
+sqlSave(channel, hills, "hills test", verbose=TRUE, fast=FALSE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=FALSE)
+sqlDrop(channel, "hills test")
 close(channel)
 
 
@@ -95,20 +106,52 @@ sqlSave(channel, Dtest, varTypes = varspec, verbose=TRUE, fast=FALSE)
 sqlColumns(channel, "Dtest")
 sqlFetch(channel, "Dtest")
 sqlDrop(channel, "Dtest")
+
+sqlDrop(channel, "hills test", errors = FALSE)
+sqlSave(channel, hills, "hills test", verbose=TRUE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=TRUE)
+sqlFetch(channel, "hills test")
+sqlDrop(channel, "hills test")
+sqlSave(channel, hills, "hills test", verbose=TRUE, fast=FALSE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=FALSE)
+sqlDrop(channel, "hills test")
 close(channel)
 
 
 # Excel
 channel <- odbcConnect("bdr.xls")
 # or channel <- odbcConnectExcel("/bdr/hills.xls")
-## list the spreadsheets
+## list the spreadsheets and marked ranges
 sqlTables(channel)
 sqlColumns(channel, "hills")
 ## two ways to retrieve the contents of hills
 sqlFetch(channel, "hills")
-hills <- sqlQuery(channel, "select * from [hills$]")
+hills2 <- sqlQuery(channel, "select * from [hills$]")
 
 sqlFetch(channel, "testit")
+close(channel)
+
+# The Excel driver maps ' ' to '_'.
+channel <- odbcConnectExcel("/bdr/hills.xls", readOnly=FALSE)
+sqlSave(channel, hills, "hills_test", verbose=TRUE, fast=FALSE)
+sqlUpdate(channel, hills[11:15,], "hills_test", verbose=TRUE, fast=FALSE)
+sqlFetch(channel, "hills_test")
+sqlSave(channel, hills, "hills_test2", verbose=TRUE)
+sqlUpdate(channel, hills[11:15,], "hills_test2", verbose=TRUE)
+sqlFetch(channel, "hills_test2")
+close(channel)
+
+
+# DBase: maps table/column names to u/case, max length 8
+dbf <- system.file("files", "sids.dbf", package="foreign")
+channel <- odbcConnectDbase(dbf)
+(sids <- sqlFetch(channel, "sids"))
+sqlUpdate(channel, sids[1:2, ], "sids", index="NAME", verbose=TRUE, fast=FALSE)
+close(channel)
+channel <- odbcConnectDbase(dbf, case="toupper")
+sqlSave(channel, hills, "HILLS 2", verbose=TRUE)
+sqlUpdate(channel, hills[11:15,],  "HILLS 2", verbose=TRUE)
+sqlDrop(channel, "HILLS 2")
 close(channel)
 
 
@@ -151,11 +194,20 @@ sqlColumns(channel, "Dtest")
 sqlFetch(channel, "Dtest")
 # This retrieves TRUE as " TRUE" and so returns a factor.
 sqlDrop(channel, "Dtest")
+
+sqlDrop(channel, "hills test", errors = FALSE)
+sqlSave(channel, hills, "hills test", verbose=TRUE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=TRUE)
+sqlFetch(channel, "hills test")
+sqlDrop(channel, "hills test")
+sqlSave(channel, hills, "hills test", verbose=TRUE, fast=FALSE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=FALSE)
+sqlDrop(channel, "hills test")
 close(channel)
 
 
 # PostgreSQL 8.x on Windows
-channel <- odbcConnect("testpg", case="postgresql")
+channel <- odbcConnect("testpg")
 odbcGetInfo(channel)
 sqlTypeInfo(channel)
 sqlTables(channel)
@@ -175,7 +227,7 @@ sqlDrop(channel, "USArrests")
 ## close the connection
 close(channel)
 
-channel <- odbcConnect("testpg", case="postgresql")
+channel <- odbcConnect("testpg")
 dates <- as.character(seq(as.Date("2004-01-01"), by="week", length=10))
 times <- paste(1:10, "05", "00", sep=":")
 Dtest <- data.frame(dates, times, logi=c(TRUE, NA, FALSE, FALSE, FALSE))
@@ -185,9 +237,18 @@ sqlSave(channel, Dtest, varTypes = varspec, verbose=TRUE)
 sqlColumns(channel, "Dtest")
 sqlFetch(channel, "Dtest")
 sqlDrop(channel, "Dtest")
+
+sqlDrop(channel, "hills test", errors = FALSE)
+sqlSave(channel, hills, "hills test", verbose=TRUE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=TRUE)
+sqlFetch(channel, "hills test")
+sqlDrop(channel, "hills test")
+sqlSave(channel, hills, "hills test", verbose=TRUE, fast=FALSE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=FALSE)
+sqlDrop(channel, "hills test")
 close(channel)
 
-channel <- odbcConnect("testpg", case="postgresql")
+channel <- odbcConnect("testpg")
 Btest <- Atest <-
     data.frame(x = c(paste(1:100, collapse="+"), letters[2:4]), rn=1:4)
 Btest[,1] <- Atest[c(4,1:3),1]
@@ -225,6 +286,15 @@ foo[1,1] <- 236
 sqlUpdate(channel, foo, "USArrests")
 sqlFetch(channel, "USArrests", max = 5)
 sqlDrop(channel, "USArrests")
+
+sqlDrop(channel, "hills test", errors = FALSE)
+sqlSave(channel, hills, "hills test", verbose=TRUE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=TRUE)
+sqlFetch(channel, "hills test")
+sqlDrop(channel, "hills test")
+sqlSave(channel, hills, "hills test", verbose=TRUE, fast=FALSE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=FALSE)
+sqlDrop(channel, "hills test")
 ## close the connection
 close(channel)
 
@@ -304,6 +374,15 @@ sqlSave(channel, Dtest, varTypes = varspec, verbose=TRUE)
 sqlColumns(channel, "Dtest")
 sqlFetch(channel, "Dtest")
 sqlDrop(channel, "Dtest")
+
+sqlDrop(channel, "hills test", errors = FALSE)
+sqlSave(channel, hills, "hills test", verbose=TRUE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=TRUE)
+sqlFetch(channel, "hills test")
+sqlDrop(channel, "hills test")
+sqlSave(channel, hills, "hills test", verbose=TRUE, fast=FALSE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=FALSE)
+sqlDrop(channel, "hills test")
 close(channel)
 
 
@@ -323,12 +402,21 @@ foo[1,1] <- 236
 sqlUpdate(channel, foo, "USArrests")
 sqlFetch(channel, "USArrests", max = 5)
 sqlDrop(channel, "USArrests")
+
+sqlDrop(channel, "hills test", errors = FALSE)
+sqlSave(channel, hills, "hills test", verbose=TRUE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=TRUE)
+sqlFetch(channel, "hills test")
+sqlDrop(channel, "hills test")
+sqlSave(channel, hills, "hills test", verbose=TRUE, fast=FALSE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=FALSE)
+sqlDrop(channel, "hills test")
 ## close the connection
 close(channel)
 
 
 # PostgreSQL on Unix
-channel <- odbcConnect("testpg", uid="ripley", case="postgresql")
+channel <- odbcConnect("testpg")
 odbcGetInfo(channel)
 sqlTypeInfo(channel)
 sqlTables(channel)
@@ -345,10 +433,19 @@ foo[1,2] <- 236
 sqlUpdate(channel, foo, "USArrests", index = "state")
 sqlFetch(channel, "USArrests", rownames = "state", max = 5)
 sqlDrop(channel, "USArrests")
+
+qlDrop(channel, "hills test", errors = FALSE)
+sqlSave(channel, hills, "hills test", verbose=TRUE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=TRUE)
+sqlFetch(channel, "hills test")
+sqlDrop(channel, "hills test")
+sqlSave(channel, hills, "hills test", verbose=TRUE, fast=FALSE)
+sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=FALSE)
+sqlDrop(channel, "hills test")
 ## close the connection
 close(channel)
 
-channel <- odbcConnect("testpg", case="postgresql")
+channel <- odbcConnect("testpg")
 dates <- as.character(seq(as.Date("2004-01-01"), by="week", length=10))
 times <- paste(1:10, "05", "00", sep=":")
 dt <- paste(dates, " ", times, ".", round(1000*runif(10)), sep="")
@@ -362,7 +459,7 @@ sqlFetch(channel, "Dtest")
 sqlDrop(channel, "Dtest")
 close(channel)
 
-channel <- odbcConnect("testpg", case="postgresql")
+channel <- odbcConnect("testpg")
 Btest <- Atest <-
     data.frame(x = c(paste(1:100, collapse="+"), letters[2:4]), rn=1:4)
 Btest[,1] <- Atest[c(4,1:3),1]

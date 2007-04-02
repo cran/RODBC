@@ -5,7 +5,7 @@
 .onLoad <- function(lib, pkg)
 {
     if(is.null(getOption("dec")))
-        options(dec = Sys.localeconv()$decimal_point)
+        options(dec = Sys.localeconv()["decimal_point"])
 }
 
 .onAttach <- function(lib, pkg)
@@ -42,22 +42,39 @@ odbcReConnect <- function(channel, case, believeNRows)
         stop("Argument 'channel' must inherit from class RODBC")
     if(missing(case)) case <- attr(channel, "case")
     if(missing(believeNRows)) believeNRows <- attr(channel, "believeNRows")
-    odbcDriverConnect(attr(channel, "connection.string"), case, believeNRows)
+    odbcDriverConnect(attr(channel, "connection.string"), case, believeNRows,
+                      colQuote = attr(channel, "colQuote"),
+                      tabQuote = attr(channel, "tabQuote"))
 }
 
 odbcConnect <-
-    function (dsn, uid = "", pwd = "", case = "nochange",
-              believeNRows = TRUE)
+    function (dsn, uid = "", pwd = "", ...)
 {
     st <- paste("DSN=", dsn, sep="")
     if(nchar(uid)) st <- paste(st, ";UID=", uid, sep="")
     if(nchar(pwd)) st <- paste(st, ";PWD=", pwd, sep="")
-    odbcDriverConnect(st, case = case, believeNRows = believeNRows)
+    odbcDriverConnect(st, ...)
 }
 
 odbcDriverConnect <-
-    function (connection = "", case = "nochange", believeNRows = TRUE)
+    function (connection = "", case, believeNRows = TRUE,
+              colQuote, tabQuote = colQuote)
 {
+   id <- as.integer(1 + runif(1, 0, 1e5))
+   stat <- .Call(C_RODBCDriverConnect, as.character(connection), id,
+                 as.integer(believeNRows))
+   if(stat < 0) {
+       warning("ODBC connection failed")
+       return(stat)
+   }
+   res <- .Call(C_RODBCGetInfo, attr(stat, "handle_ptr"))
+   if(missing(colQuote)) colQuote <- ifelse(res[1] == "MySQL", "`", '"')
+   if(missing(case))
+       case <- switch(res[1],
+                      "MySQL" = "mysql",
+                      "PostgreSQL" = "postgresql",
+                      "ACCESS" = "msaccess",
+                      "nochange")
    switch(case,
 	toupper = case <- 1,
 	oracle = case <- 1,
@@ -68,16 +85,10 @@ odbcDriverConnect <-
 	mysql = case <- ifelse(.Platform$OS.type == "windows", 2, 0),
  	stop("Invalid case parameter: nochange | toupper | tolower | common db names")
 	)
-   id <- as.integer(1 + runif(1, 0, 1e5))
-   stat <- .Call(C_RODBCDriverConnect, as.character(connection), id,
-                 as.integer(believeNRows))
-   if(stat < 0) {
-       warning("ODBC connection failed")
-       return(stat)
-   }
    case <- switch(case+1, "nochange", "toupper", "tolower")
-   structure(stat, class="RODBC", case=case, id = id,
-             believeNRows=believeNRows)
+   structure(stat, class = "RODBC", case = case, id = id,
+             believeNRows = believeNRows,
+             colQuote = colQuote, tabQuote = tabQuote)
 }
 
 odbcQuery <- function(channel, query, rows_at_time = 1)
@@ -193,7 +204,7 @@ odbcCaseFlag <- function (channel)
 odbcGetInfo <- function(channel)
 {
     if(!odbcValidChannel(channel))
-       stop("first argument is not an open RODBC channel")
+       stop("argument is not an open RODBC channel")
     res <- .Call(C_RODBCGetInfo, attr(channel, "handle_ptr"))
     names(res) <- c("DBMS_Name", "DBMS_Ver", "Driver_ODBC_Ver",
                     "Data_Source_Name", "Driver_Name", "Driver_Ver",

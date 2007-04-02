@@ -13,31 +13,46 @@
   Open connections to ODBC databases.
 }
 \usage{
-odbcConnect(dsn, uid = "", pwd = "", case = "nochange",
-            believeNRows = TRUE)
+odbcConnect(dsn, uid = "", pwd = "", ...)
 
-odbcDriverConnect(connection = "", case = "nochange",
-                  believeNRows = TRUE)
+odbcDriverConnect(connection = "", case, believeNRows = TRUE,
+                  colQuote, tabQuote = colQuote)
 
 odbcReConnect(channel, case, believeNRows)
 #ifdef windows
 
-odbcConnectAccess(access.file, uid = "", pwd = "")
-odbcConnectDbase(dbf.file)
-odbcConnectExcel(xls.file)
+odbcConnectAccess(access.file, uid = "", pwd = "", ...)
+odbcConnectDbase(dbf.file, ...)
+odbcConnectExcel(xls.file, readOnly = TRUE, ...)
 #endif
-}
+}%"
 \arguments{
   \item{dsn}{character string. A registered data source name.}
   \item{uid, pwd}{UID and password for authentication (if required).}
   \item{connection}{character string. See your ODBC documentation for the
     format.}
-  \item{case}{Controls case changes for different RDBMS engines.}
+  \item{...}{further arguments to be passed to \code{odbcDriverConnect}.}
+  \item{case}{Controls case changes for different DBMS engines.  See Details.}
   \item{channel}{RODBC connection object returned by \code{odbcConnect}.}
   \item{believeNRows}{logical.  Is the number of rows returned by the
-    ODBC connection believable?  Not true for Oracle and Sybase, apparently.}
+    ODBC connection believable?  Not true for Oracle and Sybase,
+    apparently.}
+  \item{colQuote, tabQuote}{how to quote column (table) names in SQL
+    statements.  Can be of length 0 (no quoting), a length-1 character
+    vector giving the quote character for both ends, or a length-2
+    character string giving the beginning and ending quotes.  ANSI SQL
+    uses doublequotes, but the default mode for a MySQL server is to use
+    backticks.
+
+    The defaults are backtick (\code{`}) if the DBMS is identified
+    as \code{"MySQL"} by the driver, and doublequote otherwise.
+#ifdef windows
+    The Access, DBase and Excel wrappers set \code{tabQuote = c("[", "]")}.
+#endif
+  }
 #ifdef windows
   \item{access.file, dbf.file, xls.file}{file of an appropriate type.}
+  \item{readOnly}{logical: should the connection be read-only?}
 #endif
 }
 \details{
@@ -48,19 +63,28 @@ odbcConnectExcel(xls.file)
   they are empty.  See the examples for other uses of connection strings.
 
 #ifdef windows
+
   Under the Windows GUI, specifying an incomplete \code{connection}, for
   example the default \code{""}, will bring up a dialog box to complete the
   information required.  (This does not work from \code{Rterm.exe}
   unless a driver is specified, a Windows restriction.)
-
 #endif
+
   For databases that translate table and column names the case must be
   set as appropriate.  Allowable values are \code{"nochange"},
   \code{"toupper"} and \code{"tolower"} as well as the names of databases
   where the behaviour is known to us (currently \code{"mysql"} (which
   maps to lower case on Windows but not on Linux),
   \code{"postgresql"} (lower), \code{"oracle"} (upper) and
-  \code{"msaccess"} (nochange)).
+  \code{"msaccess"} (nochange)).  If \code{case} is not specified, the
+  default is \code{"nochange"} unless the appropriate value can be
+  figured out from the DBMS name reported by the ODBC driver.
+#ifdef windows
+  (The DBase driver is unusual: it preserves names on reading, but
+  converts both table and column names to upper case on writing, and
+  truncates table names to 8 characters.  RODBC does not attempt to do
+  any mapping for that driver.)
+#endif
 
   Function \code{odbcReConnect} re-connects to a database using the
   settings of an existing (and presumably now closed) channel object.
@@ -72,13 +96,50 @@ odbcConnectExcel(xls.file)
   \code{odbcConnectExcel} are convenience wrappers to generate
   connection strings for those file types.  The files given can be
   relative to the \R working directory or absolute paths (and it seems
-  that the drivers will also look relative to the user's home
-  directory).  \bold{Note:} they will only work with English versions of
-  the Microsoft drivers, which may or may not be installed in other
-  locales.  The file name can be omitted which will bring up a dialog
-  box to search for a file.
+  also relative to the user's home directory).  \bold{Note:} they will
+  only work with English versions of the Microsoft drivers, which may or
+  may not be installed in other locales.  The file name can be omitted
+  which will bring up a dialog box to search for a file.
 #endif
 }
+
+#ifdef windows
+\section{Excel Connections}{
+  The Excel driver by default makes read-only connections, and has only
+  limited abilities to create a new worksheet or to change a worksheet.
+
+  A \sQuote{table} in an Excel \sQuote{database} (spreadsheet) can be
+  either a \sQuote{named range}
+  (\url{http://support.microsoft.com/default.aspx?scid=KB;EN-US;Q195951&})
+  or a worksheet: the latter have table name the name of the worksheet
+  with \code{$} appended (and such names may contain spaces and other
+  characters not allowed in SQL table names).  RODBC will generally
+  allow worksheets to be referred to with or without the trailing
+  \code{$}, but this does need to be taken into account in SQL queries
+  (where non-standard table names are escaped by enclosing them in
+  square brackets).
+
+  It assumes that the first row of the table in the worksheet contains
+  column headings: the driver parameter \code{FirstRowHasNames=0} is
+  supposed to turn this off (giving column names \code{F1} \dots) but it
+  is broken in many versions of the drivers, including those current in
+  WIndows XP SP2.
+  % http://support.microsoft.com/?scid=kb%3Ben-us%3B257819&x=9&y=17
+
+  A connection that allows modification can be created via
+  \code{odbcConnectExcel(readOnly = FALSE)} or directly (see the examples).
+  Howver, the Excel ODBC driver does not support deletion (including SQL
+  \code{DROP}, \code{DELETE}, \code{UPDATE} and \code{ALTER}
+  statements). In particular, \code{\link{sqlDrop}} will remove the data
+  in a worksheet but not the worksheet itself.
+  % http://publib.boulder.ibm.com/infocenter/db2luw/v8/index.jsp?topic=/com.ibm.db2.ii.doc/opt/tlsodb13.htm
+  % http://www.stata.com/support/faqs/data/odbc_excel.html
+  \code{\link{sqlSave}} can be used to create new worksheets (and it
+  also creates a marked range for the contents of the worksheet) but not
+  to overwrite an existing worksheet, but can be
+  \code{\link{sqlUpdate}} to update the contents of an existing worksheet.
+}
+#endif
 \value{
   A non-negative integer which is used as handle if no error occurred,
   -1 otherwise. A successful return has class \code{"RODBC"}, and
@@ -111,7 +172,7 @@ channel2 <- odbcConnectAccess("test.mdb", uid="ripley")
 # Excel
 channel <- odbcConnect("bdr.xls") # if this was set up as a DSN
 channel2 <-
- odbcDriverConnect("DRIVER=Microsoft Excel Driver (*.xls);DBQ=C:\\bdr\\hills.xls")
+ odbcDriverConnect("DRIVER=Microsoft Excel Driver (*.xls);DBQ=C:\\bdr\\hills.xls; ReadOnly=False")
 channel3 <- odbcConnectExcel("hills.xls")
 #endif
 

@@ -30,10 +30,10 @@ __declspec(dllimport) window RConsole;
 #ifdef ENABLE_NLS
 #include <libintl.h>
 #define _(String) dgettext ("RODBC", String)
-#define gettext_noop(String) (String)
+#define gettext_noop(String) String
 #else
 #define _(String) (String)
-#define gettext_noop(String) (String)
+#define gettext_noop(String) String
 #endif
 
 #define my_min(a,b) ((a < b)?a:b)

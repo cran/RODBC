@@ -1,11 +1,44 @@
+Version: 1.1-9 (2007-04-02, released)
+
+	* odbcConnectExcel has a 'readOnly' option (default TRUE, as
+	before).
+
+	* There is more support for Excel spreadsheets, including 'tables'
+	as marked ranges as well as worksheets, and more compatibility for
+	writing to spreadsheets (in so far as this is allowed by the ODBC
+	driver).  See ?odbcConnectExcel.
+
+	* odbcDriverConnect has new arguments 'colQuote' and 'tabQuote'
+	to control the quoting of column and table names (respectively) in
+	SQL queries.  ANSI SQL92 mandates quoting by ", but this is not
+	universally accepted (e.g. by MySQL) and RODBC used not to quote.
+	Now it attempts to quote suitably, but setting colQuote=NULL
+	reverts to the earlier (non-quoting) behaviour.
+
+	* odbcDriverConnect tries to figure out a default value for 'case'
+	from the DBMS name reported by the driver.
+
+	* sqlSave(fast = FALSE) and sqlUpdate(fast = FALSE) now escape
+	embedded single quotes in character strings via doubling, which
+	should work on systems with ANSI SQL92 compliance.  The quoting
+	rules for fields is now read from the driver (as e.g. Excel quotes
+	datetime fields by ## not '').
+
+	* getSqlTypeInfo now has values for the Excel driver.
+
+	* Fixed typo in the default setting of options("dec"),
+	which meant it was set to '.' in all locales, and gave a spurious
+	warning in R >= 2.5.0.
+
+
 Version: 1.1-8 (2007-01-02, released)
 
 	* make use of symbol registration for .Call entry points.
 
-	* add odbcEndTran function for use when odbcSetAutoCommit has been
-	used to disable auto-commit.
+	* add odbcEndTran() function for use when odbcSetAutoCommit() has
+	been used to disable auto-commit.
 
-	* add odbcDataSources function to list User and System DSNs.
+	* add odbcDataSources() function to list User and System DSNs.
 
 	* sqlUpdate(fast=FALSE) now quotes date and time columns as some
 	drivers appear to need it.
