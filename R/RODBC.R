@@ -16,6 +16,7 @@
 .onUnload <- function(libpath)
 {
     odbcCloseAll()
+    .Call(C_RODBCTerm)
     library.dynam.unload("RODBC", libpath)
 }
 
@@ -43,6 +44,7 @@ odbcReConnect <- function(channel, case, believeNRows)
     if(missing(case)) case <- attr(channel, "case")
     if(missing(believeNRows)) believeNRows <- attr(channel, "believeNRows")
     odbcDriverConnect(attr(channel, "connection.string"), case, believeNRows,
+                      attr(channel, "rows_at_time"),
                       colQuote = attr(channel, "colQuote"),
                       tabQuote = attr(channel, "tabQuote"))
 }
@@ -57,8 +59,9 @@ odbcConnect <-
 }
 
 odbcDriverConnect <-
-    function (connection = "", case, believeNRows = TRUE,
-              colQuote, tabQuote = colQuote)
+    function (connection = "", case = "nochange", believeNRows = TRUE,
+              colQuote, tabQuote = colQuote, DBMSencoding= "",
+              rows_at_time = 1000, bulk_add = NULL)
 {
    id <- as.integer(1 + runif(1, 0, 1e5))
    stat <- .Call(C_RODBCDriverConnect, as.character(connection), id,
@@ -86,15 +89,21 @@ odbcDriverConnect <-
  	stop("Invalid case parameter: nochange | toupper | tolower | common db names")
 	)
    case <- switch(case+1, "nochange", "toupper", "tolower")
+   if(is.null(bulk_add))
+       bulk_add <- .Call(C_RODBCCanAdd, attr(stat, "handle_ptr"))
    structure(stat, class = "RODBC", case = case, id = id,
-             believeNRows = believeNRows,
-             colQuote = colQuote, tabQuote = tabQuote)
+             believeNRows = believeNRows, bulk_add = bulk_add,
+             colQuote = colQuote, tabQuote = tabQuote,
+             encoding = DBMSencoding,
+             rows_at_time = rows_at_time)
 }
 
-odbcQuery <- function(channel, query, rows_at_time = 1)
+odbcQuery <-
+    function(channel, query, rows_at_time = attr(channel, "rows_at_time"))
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
+    if(nchar(enc <- attr(channel, "encoding"))) query <- iconv(query, to=enc)
     .Call(C_RODBCQuery, attr(channel, "handle_ptr"), as.character(query),
           as.integer(rows_at_time))
 }
@@ -105,6 +114,7 @@ odbcUpdate <-
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
+    if(nchar(enc <- attr(channel, "encoding"))) query <- iconv(query, to=enc)
     vflag <- 0
     if(verbose) vflag <- 1
     if(test) vflag <- 2
@@ -115,7 +125,10 @@ odbcUpdate <-
                      toupper = toupper(cnames),
                      tolower = tolower(cnames))
     for(i in 1:ncol(data))
-        if(!is.numeric(data[[i]])) data[[i]] <- as.character(data[[i]])
+        if(!is.numeric(data[[i]])) {
+            data[[i]] <- as.character(data[[i]])
+            if(nchar(enc)) data[[i]] <- iconv(data[[i]], to=enc)
+        }
     .Call(C_RODBCUpdate, attr(channel, "handle_ptr"), as.character(query),
           data, cnames, as.integer(nrow(data)), as.integer(ncol(data)),
           as.character(params), as.integer(vflag))
@@ -247,6 +260,28 @@ odbcEndTran <- function(channel, commit = TRUE)
     if(!odbcValidChannel(channel))
          stop("first argument is not an open RODBC channel")
     .Call(C_RODBCEndTran, attr(channel, "handle_ptr"), commit)
+}
+
+odbcBulkAdd <-
+    function(channel, query, data, params, first = 1, last = nrow(data),
+             test = FALSE, verbose = FALSE)
+{
+    if(!odbcValidChannel(channel))
+       stop("first argument is not an open RODBC channel")
+    vflag <- 0
+    if(verbose) vflag <- 1
+    if(test) vflag <- 2
+    ## apply the name mangling that was applied when the table was created
+    cnames <- mangleColNames(names(data))
+    cnames <- switch(attr(channel, "case"),
+                     nochange = cnames,
+                     toupper = toupper(cnames),
+                     tolower = tolower(cnames))
+    for(i in 1:ncol(data))
+        if(!is.numeric(data[[i]])) data[[i]] <- as.character(data[[i]])
+    .Call(C_RODBCAdd, attr(channel, "handle_ptr"), query, data, cnames,
+          as.integer(first), as.integer(last), as.integer(ncol(data)),
+          as.character(params), as.integer(vflag))
 }
 
 odbcDataSources <- function(type = c("all", "user", "system"))

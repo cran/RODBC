@@ -1,3 +1,25 @@
+Version: 1.2-0 (2007-04-24, released)
+
+	* Move to ODBC3 function calls throughout.
+
+	* Internally, keep an ODBC environment open throughout the session
+	rather than use one for every channel.
+
+	* sqlwrite can use SQLBulkOperations where supported for forward-only
+	cursors.  (So far we have only found support in the MyODBC 3.51
+	and later drivers.  Also, this does not appear to work correctly
+	for column types that need conversion in the DBMS.)
+
+	* odbcDriverConnect has new arguments to set the values of
+	'rows_at_time' and 'bulk_add' for the connection.
+	'rows_at_time' now defaults to 1000.
+
+	* odbcDriverConnect has new argument 'DBMSencoding' to allow
+	re-encoding of character data to be passed to and from a DBMS
+	running with a charset different from that of the locale under
+	which R is running.
+
+
 Version: 1.1-9 (2007-04-02, released)
 
 	* odbcConnectExcel has a 'readOnly' option (default TRUE, as
@@ -152,7 +174,7 @@ Version: 1.1-0 (2004-09-06, test version)
 
 	* New function sqlFetchMore.
 
-	* Table names in Access with embedded spaces are mapped to the 
+	* Table names in Access with embedded spaces are mapped to the
 	  [name space] form which Access requires.
 
 	* Table creation no longer removes _ from column names.

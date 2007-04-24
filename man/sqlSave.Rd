@@ -46,7 +46,7 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
     to be created.}
   \item{fast}{logical.  If false, write data a row at a time.  If true,
     use a parametrized INSERT INTO / UPDATE query to write all the data
-    in one operation.}
+    in one operation, or \code{SQLBulkOperations} where supported.}
   \item{test}{show what would be done, only.}
   \item{nastring}{character string to be used for writing \code{NA}s
     to the database.  The default, \code{NULL}, attempts to write

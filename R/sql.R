@@ -330,6 +330,8 @@ sqlwrite <-
     dbname <- quoteTabNames(channel, tablename)
     if(!fast) {
         data <- as.matrix(mydata)
+        if(nchar(enc<- attr(channel, "encoding")) && is.character(data))
+            data <- iconv(data, to = enc)
         colnames(data) <- colnames
         ## quote character and date columns
         cdata <- sub("\\([[:digit:]]*\\)", "",
@@ -359,7 +361,11 @@ sqlwrite <-
 	coldata <- sqlColumns(channel, tablename)[c(4, 5, 7, 8, 9)]
         if(any(is.na(m <- match(colnames, coldata[, 1])))) return(-1)
         paramdata <- t(as.matrix(coldata))[, m]
-	if(odbcUpdate(channel, query, mydata, paramdata,
+        if(nchar(enc <- attr(channel, "encoding")))
+            for(i in seq_len(mydata))
+                if(is.character(mydata[, i]))
+                    mydata[, i] <- iconv(mydata[, i], to = enc)
+        if(odbcUpdate(channel, query, mydata, paramdata,
                       test = test, verbose = verbose,
                       nastring = nastring) < 0) return(-1)
     }
@@ -528,6 +534,7 @@ sqlGetResults <-
     data <- as.df(dbdata$data, cData$names)
     if(nrow(data) > 0) {
         cols <- ncol(data)
+        enc <- attr(channel, "encoding")
         if(length(na.strings))
             for (i in 1:cols)
                 if(is.character(data[,]))
@@ -544,6 +551,8 @@ sqlGetResults <-
             stop("'as.is' has the wrong length ", length(as.is),
                  " != cols = ", cols)
         for (i in 1:cols) {
+            if(is.character(data[[i]]) && nchar(enc))
+                data[[i]] <- iconv(data[[i]], from = enc)
             if(as.is[i]) next
             if(is.numeric(data[[i]])) next
             if(cData$type[i] == "date")
@@ -671,10 +680,17 @@ sqlUpdate <-
         ## Format is colname, datatype,colsize,buff length,decimal digits.
         ## NB: C routine depends on 5 fields: changes here must be reflected in C
         if(test | verbose) cat("Query: ", query, "\n", sep = "")
+        enc <- attr(channel, "encoding")
+        if(nchar(enc))
+            for(i in seq_len(dat))
+                if(is.character(dat[, i]))
+                    dat[, i] <- iconv(dat[, i], to = enc)
         stat <- odbcUpdate(channel, query, dat, paramdata, test = test,
                            verbose = verbose, nastring = nastring)
     } else {
         data <- as.matrix(dat)
+        if(nchar(enc <- attr(channel, "encoding")) && is.character(data))
+            data[] <- iconv(data, to = enc)
         ## we might have mangled and case-folded names on the database.
         colnames(data) <- cnames
         ## quote character etc columns
@@ -732,6 +748,10 @@ odbcTableExists <- function(channel, tablename, abort = TRUE, forQuery = TRUE)
     ans <- tablename %in% tables
     if(abort && !ans)
         stop(sQuote(tablename), ": table not found on channel")
+
+    enc <- attr(channel, "encoding")
+    if(nchar(enc)) tablename <- iconv(tablename, to = enc)
+
     if(ans && isExcel) {
         dbname <- if(tablename %in% stables) tablename else paste(tablename, "$", sep = "")
         if(forQuery) paste("[", dbname, "]", sep="") else dbname

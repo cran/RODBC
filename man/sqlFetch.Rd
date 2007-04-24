@@ -56,7 +56,7 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
       when converting character columns to numeric.}
 
     \item{\code{rows_at_time}:}{Allow for multiple rows to be retrieved at
-      once.  Only works correctly on some drivers.}
+      once.  The default is 1000.}
   }
 }
 \value{

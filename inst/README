@@ -3,9 +3,9 @@ ODBC interface.  The package itself is platform independent and
 provide access to any database for which a driver exists.  It has been
 tested with MySQL and PostgreSQL on both Linux and Windows (and to
 those DBMSs on Linux hosts from R under Windows), Microsoft Access,
-SQL Server and Excel spreadsheets (read-only), and users have reported
+SQL Server and Excel spreadsheets, and users have reported
 success with connections to Oracle and DBase.  We have also used
-SQLite-3.3.4 with sqliteodbc-0.67 for simple tasks.
+SQLite-3.3.13 with sqliteodbc-0.73 for simple tasks.
 
 Basic usage is covered in the R Data Import/Export manual.
 
@@ -123,8 +123,8 @@ Setup        = /usr/lib/libodbcpsqlS.so
 FileUsage    = 1
 
 [sqlite3]
-Description = sqliteodbc-0.67
-Driver = /usr/local/lib/libsqlite3odbc.so
+Description = sqliteodbc-0.73
+Driver = /usr/local/lib64/libsqlite3odbc.so
 FileUsage = 1
 
 for use with MySQL using the MyODBC 3.51 driver (both from

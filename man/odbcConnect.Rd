@@ -16,7 +16,8 @@
 odbcConnect(dsn, uid = "", pwd = "", ...)
 
 odbcDriverConnect(connection = "", case, believeNRows = TRUE,
-                  colQuote, tabQuote = colQuote)
+                  colQuote, tabQuote = colQuote, DBMSencoding = "",
+                  rows_at_time = 1000, bulk_add = NULL)
 
 odbcReConnect(channel, case, believeNRows)
 #ifdef windows
@@ -50,6 +51,15 @@ odbcConnectExcel(xls.file, readOnly = TRUE, ...)
     The Access, DBase and Excel wrappers set \code{tabQuote = c("[", "]")}.
 #endif
   }
+  \item{DBMSencoding}{character string naming the encoding returned by
+    the DBMS. The default means the encoding of the locale \R is running
+    under. Values other than the default require \code{\link{iconv}} to 
+    be available: see \code{\link{capabilities}}.}
+  \item{rows_at_time}{The number of rows to fetch at a time, up to 1024.  Not
+    all drivers work correctly with values > 1: see
+    \code{\link{sqlQuery}}.}
+  \item{bulk_add}{if \code{"yes"}, \code{SQLBulkOperations} will be used
+    in \code{\link{sqlSave}}.  Set to \code{"no"} to suppress this.}
 #ifdef windows
   \item{access.file, dbf.file, xls.file}{file of an appropriate type.}
   \item{readOnly}{logical: should the connection be read-only?}
@@ -101,6 +111,11 @@ odbcConnectExcel(xls.file, readOnly = TRUE, ...)
   may not be installed in other locales.  The file name can be omitted
   which will bring up a dialog box to search for a file.
 #endif
+
+  If it is possible to set the DBMS to communicate in the character set
+  of the \R session then this should be done.  For example, MySQL
+  can set the communication character set \emph{via} SQL, e.g.
+  \code{SET NAMES 'utf8'}.
 }
 
 #ifdef windows
@@ -142,8 +157,14 @@ odbcConnectExcel(xls.file, readOnly = TRUE, ...)
 #endif
 \value{
   A non-negative integer which is used as handle if no error occurred,
-  -1 otherwise. A successful return has class \code{"RODBC"}, and
-  attribute \code{"connection.string"} giving the full ODBC connection string.
+  -1 otherwise.  A successful return has class \code{"RODBC"}, and
+  attributes including
+  \item{connection.string}{the full ODBC connection string.}
+%  \item(handle\_ptr}{an external pointer object.}
+  \item{case}{the value of \code{case}.}
+  \item{id}{a numeric ID for the channel.}
+  \item{believeNRows}{the value of \code{believeNRows}.}
+%  \item(bulk\_add} \code{"yes"} if \code{SQLBulkOperations} is supported.
 }
 \author{
   Michael Lapsley, Brian Ripley

@@ -15,7 +15,7 @@ odbcTables(channel)
 odbcColumns(channel, table)
 odbcPrimaryKeys(channel, table)
 
-odbcQuery(channel, query, rows_at_time = 1)
+odbcQuery(channel, query, rows_at_time = attr(channel, "rows_at_time"))
 odbcFetchRows(channel, max = 0, buffsize = 1000, nullstring = NA,
               believeNRows = TRUE) 
 }
