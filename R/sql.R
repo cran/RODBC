@@ -513,7 +513,7 @@ sqlGetResults <-
     as.df <- function(value, colnames) {
         ## convert list to data frame
         class(value) <- "data.frame"
-        names(value) <- colnames
+        names(value) <- make.unique(colnames)
         row.names(value) <- seq(along=value[[1]])
         value
     }
@@ -537,7 +537,7 @@ sqlGetResults <-
         enc <- attr(channel, "encoding")
         if(length(na.strings))
             for (i in 1:cols)
-                if(is.character(data[,]))
+                if(is.character(data[,i]))
                     data[data[,i] %in% na.strings, i] <- NA
         if(is.logical(as.is)) {
             as.is <- rep(as.is, length = cols)

@@ -37,7 +37,7 @@ odbcConnectExcel(xls.file, readOnly = TRUE, ...)
   \item{channel}{RODBC connection object returned by \code{odbcConnect}.}
   \item{believeNRows}{logical.  Is the number of rows returned by the
     ODBC connection believable?  Not true for Oracle and Sybase,
-    apparently.}
+    apparently.  Nor for MySQL Connector/ODBC 5.00.11.}
   \item{colQuote, tabQuote}{how to quote column (table) names in SQL
     statements.  Can be of length 0 (no quoting), a length-1 character
     vector giving the quote character for both ends, or a length-2

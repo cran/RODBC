@@ -43,7 +43,8 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
 \details{
   \code{sqlQuery} is the workhorse function of RODBC.  It sends the SQL
   statement \code{query} to the server, using connection \code{channel}
-  returned by \code{\link{odbcConnect}}.
+  returned by \code{\link{odbcConnect}}, and retrieves (some or all of)
+  the results via \code{sqlGetResults}.
 
   SQL beginners should note that the term 'Query' includes
   any valid SQL statement including table creation, alteration, updates

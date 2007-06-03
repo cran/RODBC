@@ -1,3 +1,8 @@
+Version: 1.2-1 (2007-06-03, unreleased)
+
+	* Use (const char *) for compatibility with pre-2.6.0.
+	* Add comments about MySQL's broken Connector/ODBC beta.
+
 Version: 1.2-0 (2007-04-24, released)
 
 	* Move to ODBC3 function calls throughout.

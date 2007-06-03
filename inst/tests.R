@@ -28,7 +28,7 @@ sqlDrop(channel, "USArrests")
 ## close the connection
 close(channel)
 
-channel <- odbcConnect("testdb3", uid="ripley", case="mysql")
+channel <- odbcConnect("testdb3", uid="ripley")
 Btest <- Atest <-
     data.frame(x = c(paste(1:100, collapse="+"), letters[2:4]), rn=1:4)
 Btest[,1] <- Atest[c(4,1:3),1]
@@ -155,7 +155,7 @@ sqlDrop(channel, "HILLS 2")
 close(channel)
 
 
-# MSDE 2000
+# SQL Server 2005 Express Edition (previously MSDE 2000)
 channel <- odbcConnect("MSDE")
 odbcGetInfo(channel)
 sqlTypeInfo(channel)

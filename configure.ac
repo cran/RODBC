@@ -1,6 +1,6 @@
 # original by Friedrich Leisch, much changed by BDR
 
-AC_INIT([RODBC], 1.2.0, [ripley@stats.ox.ac.uk])
+AC_INIT([RODBC], 1.2.1, [ripley@stats.ox.ac.uk])
 
 dnl A user-specifiable option
 odbc_mgr=""

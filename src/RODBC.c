@@ -132,7 +132,7 @@ SEXP RODBCColumns(SEXP chan, SEXP table);
 SEXP RODBCSetAutoCommit(SEXP chan, SEXP autoCommit);
 static void geterr(pRODBCHandle thisHandle);
 static void errorFree(SQLMSG *node);
-static void errlistAppend(pRODBCHandle thisHandle, char *string);
+static void errlistAppend(pRODBCHandle thisHandle, const char *string);
 static int cachenbind(pRODBCHandle thisHandle, int nRows);
 
 /* Error messages */
@@ -237,6 +237,9 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows)
 #else
 			     NULL,
 #endif
+			     /* This loses the const, but although the
+				declaration is not (const SQLCHAR *),
+				it should be. */
 			     (SQLCHAR *) CHAR(STRING_ELT(connection, 0)),
 			     SQL_NTS,
 			     (SQLCHAR *) buf1,
@@ -325,6 +328,7 @@ SEXP RODBCQuery(SEXP chan, SEXP query, SEXP sRows)
 	return ans;
     }
 
+    /* another case of a missing 'const' */
     res = SQLExecDirect(thisHandle->hStmt, 
 			(SQLCHAR *) CHAR(STRING_ELT(query, 0)),
 			SQL_NTS);
@@ -372,6 +376,7 @@ SEXP RODBCPrimaryKeys(SEXP chan, SEXP table)
 	errlistAppend(thisHandle, _(err_SQLAllocStmt));
 	stat = -1;
     } else {
+	/* another case of a missing 'const' */
 	res = SQLPrimaryKeys( thisHandle->hStmt, NULL, 0, NULL, 0,
 			      (SQLCHAR *) CHAR(STRING_ELT(table, 0)),
 			      SQL_NTS);
@@ -415,6 +420,7 @@ SEXP RODBCColumns(SEXP chan, SEXP table)
 	errlistAppend(thisHandle, _(err_SQLAllocStmt));
 	stat = -1;
     } else {
+	/* another case of a missing 'const' */
 	res = SQLColumns( thisHandle->hStmt, NULL, 0, NULL, 0,
 			  (SQLCHAR *) CHAR(STRING_ELT(table, 0)),
 			  SQL_NTS, NULL, 0);
@@ -455,6 +461,7 @@ SEXP RODBCSpecialColumns(SEXP chan, SEXP table)
 	errlistAppend(thisHandle, _(err_SQLAllocStmt));
 	stat = -1;
     } else {
+	/* another case of a missing 'const' */
 	res = SQLSpecialColumns( thisHandle->hStmt,
 				 SQL_BEST_ROWID, NULL, 0, NULL, 0,
 				 (SQLCHAR *) CHAR(STRING_ELT(table, 0)),
@@ -1010,7 +1017,7 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
     int j, k, rows = asInteger(nrows), stat;
     int *sequence;
     int found, vtest = asInteger(test), ncolnames = length(colnames);
-    char *cquery = CHAR(STRING_ELT(query, 0));
+    const char *cquery = CHAR(STRING_ELT(query, 0));
     SQLRETURN res = 0; /* -Wall */
 
     PROTECT(ans = allocVector(INTSXP, 1));
@@ -1148,7 +1155,7 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 		else
 		    thisHandle->ColData[j].IndPtr[0] = SQL_NTS;
 	    } else {
-		char *cData = CHAR(STRING_ELT(VECTOR_ELT(data, k), i));
+		const char *cData = CHAR(STRING_ELT(VECTOR_ELT(data, k), i));
 		int datalen = thisHandle->ColData[j].ColSize;
 		strncpy(thisHandle->ColData[j].pData, cData, datalen);
 		thisHandle->ColData[j].pData[datalen+1] = '\0';
@@ -1303,7 +1310,7 @@ geterr(pRODBCHandle thisHandle)
  */
 
 /* Can't mix strdup and R's memory allocation */
-static char *mystrdup(char *s)
+static char *mystrdup(const char *s)
 {
     char *s2;
     s2 = Calloc(strlen(s) + 1, char);
@@ -1312,7 +1319,7 @@ static char *mystrdup(char *s)
 }
 
 
-static void errlistAppend(pRODBCHandle thisHandle, char *string)
+static void errlistAppend(pRODBCHandle thisHandle, const char *string)
 {
     SQLMSG *root;
     SQLCHAR *buffer;
@@ -1500,7 +1507,7 @@ RODBCAdd(SEXP chan, SEXP query, SEXP data, SEXP datanames,
     int found, vtest = asInteger(test), ncolnames = length(colnames);
     SQLRETURN res = 0; /* -Wall */
     int first = asInteger(sfirst), last = asInteger(slast);
-    char *cquery = CHAR(STRING_ELT(query, 0));
+    const char *cquery = CHAR(STRING_ELT(query, 0));
 
     PROTECT(ans = allocVector(INTSXP, 1));
     stat = 1;
@@ -1589,26 +1596,26 @@ RODBCAdd(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 		    (char *) thisHandle->ColData[j].ColName,
 		    thisHandle->ColData[j].DataType);
 	if(TYPEOF(VECTOR_ELT(data, sequence[j])) == REALSXP) {
-	    res <- SQLBindCol(thisHandle->hStmt, j+1, 
-			      SQL_C_DOUBLE,
-			      thisHandle->ColData[j].RData,
-			      sizeof(double),
-			      thisHandle->ColData[j].IndPtr);
+	    res = SQLBindCol(thisHandle->hStmt, j+1, 
+			     SQL_C_DOUBLE,
+			     thisHandle->ColData[j].RData,
+			     sizeof(double),
+			     thisHandle->ColData[j].IndPtr);
 	} else if(TYPEOF(VECTOR_ELT(data, sequence[j])) == INTSXP) {
-	    res <- SQLBindCol(thisHandle->hStmt, j+1, 
-			      SQL_C_SLONG,
-			      thisHandle->ColData[j].IData,
-			      sizeof(int), /* despite the name */
-			      thisHandle->ColData[j].IndPtr);
+	    res = SQLBindCol(thisHandle->hStmt, j+1, 
+			     SQL_C_SLONG,
+			     thisHandle->ColData[j].IData,
+			     sizeof(int), /* despite the name */
+			     thisHandle->ColData[j].IndPtr);
 	} else { /* transfer as character */
 	    SQLLEN datalen = thisHandle->ColData[j].ColSize;
 	    thisHandle->ColData[j].pData = 
 		Calloc((last - first + 1) * (datalen + 1), char);
-	    res <- SQLBindCol(thisHandle->hStmt, j+1, 
-			      SQL_C_CHAR,
-			      thisHandle->ColData[j].pData,
-			      datalen,
-			      thisHandle->ColData[j].IndPtr);
+	    res = SQLBindCol(thisHandle->hStmt, j+1, 
+			     SQL_C_CHAR,
+			     thisHandle->ColData[j].pData,
+			     datalen,
+			     thisHandle->ColData[j].IndPtr);
 	}
 	if(res  != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO) {
 	    (void)SQLFreeStmt(thisHandle->hStmt, SQL_CLOSE);
@@ -1646,7 +1653,7 @@ RODBCAdd(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 		else
 		    thisHandle->ColData[j].IndPtr[i - first] = SQL_NTS;
 	    } else {
-		char *cData = CHAR(STRING_ELT(VECTOR_ELT(data, k), i - 1));
+		const char *cData = CHAR(STRING_ELT(VECTOR_ELT(data, k), i - 1));
 		int datalen = thisHandle->ColData[j].ColSize;
 		strncpy(thisHandle->ColData[j].pData + (i-1)*datalen, 
 			cData, datalen);
@@ -1667,7 +1674,7 @@ RODBCAdd(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 	if(vtest) Rprintf("\n");
     }
     if(vtest < 2) {
-	res <- SQLBulkOperations(thisHandle->hStmt, SQL_ADD);
+	res = SQLBulkOperations(thisHandle->hStmt, SQL_ADD);
 	if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
 	    errlistAppend(thisHandle, 
 			  _("[RODBC] Failed SQLBulkOperations"));
