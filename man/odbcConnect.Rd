@@ -7,6 +7,8 @@
 \alias{odbcConnectAccess}
 \alias{odbcConnectDbase}
 \alias{odbcConnectExcel}
+\alias{odbcConnectAccess2007}
+\alias{odbcConnectExcel2007}
 #endif
 \title{ODBC Open Connections}
 \description{
@@ -23,8 +25,10 @@ odbcReConnect(channel, case, believeNRows)
 #ifdef windows
 
 odbcConnectAccess(access.file, uid = "", pwd = "", ...)
+odbcConnectAccess2007(access.file, uid = "", pwd = "", ...)
 odbcConnectDbase(dbf.file, ...)
 odbcConnectExcel(xls.file, readOnly = TRUE, ...)
+odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
 #endif
 }%"
 \arguments{
@@ -109,7 +113,10 @@ odbcConnectExcel(xls.file, readOnly = TRUE, ...)
   also relative to the user's home directory).  \bold{Note:} they will
   only work with English versions of the Microsoft drivers, which may or
   may not be installed in other locales.  The file name can be omitted
-  which will bring up a dialog box to search for a file.
+  which will bring up a dialog box to search for a file.  The
+  \code{2007} versions works with drivers which are installed with
+  Office 2007 and give access to formats such as \file{*.xlsx} and
+  \file{*.accdb}.
 #endif
 
   If it is possible to set the DBMS to communicate in the character set

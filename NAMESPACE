@@ -20,5 +20,6 @@ S3method(close, RODBC)
 S3method(print, RODBC)
 
 if(tools:::.OStype() == "windows") {
-export(odbcConnectAccess, odbcConnectDbase, odbcConnectExcel)
+export(odbcConnectAccess, odbcConnectAccess2007 ,odbcConnectDbase,
+       odbcConnectExcel, odbcConnectExcel2007)
 }

@@ -1,7 +1,22 @@
-Version: 1.2-1 (2007-06-03, unreleased)
+Version: 1.2-2 (2007-10-19, released)
+
+	* Clarify licensing as under either GPL-2 or GPL-3,
+	add licence comments to source files.
+
+	* Typo in setSqlTypeInfo().
+
+	* Use gsub() rather than chartr() in odbcConnectAcces() etc,
+	because of a report that chartr() was not working correctly on
+	Chinese file names.
+
+	* Added odbcConnect{Access,Excel}2007() for use with Office 2007
+	formats and drivers.
+
+Version: 1.2-1 (2007-06-03, released)
 
 	* Use (const char *) for compatibility with pre-2.6.0.
 	* Add comments about MySQL's broken Connector/ODBC beta.
+
 
 Version: 1.2-0 (2007-04-24, released)
 

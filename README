@@ -38,7 +38,10 @@ R> channel <- odbcDriverConnect("")
 
 and this is often the simplest way for new users to ODBC or for
 rarely-used data sources.  There are convenience functions
-odbcConnectAccess/Dbase/Excel to ease connecting to one of these systems.
+odbcConnectAccess/Dbase/Excel to ease connecting to one of these
+systems.  You do need the appropriate drivers installed, but the
+Office 2007 versions can be downloaded from 
+http://www.microsoft.com/downloads/details.aspx?FamilyID=7554f536-8c28-4598-9b72-ef94e038c891&DisplayLang=en
 
 
 ODBC under Unix/Linux

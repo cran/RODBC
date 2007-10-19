@@ -1,3 +1,19 @@
+# file RODBC/R/TypeInfo.R
+# copyright (C) 2004-2007  B. D. Ripley
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 or 3 of the License
+#  (at your option).
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  A copy of the GNU General Public License is available at
+#  http://www.r-project.org/Licenses/
+#
 odbcTypeInfo <- function(channel, type)
 {
     if(!odbcValidChannel(channel))
@@ -60,5 +76,5 @@ setSqlTypeInfo <- function(driver, value)
         stop("argument 'driver' must be a character string")
     if(!is.list(value) || length(value) < 4 || is.null(names(value)) )
         stop("argument 'value' must be a named list of length >= 4")
-    typesR2DBMS[[driver]] <- value[c("double", "integer", "character", "logical")]
+    typesR2DBMS[[driver]] <<- value[c("double", "integer", "character", "logical")]
 }
