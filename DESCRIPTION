@@ -1,6 +1,6 @@
 Package: RODBC
-Version: 1.2-2
-Date: 2007-10-19
+Version: 1.2-3
+Date: 2008-01-24
 Author: Originally Michael Lapsley <mlapsley@sthelier.sghms.ac.uk>,
 	from Oct 2002 B. D. Ripley <ripley@stats.ox.ac.uk>
 Maintainer: B. D. Ripley <ripley@stats.ox.ac.uk>
@@ -9,5 +9,6 @@ Description: An ODBC database interface
 SystemRequirements: An ODBC3 driver manager and drivers. See README.
 Depends: R (>= 2.5.0), utils
 Imports: stats
+LazyLoad: yes
 License: GPL-2 | GPL-3
-Packaged: Fri Oct 19 12:06:25 2007; ripley
+Packaged: Sun Jan 27 11:03:07 2008; ripley

@@ -257,7 +257,7 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows)
 			     /* This loses the const, but although the
 				declaration is not (const SQLCHAR *),
 				it should be. */
-			     (SQLCHAR *) CHAR(STRING_ELT(connection, 0)),
+			     (SQLCHAR *) translateChar(STRING_ELT(connection, 0)),
 			     SQL_NTS,
 			     (SQLCHAR *) buf1,
 			     (SQLSMALLINT) buf1_len,
@@ -347,7 +347,7 @@ SEXP RODBCQuery(SEXP chan, SEXP query, SEXP sRows)
 
     /* another case of a missing 'const' */
     res = SQLExecDirect(thisHandle->hStmt, 
-			(SQLCHAR *) CHAR(STRING_ELT(query, 0)),
+			(SQLCHAR *) translateChar(STRING_ELT(query, 0)),
 			SQL_NTS);
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
 	errlistAppend(thisHandle, _(err_SQLExecDirect));
@@ -395,7 +395,7 @@ SEXP RODBCPrimaryKeys(SEXP chan, SEXP table)
     } else {
 	/* another case of a missing 'const' */
 	res = SQLPrimaryKeys( thisHandle->hStmt, NULL, 0, NULL, 0,
-			      (SQLCHAR *) CHAR(STRING_ELT(table, 0)),
+			      (SQLCHAR *) translateChar(STRING_ELT(table, 0)),
 			      SQL_NTS);
 	if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
 	    geterr(thisHandle);
@@ -439,7 +439,7 @@ SEXP RODBCColumns(SEXP chan, SEXP table)
     } else {
 	/* another case of a missing 'const' */
 	res = SQLColumns( thisHandle->hStmt, NULL, 0, NULL, 0,
-			  (SQLCHAR *) CHAR(STRING_ELT(table, 0)),
+			  (SQLCHAR *) translateChar(STRING_ELT(table, 0)),
 			  SQL_NTS, NULL, 0);
 	if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
 	    geterr(thisHandle);
@@ -481,7 +481,7 @@ SEXP RODBCSpecialColumns(SEXP chan, SEXP table)
 	/* another case of a missing 'const' */
 	res = SQLSpecialColumns( thisHandle->hStmt,
 				 SQL_BEST_ROWID, NULL, 0, NULL, 0,
-				 (SQLCHAR *) CHAR(STRING_ELT(table, 0)),
+				 (SQLCHAR *) translateChar(STRING_ELT(table, 0)),
 				 SQL_NTS,
 				 SQL_SCOPE_TRANSACTION, SQL_NULLABLE);
 	if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
@@ -1034,7 +1034,7 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
     int j, k, rows = asInteger(nrows), stat;
     int *sequence;
     int found, vtest = asInteger(test), ncolnames = length(colnames);
-    const char *cquery = CHAR(STRING_ELT(query, 0));
+    const char *cquery = translateChar(STRING_ELT(query, 0));
     SQLRETURN res = 0; /* -Wall */
 
     PROTECT(ans = allocVector(INTSXP, 1));
@@ -1076,21 +1076,21 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
        colnames are sequence for parameters */
     for(i = 0, j = 0; i < ncolnames; i += 5, j++) {
 	strcpy((char *) thisHandle->ColData[j].ColName,
-	       CHAR(STRING_ELT(colnames, i))); /* signedness */
+	       translateChar(STRING_ELT(colnames, i))); /* signedness */
 	thisHandle->ColData[j].DataType =
-	    atoi(CHAR(STRING_ELT(colnames,i+1)));
+	    atoi(translateChar(STRING_ELT(colnames,i+1)));
 	thisHandle->ColData[j].ColSize =
-	    atoi(CHAR(STRING_ELT(colnames, i+2)));
-	if(!strcmp(CHAR(STRING_ELT(colnames, i+4)), "NA"))
+	    atoi(translateChar(STRING_ELT(colnames, i+2)));
+	if(!strcmp(translateChar(STRING_ELT(colnames, i+4)), "NA"))
 	    thisHandle->ColData[j].DecimalDigits = 0;
 	else
 	    thisHandle->ColData[j].DecimalDigits =
-		atoi(CHAR(STRING_ELT(colnames, i+4)));
+		atoi(translateChar(STRING_ELT(colnames, i+4)));
 	/* step thru datanames to find correct sequence */
 	found = 0;
 	for(k = 0; k < ncolnames/5; k++) {
-	    if(!strcmp(CHAR(STRING_ELT(colnames , i)),
-		       CHAR(STRING_ELT(datanames, k)) )) {
+	    if(!strcmp(translateChar(STRING_ELT(colnames , i)),
+		       translateChar(STRING_ELT(datanames, k)) )) {
 		found = 1;
 		sequence[i/5] = k;
 		break;
@@ -1172,7 +1172,7 @@ RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 		else
 		    thisHandle->ColData[j].IndPtr[0] = SQL_NTS;
 	    } else {
-		const char *cData = CHAR(STRING_ELT(VECTOR_ELT(data, k), i));
+		const char *cData = translateChar(STRING_ELT(VECTOR_ELT(data, k), i));
 		int datalen = thisHandle->ColData[j].ColSize;
 		strncpy(thisHandle->ColData[j].pData, cData, datalen);
 		thisHandle->ColData[j].pData[datalen+1] = '\0';
@@ -1235,7 +1235,13 @@ static int inRODBCClose(pRODBCHandle thisHandle)
 	warning(_(err_SQLFreeConnect));
 	success = -1;
     }
-    if(thisHandle->ColData) Free(thisHandle->ColData);
+    if(thisHandle->ColData) {
+	int i;
+        for (i = 0; i < thisHandle->nAllocated; i++)
+            if(thisHandle->ColData[i].pData)
+                Free(thisHandle->ColData[i].pData);
+        Free(thisHandle->ColData);
+    }
     thisHandle->nColumns = -1;
     thisHandle->channel = -1;
     thisHandle->fStmt = -1;
@@ -1524,7 +1530,7 @@ RODBCAdd(SEXP chan, SEXP query, SEXP data, SEXP datanames,
     int found, vtest = asInteger(test), ncolnames = length(colnames);
     SQLRETURN res = 0; /* -Wall */
     int first = asInteger(sfirst), last = asInteger(slast);
-    const char *cquery = CHAR(STRING_ELT(query, 0));
+    const char *cquery = translateChar(STRING_ELT(query, 0));
 
     PROTECT(ans = allocVector(INTSXP, 1));
     stat = 1;
@@ -1572,21 +1578,21 @@ RODBCAdd(SEXP chan, SEXP query, SEXP data, SEXP datanames,
        colnames are sequence for parameters */
     for(i = 0, j = 0; i < ncolnames; i += 5, j++) {
 	strcpy((char *) thisHandle->ColData[j].ColName,
-	       CHAR(STRING_ELT(colnames, i))); /* signedness */
+	       translateChar(STRING_ELT(colnames, i))); /* signedness */
 	thisHandle->ColData[j].DataType =
-	    atoi(CHAR(STRING_ELT(colnames,i+1)));
+	    atoi(translateChar(STRING_ELT(colnames,i+1)));
 	thisHandle->ColData[j].ColSize =
-	    atoi(CHAR(STRING_ELT(colnames, i+2)));
-	if(!strcmp(CHAR(STRING_ELT(colnames, i+4)), "NA"))
+	    atoi(translateChar(STRING_ELT(colnames, i+2)));
+	if(!strcmp(translateChar(STRING_ELT(colnames, i+4)), "NA"))
 	    thisHandle->ColData[j].DecimalDigits = 0;
 	else
 	    thisHandle->ColData[j].DecimalDigits =
-		atoi(CHAR(STRING_ELT(colnames, i+4)));
+		atoi(translateChar(STRING_ELT(colnames, i+4)));
 	/* step thru datanames to find correct sequence */
 	found = 0;
 	for(k = 0; k < ncolnames/5; k++) {
-	    if(!strcmp(CHAR(STRING_ELT(colnames , i)),
-		       CHAR(STRING_ELT(datanames, k)) )) {
+	    if(!strcmp(translateChar(STRING_ELT(colnames , i)),
+		       translateChar(STRING_ELT(datanames, k)) )) {
 		found = 1;
 		sequence[i/5] = k;
 		break;
@@ -1670,7 +1676,7 @@ RODBCAdd(SEXP chan, SEXP query, SEXP data, SEXP datanames,
 		else
 		    thisHandle->ColData[j].IndPtr[i - first] = SQL_NTS;
 	    } else {
-		const char *cData = CHAR(STRING_ELT(VECTOR_ELT(data, k), i - 1));
+		const char *cData = translateChar(STRING_ELT(VECTOR_ELT(data, k), i - 1));
 		int datalen = thisHandle->ColData[j].ColSize;
 		strncpy(thisHandle->ColData[j].pData + (i-1)*datalen, 
 			cData, datalen);

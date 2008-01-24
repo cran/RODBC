@@ -114,9 +114,10 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   only work with English versions of the Microsoft drivers, which may or
   may not be installed in other locales.  The file name can be omitted
   which will bring up a dialog box to search for a file.  The
-  \code{2007} versions works with drivers which are installed with
+  \code{2007} versions work with the drivers which are installed with
   Office 2007 and give access to formats such as \file{*.xlsx} and
-  \file{*.accdb}.
+  \file{*.accdb}.  These drivers are also available separately:
+  see the package \file{README}.
 #endif
 
   If it is possible to set the DBMS to communicate in the character set

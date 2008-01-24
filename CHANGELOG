@@ -1,3 +1,10 @@
+Version: 1.2-3 (2008-01-24, released)
+
+	* Plug a memory leak in inRODBCClose (closing a connection),
+	reported by Stephan Henne.
+
+	* Use translateChar() on character data sent in.
+
 Version: 1.2-2 (2007-10-19, released)
 
 	* Clarify licensing as under either GPL-2 or GPL-3,
