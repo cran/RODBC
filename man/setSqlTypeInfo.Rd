@@ -11,8 +11,8 @@ setSqlTypeInfo(driver, value)
 getSqlTypeInfo(driver)
 }
 \arguments{
-  \item{driver}{A character string specifying the driver as returned by
-    \code{\link{odbcGetInfo}}.  Optional for \code{getSqlTypeInfo}.}
+  \item{driver}{A character string specifying the \code{DBMS_nam}e as returned
+    by \code{\link{odbcGetInfo}}.  Optional for \code{getSqlTypeInfo}.}
   \item{value}{A named list with character values.  This should have
     names \code{"double"}, \code{"integer"}, \code{"character"} and
     \code{"logical"}.}

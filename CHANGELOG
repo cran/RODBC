@@ -1,3 +1,12 @@
+Version: 1.2-4 (2008-11-19, released)
+
+	* Add missing temporary PROTECT in odbcConnect(), reported by Tom
+	McCallum.
+
+	* odbcReConnect() was broken (reported by Thomas Lumley).
+
+	* sqlGetResults(): add 'stringsAsFactors' argument.
+
 Version: 1.2-3 (2008-01-24, released)
 
 	* Plug a memory leak in inRODBCClose (closing a connection),
@@ -12,7 +21,7 @@ Version: 1.2-2 (2007-10-19, released)
 
 	* Typo in setSqlTypeInfo().
 
-	* Use gsub() rather than chartr() in odbcConnectAcces() etc,
+	* Use gsub() rather than chartr() in odbcConnectAccess() etc,
 	because of a report that chartr() was not working correctly on
 	Chinese file names.
 
@@ -23,7 +32,6 @@ Version: 1.2-1 (2007-06-03, released)
 
 	* Use (const char *) for compatibility with pre-2.6.0.
 	* Add comments about MySQL's broken Connector/ODBC beta.
-
 
 Version: 1.2-0 (2007-04-24, released)
 

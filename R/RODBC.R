@@ -60,7 +60,7 @@ odbcReConnect <- function(channel, case, believeNRows)
     if(missing(case)) case <- attr(channel, "case")
     if(missing(believeNRows)) believeNRows <- attr(channel, "believeNRows")
     odbcDriverConnect(attr(channel, "connection.string"), case, believeNRows,
-                      attr(channel, "rows_at_time"),
+                      rows_at_time = attr(channel, "rows_at_time"),
                       colQuote = attr(channel, "colQuote"),
                       tabQuote = attr(channel, "tabQuote"))
 }

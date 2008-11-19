@@ -12,7 +12,8 @@ sqlQuery(channel, query, errors = TRUE, ..., rows_at_time = 1)
 sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
               max = 0, buffsize = 1000,
               nullstring = NA, na.strings = "NA",
-              believeNRows = TRUE, dec = getOption("dec"))
+              believeNRows = TRUE, dec = getOption("dec"),
+              stringsAsFactors = default.stringsAsFactors())
 }
 \arguments{
   \item{channel}{connection handle as returned by \code{\link{odbcConnect}}.}
@@ -39,6 +40,8 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
     the channel was opened, and can that setting cannot be overriden.}
   \item{dec}{The character for the decimal place to be assumed when
     converting character columns to numeric.}
+  \item{stringsAsFactors}{should character columns not excluded by
+    \code{as.is} and not converted to anything else be converted to factors?}
 }
 \details{
   \code{sqlQuery} is the workhorse function of RODBC.  It sends the SQL

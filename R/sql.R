@@ -519,7 +519,8 @@ sqlGetResults <-
     function (channel, as.is = FALSE,
               errors = FALSE, max = 0, buffsize = 1000,
               nullstring = NA, na.strings = "NA", believeNRows = TRUE,
-              dec = getOption("dec"))
+              dec = getOption("dec"),
+              stringsAsFactors = default.stringsAsFactors())
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
@@ -573,7 +574,9 @@ sqlGetResults <-
             else if(cData$type[i] == "timestamp")
                 data[[i]] <- as.POSIXct(data[[i]])
             else
-                data[[i]] <- type.convert(as.character(data[[i]]), dec = dec)
+                data[[i]] <- type.convert(as.character(data[[i]]),
+                                          as.is = !stringsAsFactors,
+                                          dec = dec)
         }
     }
     data

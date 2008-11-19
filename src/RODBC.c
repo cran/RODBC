@@ -273,6 +273,7 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows)
 		
 	    ptr = R_MakeExternalPtr(thisHandle, install("RODBC_channel"), 
 				    R_NilValue);
+	    PROTECT(ptr);
 	    R_RegisterCFinalizerEx(ptr, chanFinalizer, TRUE);
 	    PROTECT(constr = allocVector(STRSXP, 1));
 	    SET_STRING_ELT(constr, 0, mkChar((char *)buf1));
@@ -289,7 +290,7 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows)
 	    /* Rprintf("opening %d (%p, %p)\n", nChannels, 
 	       ptr, thisHandle); */
 	    if(nChannels <= 1000) opened_handles[nChannels] = thisHandle;
-	    UNPROTECT(2);
+	    UNPROTECT(3);
 	    return ans;
 	} else {
 	    if (retval == SQL_ERROR) {
