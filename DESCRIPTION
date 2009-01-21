@@ -1,6 +1,6 @@
 Package: RODBC
-Version: 1.2-4
-Date: 2008-11-19
+Version: 1.2-5
+Date: 2009-01-21
 Author: Originally Michael Lapsley <mlapsley@sthelier.sghms.ac.uk>,
 	from Oct 2002 B. D. Ripley <ripley@stats.ox.ac.uk>
 Maintainer: B. D. Ripley <ripley@stats.ox.ac.uk>
@@ -11,4 +11,4 @@ Depends: R (>= 2.5.0), utils
 Imports: stats
 LazyLoad: yes
 License: GPL-2 | GPL-3
-Packaged: Wed Nov 19 16:53:27 2008; ripley
+Packaged: Wed Jan 21 10:43:04 2009; ripley

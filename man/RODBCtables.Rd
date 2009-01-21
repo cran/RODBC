@@ -62,9 +62,6 @@ channel <- odbcConnect("test")
 sqlDrop(channel, "USArrests", errors = FALSE) # precautionary
 sqlSave(channel, USArrests)
 sqlColumns(channel, "USArrests")
-sqlColumns(channel, "USArrests", special = TRUE)
-sqlPrimaryKeys(channel, "USArrests")
-sqlColumns(channel, "USArrests")
 ##   Table_cat Table_schema Table_name Column_name Data_type Type_name
 ## 1                         USArrests    rownames        12   varchar
 ## 2                         USArrests      murder         8    double
@@ -83,7 +80,7 @@ sqlColumns(channel, "USArrests", special = TRUE)
 ##   Pseudo_column
 ## 1             1
 sqlPrimaryKeys(channel, "USArrests")
-##   Table_qualifer Table_owner Table_name Column_name Key_seq Pk_name
+##   Table_qualifier Table_owner Table_name Column_name Key_seq Pk_name
 ## 1           <NA>        <NA>  USArrests    rownames       1 PRIMARY
 sqlClear(channel, "USArrests")
 sqlDrop(channel, "USArrests")

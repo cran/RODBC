@@ -31,7 +31,7 @@ sqlTypeInfo <-
     type <- match(type, c("all", "char", "varchar", "real",
                          "double", "integer", "smallint", "timestamp",
                           "float"),
-                  nomatch=1) - 1
+                  nomatch=1L) - 1L
     stat <- odbcTypeInfo(channel, type)
     if(!stat) {
         if(errors) return(odbcGetErrMsg(channel)) else return(-1)
@@ -72,9 +72,9 @@ getSqlTypeInfo <- function(driver)
 
 setSqlTypeInfo <- function(driver, value)
 {
-    if(!is.character(driver) || length(driver) != 1)
+    if(!is.character(driver) || length(driver) != 1L)
         stop("argument 'driver' must be a character string")
-    if(!is.list(value) || length(value) < 4 || is.null(names(value)) )
+    if(!is.list(value) || length(value) < 4L || is.null(names(value)) )
         stop("argument 'value' must be a named list of length >= 4")
     typesR2DBMS[[driver]] <<- value[c("double", "integer", "character", "logical")]
 }

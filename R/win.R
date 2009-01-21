@@ -21,7 +21,7 @@ if(.Platform$OS.type == "windows") {
     {
         full.path <- function(filename) {
             fn <- gsub("\\", "/", filename, fixed = TRUE)
-            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0
+            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0L
             gsub("/", "\\",
                    if(!is.abs) file.path(getwd(), filename) else filename,
                  fixed = TRUE)
@@ -41,7 +41,7 @@ if(.Platform$OS.type == "windows") {
     {
         full.path <- function(filename) {
             fn <- gsub("\\", "/", filename, fixed = TRUE)
-            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0
+            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0L
             gsub("/", "\\",
                    if(!is.abs) file.path(getwd(), filename) else filename,
                  fixed = TRUE)
@@ -61,7 +61,7 @@ if(.Platform$OS.type == "windows") {
     {
         full.path <- function(filename) {
             fn <- gsub("\\", "/", filename, fixed = TRUE)
-            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0
+            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0L
             gsub("/", "\\",
                  if(!is.abs) file.path(getwd(), filename) else filename,
                  fixed = TRUE)
@@ -79,7 +79,7 @@ if(.Platform$OS.type == "windows") {
     {
         full.path <- function(filename) {
             fn <- gsub("\\", "/", filename, fixed = TRUE)
-            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0
+            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0L
             gsub("/", "\\",
                  if(!is.abs) file.path(getwd(), filename) else filename,
                  fixed = TRUE)
@@ -97,7 +97,7 @@ if(.Platform$OS.type == "windows") {
     {
         full.path <- function(filename) {
             fn <- gsub("\\", "/", filename, fixed = TRUE)
-            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0
+            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0L
             gsub("/", "\\",
                  if(!is.abs) file.path(getwd(), filename) else filename,
                  fixed = TRUE)

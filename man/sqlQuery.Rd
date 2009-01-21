@@ -37,7 +37,7 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
   }
   \item{believeNRows}{logical.  Is the number of rows returned by the
     ODBC connection believable?  This might already be set to false when
-    the channel was opened, and can that setting cannot be overriden.}
+    the channel was opened, and can that setting cannot be overridden.}
   \item{dec}{The character for the decimal place to be assumed when
     converting character columns to numeric.}
   \item{stringsAsFactors}{should character columns not excluded by

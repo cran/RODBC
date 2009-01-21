@@ -42,12 +42,12 @@ sqlFetch <-
        stop("first argument is not an open RODBC channel")
     if(missing(sqtable)) stop("missing argument 'sqtable'")
     dbname <- odbcTableExists(channel, sqtable)
-    DBMS <- odbcGetInfo(channel)[1]
+    DBMS <- odbcGetInfo(channel)[1L]
     ans <- sqlQuery(channel, paste("SELECT * FROM", dbname), ...)
     if(is.data.frame(ans)) {
         if(is.logical(colnames) && colnames) {
-            colnames(ans) <- as.character(as.matrix(ans[1, ]))
-            ans <- ans[-1, ]
+            colnames(ans) <- as.character(as.matrix(ans[1L, ]))
+            ans <- ans[-1L, ]
         }
         if(is.logical(rownames) && rownames) rownames <- "rownames"
         if(is.character(rownames)) {
@@ -69,8 +69,8 @@ sqlFetchMore <-
     ans <- sqlGetResults(channel, ...)
     if(is.data.frame(ans)) {
         if(is.logical(colnames) && colnames) {
-            colnames(ans) <- as.character(as.matrix(ans[1, ]))
-            ans <- ans[-1, ]
+            colnames(ans) <- as.character(as.matrix(ans[1L, ]))
+            ans <- ans[-1L, ]
         }
         if(is.logical(rownames) && rownames) rownames <- "rownames"
         if(is.character(rownames)) {
@@ -104,7 +104,7 @@ sqlCopy <-
        stop("destination argument is not an open RODBC channel")
     if( missing(query) || missing(destination))
         stop("missing parameter")
-    if(length(destination) != 1)
+    if(length(destination) != 1L)
         stop("destination should be a name")
     dataset <- sqlQuery(channel, query, errors = errors)
     sqlSave(destchannel, dataset, destination, verbose=verbose, ...)
@@ -121,7 +121,7 @@ sqlCopyTable <-
     if(missing(srctable) || missing(desttable))
         stop("missing parameter")
     dtablename <- as.character(desttable)
-    if(length(dtablename) != 1)
+    if(length(dtablename) != 1L)
         stop(sQuote(dtablename), " should be a name")
     stablename <- as.character(srctable)
     if(!length(odbcTableExists(channel, stablename, abort = errors)))
@@ -158,8 +158,8 @@ sqlSave <-
         tablename <- if(length(substitute(dat)) == 1)
             as.character(substitute(dat))
         else
-            as.character(substitute(dat)[[2]])
-    if(length(tablename) != 1)
+            as.character(substitute(dat)[[2L]])
+    if(length(tablename) != 1L)
         stop(sQuote(tablename), " should be a name")
     switch(attr(channel, "case"),
            nochange = {},
@@ -174,10 +174,10 @@ sqlSave <-
     if(is.logical(rownames) && rownames) rownames <- "rownames"
     if(is.character(rownames)) {
         dat <- cbind(row.names(dat), dat)
-        names(dat)[1] <- rownames
+        names(dat)[1L] <- rownames
         if(addPK) {
-            keys <- vector("list", 4)
-            keys[[4]] <- rownames
+            keys <- vector("list", 4L)
+            keys[[4L]] <- rownames
         }
     }
     ## ? move col names into dataframe (needed to preserve case)
@@ -226,42 +226,42 @@ sqlSave <-
     islogi <- (types == "logical")
     colspecs <- rep("varchar(255)", length(dat))
     if(!missing(typeInfo) ||
-       !is.null(typeInfo <- typesR2DBMS[[odbcGetInfo(channel)[1]]])) {
-        colspecs <- rep(typeInfo$character[1], length(dat))
-        colspecs[isreal] <- typeInfo$double[1]
-        colspecs[isint] <- typeInfo$integer[1]
-        colspecs[islogi] <- typeInfo$logical[1]
+       !is.null(typeInfo <- typesR2DBMS[[odbcGetInfo(channel)[1L]]])) {
+        colspecs <- rep(typeInfo$character[1L], length(dat))
+        colspecs[isreal] <- typeInfo$double[1L]
+        colspecs[isint] <- typeInfo$integer[1L]
+        colspecs[islogi] <- typeInfo$logical[1L]
     } else if(!oldstyle) {
         typeinfo <- sqlTypeInfo(channel, "all", errors = FALSE)
         if(is.data.frame(typeinfo)) {
             ## Now change types as appropriate.
             if(any(isreal)) {
-                realinfo <- sqlTypeInfo(channel, "double")[, 1]
-                if(length(realinfo) > 0) {
-                    if(length(realinfo) > 1) { # more than one match
+                realinfo <- sqlTypeInfo(channel, "double")[, 1L]
+                if(length(realinfo) > 0L) {
+                    if(length(realinfo) > 1L) { # more than one match
                         nm <- match("double", tolower(realinfo))
                         if(!is.na(nm)) realinfo <- realinfo[nm]
                     }
-                    colspecs[isreal] <- realinfo[1]
+                    colspecs[isreal] <- realinfo[1L]
                 } else {
-                    realinfo <- sqlTypeInfo(channel, "float")[, 1]
-                    if(length(realinfo) > 0) {
-                        if(length(realinfo) > 1) { # more than one match
+                    realinfo <- sqlTypeInfo(channel, "float")[, 1L]
+                    if(length(realinfo) > 0L) {
+                        if(length(realinfo) > 1L) { # more than one match
                             nm <- match("float", tolower(realinfo))
                             if(!is.na(nm)) realinfo <- realinfo[nm]
                         }
-                        colspecs[isreal] <- realinfo[1]
+                        colspecs[isreal] <- realinfo[1L]
                     }
                 }
             }
             if(any(isint)) {
-                intinfo <- sqlTypeInfo(channel, "integer")[, 1]
-                if(length(intinfo) > 0) {
+                intinfo <- sqlTypeInfo(channel, "integer")[, 1L]
+                if(length(intinfo) > 0L) {
                     if(length(intinfo) > 1) { # more than one match
                         nm <- match("integer", tolower(intinfo))
                         if(!is.na(nm)) intinfo <- intinfo[nm]
                     }
-                    colspecs[isint] <- intinfo[1]
+                    colspecs[isint] <- intinfo[1L]
                 }
             }
         } else {
@@ -307,9 +307,9 @@ mangleColNames <- function(colnames) gsub("[^[:alnum:]_]+", "", colnames)
 quoteColNames <- function(channel, colnames)
 {
     quotes <- attr(channel, "colQuote")
-    if(length(quotes) >= 2)
-        paste(quotes[1], colnames, quotes[2], sep="")
-    else if(length(quotes) == 1)
+    if(length(quotes) >= 2L)
+        paste(quotes[1L], colnames, quotes[2L], sep="")
+    else if(length(quotes) == 1L)
         paste(quotes, colnames, quotes, sep="")
     else colnames
 }
@@ -317,9 +317,9 @@ quoteColNames <- function(channel, colnames)
 quoteTabNames <- function(channel, tablename)
 {
     quotes <- attr(channel, "tabQuote")
-    if(length(quotes) >= 2)
-        paste(quotes[1], tablename, quotes[2], sep="")
-    else if(length(quotes) == 1)
+    if(length(quotes) >= 2L)
+        paste(quotes[1L], tablename, quotes[2L], sep="")
+    else if(length(quotes) == 1L)
         paste(quotes, tablename, quotes, sep="")
     else tablename
 }
@@ -336,7 +336,7 @@ sqlwrite <-
 {
     if(!odbcValidChannel(channel))
         stop("first argument is not an open RODBC channel")
-    colnames <- as.character(sqlColumns(channel, tablename)[4][, 1])
+    colnames <- as.character(sqlColumns(channel, tablename)[4L][, 1L])
     ## match the transform in tablecreate (get rid of inval chars in col names)
     colnames <- mangleColNames(colnames)
     cnames <- paste(quoteColNames(channel, colnames), collapse = ", ")
@@ -353,13 +353,13 @@ sqlwrite <-
         tdata <- as.matrix(tdata[match(cdata, tdata[, 1]), c(4,5)])
         for(cn in seq_along(cdata)) {
             td <- as.vector(tdata[cn,])
-            if(is.na(td[1])) next
-            if(identical(td, rep("'", 2)))
+            if(is.na(td[1L])) next
+            if(identical(td, rep("'", 2L)))
                data[, cn] <- gsub("'", "''", data[, cn])
-            data[, cn] <- paste(td[1], data[, cn], td[2], sep = "")
+            data[, cn] <- paste(td[1L], data[, cn], td[2L], sep = "")
         }
-        data[is.na(mydata)] <- if(is.null(nastring)) "NULL" else nastring[1]
-        for (i in 1:nrow(data)) {
+        data[is.na(mydata)] <- if(is.null(nastring)) "NULL" else nastring[1L]
+        for (i in 1L:nrow(data)) {
             query <- paste("INSERT INTO", dbname, "(", cnames,
                            ") VALUES (",
                            paste(data[i, colnames], collapse = ", "),
@@ -399,8 +399,8 @@ sqltablecreate <-
     create <- paste("CREATE TABLE", quoteTabNames(channel, tablename), " (")
     if(!is.null(coldata)) {
         j <- nrow(coldata)
-        colnames <- as.character(coldata[,4])
-        for (i in 1:j) {
+        colnames <- as.character(coldata[, 4L])
+        for (i in 1L:j) {
             ## 4 =rowname, 6 coltype, 7 col size, 11 ? nullable
             if(coldata[i, 11] == 1) {
                 null <- " NULL"
@@ -409,12 +409,12 @@ sqltablecreate <-
                 null <- " NOT NULL"
             }
             colsize <-
-                if(coldata[i, 7] == 65535) " " else paste("(",coldata[i,7],") ", sep="")
+                if(coldata[i, 7L] == 65535) " " else paste("(",coldata[i,7],") ", sep="")
             create <- paste(create,
                             quoteColNames(channel, mangleColNames(colnames[i])),
-                            " ", coldata[i,6], colsize, null, sep="")
+                            " ", coldata[i, 6L], colsize, null, sep="")
             if(!is.numeric(keys)) {
-                if(as.character(keys[[4]]) == colnames[i])
+                if(as.character(keys[[4L]]) == colnames[i])
                     create <- paste(create, "PRIMARY KEY")
             }
             if(i < j) create <- paste(create, ", ")
@@ -423,7 +423,7 @@ sqltablecreate <-
         colnames <- quoteColNames(channel, mangleColNames(names(colspecs)))
         entries <- paste(colnames, colspecs)
         if(is.list(keys)) {
-            keyname <- as.character(keys[[4]])
+            keyname <- as.character(keys[[4L]])
             key <- match(keyname, names(colspecs))
             entries[key] <- paste(entries[key], "PRIMARY KEY")
         }
@@ -487,7 +487,7 @@ sqlPrimaryKeys <-
     if(!length(dbname <- odbcTableExists(channel, sqtable, FALSE, FALSE))) {
         caseprob <- ""
         if(is.data.frame(nm <- sqlTables(channel)) &&
-           tolower(sqtable) %in% tolower(nm[,3]))
+           tolower(sqtable) %in% tolower(nm[, 3L]))
             caseprob <-  "\nCheck case parameter in odbcConnect"
         stop(sQuote(sqtable), ": table not found on channel", caseprob)
     }
@@ -528,7 +528,7 @@ sqlGetResults <-
         ## convert list to data frame
         class(value) <- "data.frame"
         names(value) <- make.unique(colnames)
-        row.names(value) <- seq(along=value[[1]])
+        row.names(value) <- seq(along=value[[1L]])
         value
     }
     cols <- odbcNumCols(channel)
@@ -550,7 +550,7 @@ sqlGetResults <-
         cols <- ncol(data)
         enc <- attr(channel, "encoding")
         if(length(na.strings))
-            for (i in 1:cols)
+            for (i in 1L:cols)
                 if(is.character(data[,i]))
                     data[data[,i] %in% na.strings, i] <- NA
         if(is.logical(as.is)) {
@@ -564,7 +564,7 @@ sqlGetResults <-
         } else if(length(as.is) != cols)
             stop("'as.is' has the wrong length ", length(as.is),
                  " != cols = ", cols)
-        for (i in 1:cols) {
+        for (i in 1L:cols) {
             if(is.character(data[[i]]) && nchar(enc))
                 data[[i]] <- iconv(data[[i]], from = enc)
             if(as.is[i]) next
@@ -594,11 +594,11 @@ sqlUpdate <-
     if(missing(dat)) stop("missing parameter")
     if(!is.data.frame(dat)) stop("should be a data frame or matrix")
     if(is.null(tablename))
-        tablename <- if(length(substitute(dat)) == 1)
+        tablename <- if(length(substitute(dat)) == 1L)
             as.character(substitute(dat))
         else
-            as.character(substitute(dat)[[2]])
-    if(length(tablename) != 1)
+            as.character(substitute(dat)[[2L]])
+    if(length(tablename) != 1L)
         stop(sQuote(tablename), " should be a name")
     dbname <- odbcTableExists(channel, tablename)
     ## test for missing values.
@@ -613,9 +613,9 @@ sqlUpdate <-
     ## This may or may not include the unique column depending
     ## on whether or not it is a special column.
     cdata <- sqlColumns(channel,tablename)
-    coldata <- cdata[c(4,5,7,8,9)]
+    coldata <- cdata[c(4L,5L,7L,8L,9L)]
     if(is.character(index)) {
-        intable <- index %in% coldata[ ,1]
+        intable <- index %in% coldata[ ,1L]
         if(any(!intable)) stop("index column(s) ",
                                paste(index[!intable], collapse=" "),
                                " not in database table")
@@ -629,47 +629,47 @@ sqlUpdate <-
         ## identify the column(s) that is a unique row specifier along with
         ## its descriptor data.  First try a primary key
         indexcols <- sqlPrimaryKeys(channel, tablename)
-        if(!(is.numeric(indexcols) || nrow(indexcols) == 0)) {
+        if(!(is.numeric(indexcols) || nrow(indexcols) == 0L)) {
             ## have primary key(s)
-            index <- as.character(indexcols[, 4])
+            index <- as.character(indexcols[, 4L])
             intable <- index %in% cnames
             if(any(intable)) {
-                indexcols <- index[intable][1]
+                indexcols <- index[intable][1L]
                 haveKey <- TRUE
             }
         }
         if(!haveKey){
             ## try special columns
             indexcols <- sqlColumns(channel, tablename, special = TRUE)
-            if(!(is.numeric(indexcols) || nrow(indexcols) == 0)) {
-                indexcols <- indexcols[c(2,3,5,6,7)]
+            if(!(is.numeric(indexcols) || nrow(indexcols) == 0L)) {
+                indexcols <- indexcols[c(2L,3L,5L,6L,7L)]
 
                 ## check that the unique column(s) are present in the dataframe
                 indexflags <- indexcols[ ,1] %in% cnames
                 if(all(indexflags)) {
                 ## if a unique column is not in coldata bind it on
-                    incoldata <- indexcols[ ,1] %in% coldata[,1]
+                    incoldata <- indexcols[, 1L] %in% coldata[, 1L]
                     if(any(!incoldata))
                         coldata <- rbind(coldata, indexcols[!incoldata])
-                    indexcols <- as.character(indexcols[ ,1])
+                    indexcols <- as.character(indexcols[, 1L])
                     haveKey <- TRUE
                 }
             }
         }
         if(!haveKey){
             ## can we use a column 'rownames' as index column?
-            m <- match("rownames", tolower(coldata[,1]))
+            m <- match("rownames", tolower(coldata[, 1L]))
             if(is.na(m))
                 stop("cannot update ", sQuote(tablename),
                      " without unique column")
-            indexcols <- coldata[m,1]
+            indexcols <- coldata[m, 1L]
             dat <- cbind(row.names(dat), dat)
-            names(dat)[1] <- indexcols
+            names(dat)[1L] <- indexcols
             cnames <- c(indexcols, cnames)
         }
     }
     ## check that no columns are present in the df that are not in the table
-    intable <- cnames %in% coldata[ ,1]
+    intable <- cnames %in% coldata[, 1L]
     if(any(!intable)) stop("data frame column(s) ",
                            paste(cnames[!intable], collapse=" "),
                            " not in database table")
@@ -716,13 +716,13 @@ sqlUpdate <-
         tdata <- as.matrix(tdata[match(cdata, tdata[, 1]), c(4,5)])
         for(cn in seq_along(cdata)) {
             td <- as.vector(tdata[cn,])
-            if(is.na(td[1])) next
-            if(identical(td, rep("'", 2)))
+            if(is.na(td[1L])) next
+            if(identical(td, rep("'", 2L)))
                data[, cn] <- gsub("'", "''", data[, cn])
-            data[, cn] <- paste(td[1], data[, cn], td[2], sep = "")
+            data[, cn] <- paste(td[1L], data[, cn], td[2L], sep = "")
         }
         data[is.na(dat)] <- if(is.null(nastring)) "NULL" else nastring
-        for (i in 1:nrow(data)) {
+        for (i in 1L:nrow(data)) {
             query <- paste("UPDATE", dbname, "SET")
             query <- paste(query,
                            paste(paste(cn2, "=", data[i, cn1], sep =""),
@@ -755,7 +755,7 @@ odbcTableExists <- function(channel, tablename, abort = TRUE, forQuery = TRUE)
            )
     res <- sqlTables(channel)
     tables <- stables <- if(is.data.frame(res)) res[, 3] else ""
-    isExcel <- odbcGetInfo(channel)[1] == "EXCEL"
+    isExcel <- odbcGetInfo(channel)[1L] == "EXCEL"
     ## Excel appends a $ to worksheets, single-quotes non-standard names
     if(isExcel) {
         tables <- sub("^'(.*)'$", "\\1", tables)
@@ -773,5 +773,5 @@ odbcTableExists <- function(channel, tablename, abort = TRUE, forQuery = TRUE)
         if(forQuery) paste("[", dbname, "]", sep="") else dbname
     } else if(ans) {
         if(forQuery) quoteTabNames(channel, tablename) else tablename
-    } else character(0)
+    } else character(0L)
 }

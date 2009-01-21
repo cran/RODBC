@@ -46,11 +46,11 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
     statements.  Can be of length 0 (no quoting), a length-1 character
     vector giving the quote character for both ends, or a length-2
     character string giving the beginning and ending quotes.  ANSI SQL
-    uses doublequotes, but the default mode for a MySQL server is to use
+    uses double quotes, but the default mode for a MySQL server is to use
     backticks.
 
-    The defaults are backtick (\code{`}) if the DBMS is identified
-    as \code{"MySQL"} by the driver, and doublequote otherwise.
+    The defaults are backtick (\samp{`}) if the DBMS is identified
+    as \code{"MySQL"} by the driver, and double quote otherwise.
 #ifdef windows
     The Access, DBase and Excel wrappers set \code{tabQuote = c("[", "]")}.
 #endif
@@ -123,7 +123,7 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   If it is possible to set the DBMS to communicate in the character set
   of the \R session then this should be done.  For example, MySQL
   can set the communication character set \emph{via} SQL, e.g.
-  \code{SET NAMES 'utf8'}.
+  \samp{SET NAMES 'utf8'}.
 }
 
 #ifdef windows
@@ -151,7 +151,7 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
 
   A connection that allows modification can be created via
   \code{odbcConnectExcel(readOnly = FALSE)} or directly (see the examples).
-  Howver, the Excel ODBC driver does not support deletion (including SQL
+  However, the Excel ODBC driver does not support deletion (including SQL
   \code{DROP}, \code{DELETE}, \code{UPDATE} and \code{ALTER}
   statements). In particular, \code{\link{sqlDrop}} will remove the data
   in a worksheet but not the worksheet itself.

@@ -87,24 +87,24 @@ odbcDriverConnect <-
        return(stat)
    }
    res <- .Call(C_RODBCGetInfo, attr(stat, "handle_ptr"))
-   if(missing(colQuote)) colQuote <- ifelse(res[1] == "MySQL", "`", '"')
+   if(missing(colQuote)) colQuote <- ifelse(res[1L] == "MySQL", "`", '"')
    if(missing(case))
-       case <- switch(res[1],
+       case <- switch(res[1L],
                       "MySQL" = "mysql",
                       "PostgreSQL" = "postgresql",
                       "ACCESS" = "msaccess",
                       "nochange")
    switch(case,
-	toupper = case <- 1,
-	oracle = case <- 1,
-	tolower = case <- 2,
-	postgresql = case <- 2,
-	nochange = case <- 0,
-	msaccess = case <- 0,
-	mysql = case <- ifelse(.Platform$OS.type == "windows", 2, 0),
+	toupper = case <- 1L,
+	oracle = case <- 1L,
+	tolower = case <- 2L,
+	postgresql = case <- 2L,
+	nochange = case <- 0L,
+	msaccess = case <- 0L,
+	mysql = case <- ifelse(.Platform$OS.type == "windows", 2L, 0L),
  	stop("Invalid case parameter: nochange | toupper | tolower | common db names")
 	)
-   case <- switch(case+1, "nochange", "toupper", "tolower")
+   case <- switch(case+1L, "nochange", "toupper", "tolower")
    if(is.null(bulk_add))
        bulk_add <- .Call(C_RODBCCanAdd, attr(stat, "handle_ptr"))
    structure(stat, class = "RODBC", case = case, id = id,
@@ -140,7 +140,7 @@ odbcUpdate <-
                      nochange = cnames,
                      toupper = toupper(cnames),
                      tolower = tolower(cnames))
-    for(i in 1:ncol(data))
+    for(i in 1L:ncol(data))
         if(!is.numeric(data[[i]])) {
             data[[i]] <- as.character(data[[i]])
             if(nchar(enc)) data[[i]] <- iconv(data[[i]], to=enc)
@@ -257,7 +257,7 @@ odbcClearResults <-  function(channel)
 
 print.RODBC <- function(x, ...)
 {
-    con <- strsplit(attr(x, "connection.string"), ";")[[1]]
+    con <- strsplit(attr(x, "connection.string"), ";")[[1L]]
     case <- paste("case=", attr(x, "case"), sep="")
     cat("RODB Connection ", as.vector(x), "\nDetails:\n  ", sep = "")
     cat(case, con, sep="\n  ")
@@ -293,7 +293,7 @@ odbcBulkAdd <-
                      nochange = cnames,
                      toupper = toupper(cnames),
                      tolower = tolower(cnames))
-    for(i in 1:ncol(data))
+    for(i in 1L:ncol(data))
         if(!is.numeric(data[[i]])) data[[i]] <- as.character(data[[i]])
     .Call(C_RODBCAdd, attr(channel, "handle_ptr"), query, data, cnames,
           as.integer(first), as.integer(last), as.integer(ncol(data)),

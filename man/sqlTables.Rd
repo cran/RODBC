@@ -34,7 +34,7 @@ sqlTables(channel, errors = FALSE, as.is = TRUE)
 channel <- odbcConnect("test")
 sqlTables(channel, "USArrests")
 ## MySQL example
-##   Table_qualifer Table_owner Table_name Table_type     Remarks
+##   Table_qualifier Table_owner Table_name Table_type     Remarks
 ##1                             usarrests      TABLE MySQL table
 ## Microsoft Access example
 ##      TABLE_CAT TABLE_SCHEM        TABLE_NAME   TABLE_TYPE REMARKS

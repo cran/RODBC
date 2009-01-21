@@ -1,3 +1,11 @@
+Version: 1.2-5 (2009-01-21, released)
+
+	* Adapt help to Rd version 2
+
+	* Use integer constants
+
+	* Spelling corrections
+
 Version: 1.2-4 (2008-11-19, released)
 
 	* Add missing temporary PROTECT in odbcConnect(), reported by Tom
@@ -103,7 +111,7 @@ Version: 1.1-8 (2007-01-02, released)
 	* sqlwrite{fast=FALSE, append=TRUE) works better with out-of-order
 	columns on some drivers.
 
-	
+
 Version: 1.1-7 (2006-05-24, released)
 
 	* configure.ac: make use of odbc_config if --with-odbc-manager=odbc.

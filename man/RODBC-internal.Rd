@@ -13,7 +13,7 @@
 
 \title{Internal RODBC functions}
 \description{
-  Internal RODBC functions: not exported from the \pkg{RODBC} namespace
+  Internal RODBC functions: not exported from the \pkg{RODBC} name space.
 }
 \usage{
 odbcColData(channel)
