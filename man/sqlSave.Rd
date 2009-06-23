@@ -21,13 +21,12 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   \item{channel}{connection handle returned by \code{\link{odbcConnect}}.}
   \item{dat}{a data frame.}
   \item{tablename}{character: a database table name accessible from
-    the connected dsn.  If missing, the name of \code{dat}.}
+    the connected DSN.  If missing, the name of \code{dat}.}
   \item{index}{character.  Name(s) of index column(s) to be used.}
   \item{append}{logical.  Should data be appended to an existing table?}
-  \item{rownames}{either logical or character.
-    If logical, save the row names as the first column \code{rownames}
-    in the table?  If character, the column name under which to save
-    the rownames.}
+  \item{rownames}{either logical or character.  If logical, save the row
+    names as the first column \code{rownames} in the table?  If
+    character, the column name under which to save the rownames.}
   \item{colnames}{logical: save column names as the first row of table?}
   \item{verbose}{display statements as they are sent to the server?}
 
@@ -45,12 +44,13 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
     datatypes to be used for some (or all) of the columns if a table is
     to be created.}
   \item{fast}{logical.  If false, write data a row at a time.  If true,
-    use a parametrized INSERT INTO / UPDATE query to write all the data
-    in one operation, or \code{SQLBulkOperations} where supported.}
-  \item{test}{show what would be done, only.}
-  \item{nastring}{character string to be used for writing \code{NA}s
-    to the database.  The default, \code{NULL}, attempts to write
-    a missing value as a database null.  Only supported for \code{fast=FALSE}.}
+    use a parametrized \code{INSERT INTO} or \code{UPDATE} query to
+    write all the data in one operation.}
+  \item{test}{logical: if \code{TRUE} show what would be done, only.}
+  \item{nastring}{optional character string to be used for writing
+    \code{NA}s to the database.  The default, \code{NULL}, attempts to
+    write a missing value as a database null.  Only supported for
+    \code{fast = FALSE}.}
 }
 \details{
   \code{sqlSave} saves the data frame \code{dat} in the table
@@ -64,30 +64,30 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
 
   If \code{rownames = TRUE} the first column of the table will be the
   row labels with colname \code{rowname}: \code{rownames} can also be a
-  string giving the desired column name (see example). \code{colnames}
-  copies the column names into row 1.  This is intended for cases where
-  case conversion alters the original column names and it is desired
-  that they are retained.  Note that there are drawbacks to this
-  approach: it presupposes that the rows will be returned in correct
-  order; not always valid.  It will also cause numeric rows to be
-  returned as factors.
+  string giving the desired column name (see \sQuote{Examples}). If
+  \code{colnames} is true, the column names are copied into row 1.  This
+  is intended for cases where case conversion alters the original column
+  names and it is desired that they are retained.  Note that there are
+  drawbacks to this approach: it presupposes that the rows will be
+  returned in correct order; not always valid.  It will also cause
+  numeric rows to be returned as factors.
 
-  Argument \code{addPK = TRUE} causes the rownames to be marked as a
-  primary key.  This is usually a good idea, and may allow updates to be
-  done.  However, some DBMSs (e.g. Access) do not support primary keys,
-  and some versions of the PostgreSQL ODBC driver have generated
-  internal memory corruption if this option is used.
+  Argument \code{addPK = TRUE} causes the row names to be marked as a
+  primary key.  This is usually a good idea, and may allow database
+  updates to be done.  However, the drivers for some DBMSs (e.g. Access)
+  do not support primary keys, and earlier versions of the PostgreSQL
+  ODBC driver have generated internal memory corruption if this option
+  is used.
   
-  \code{sqlUpdate} updates the table where the rows already exist. Data
-  frame \code{dat} should columns with names that map to (some of) the
-  columns in the table.  It also needs to contain the column(s)
+  \code{sqlUpdate} updates the table where the rows already exist.  Data
+  frame \code{dat} should contain columns with names that map to (some
+  of) the columns in the table.  It also needs to contain the column(s)
   specified by \code{index} which together identify the rows to be
   updated.  If \code{index = NULL}, the function tries to identify such
   rows.  First it looks for a primary key in the data frame, then for
   the column(s) that the database regards as the optimal for defining a
-  row uniquely (these are returned by
-  \code{\link{sqlColumns}(\dots, special=TRUE)}).  If
-  there is no such column the rownames are used provided they are stored
+  row uniquely (these are returned by \code{\link{sqlColumns}(\dots,
+  special = TRUE)}).  Finally, the row names are used if they are stored
   as column \code{"rownames"} in the table.
 
   The value of \code{nastring} is used for all the columns and no
@@ -101,19 +101,23 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   seem to require \code{fast = FALSE} to send other types,
   e.g. \code{datetime}.  SQLite's approach is to use the data to determine
   how it is stored, and this does not work well with \code{fast = TRUE}.
+  
+  Note that table names in another schema such as \code{myschema.mytable}
+  cannot be used: see the help for \link{RODBC} for ways of handling schemas.  
 }
 \section{Warning}{
-  \code{sqlSave(safer = FALSE)} uses the 'great white shark'
+  \code{sqlSave(safer = FALSE)} uses the \sQuote{great white shark}
   method of testing tables (bite it and see).  The logic will
-  unceremoniously DROP the table and create it anew with its own choice of
-  column types in its attempt to find a writable solution.
-  \code{test = TRUE} will not necessarily predict this behaviour.
-  Attempting to write indexed columns or writing to pseudo-columns are
-  less obvious causes of failed writes followed by a DROP.  If your table
-  structure is precious to you back it up.  
+  unceremoniously \code{DROP} the table and create it anew with its own
+  choice of column types in its attempt to find a writable
+  solution. \code{test = TRUE} will not necessarily predict this
+  behaviour. Attempting to write indexed columns or writing to
+  pseudo-columns are less obvious causes of failed writes followed by a
+  \code{DROP}.  If your table structure is precious it is up to you back
+  it up.
 }
 \value{
-  1 invisibly for success (and failures cause errors).
+  \code{1} invisibly for success (and failures cause errors).
 }
 \seealso{
   \code{\link{sqlFetch}}, \code{\link{sqlQuery}},

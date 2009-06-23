@@ -1,5 +1,5 @@
 # file RODBC/R/win.R
-# copyright (C) 2002-2007  B. D. Ripley
+# copyright (C) 2002-2009  B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,16 +16,19 @@
 #
 
 if(.Platform$OS.type == "windows") {
+
+    ## FIXME: use grepl for is.abs in due course (R >= 2.9.0)
+    full.path <- function(filename) {
+        fn <- gsub("\\", "/", filename, fixed = TRUE)
+        is.abs <- length(grep("^[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz]:|/", fn)) > 0L
+        gsub("/", "\\",
+             if(!is.abs) file.path(getwd(), filename) else filename,
+             fixed = TRUE)
+    }
+
     ## originally based on suggestions from xiao.gang.fan1@libertysurf.fr
     odbcConnectExcel <- function(xls.file, readOnly = TRUE, ...)
     {
-        full.path <- function(filename) {
-            fn <- gsub("\\", "/", filename, fixed = TRUE)
-            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0L
-            gsub("/", "\\",
-                   if(!is.abs) file.path(getwd(), filename) else filename,
-                 fixed = TRUE)
-        }
         con <- if(missing(xls.file))
             "Driver={Microsoft Excel Driver (*.xls)};DriverId=790;Dbq="
         else {
@@ -39,13 +42,6 @@ if(.Platform$OS.type == "windows") {
 
     odbcConnectExcel2007 <- function(xls.file, readOnly = TRUE, ...)
     {
-        full.path <- function(filename) {
-            fn <- gsub("\\", "/", filename, fixed = TRUE)
-            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0L
-            gsub("/", "\\",
-                   if(!is.abs) file.path(getwd(), filename) else filename,
-                 fixed = TRUE)
-        }
         con <- if(missing(xls.file))
             "Driver={Microsoft Excel Driver (*.xls, *.xlsx, *.xlsm, *.xlsb)};Dbq="
         else {
@@ -59,13 +55,6 @@ if(.Platform$OS.type == "windows") {
 
     odbcConnectAccess <- function(access.file, uid = "", pwd = "", ...)
     {
-        full.path <- function(filename) {
-            fn <- gsub("\\", "/", filename, fixed = TRUE)
-            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0L
-            gsub("/", "\\",
-                 if(!is.abs) file.path(getwd(), filename) else filename,
-                 fixed = TRUE)
-        }
         con <- if(missing(access.file))
             "Driver={Microsoft Access Driver (*.mdb)};Dbq="
         else
@@ -77,13 +66,6 @@ if(.Platform$OS.type == "windows") {
 
     odbcConnectAccess2007 <- function(access.file, uid = "", pwd = "", ...)
     {
-        full.path <- function(filename) {
-            fn <- gsub("\\", "/", filename, fixed = TRUE)
-            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0L
-            gsub("/", "\\",
-                 if(!is.abs) file.path(getwd(), filename) else filename,
-                 fixed = TRUE)
-        }
         con <- if(missing(access.file))
             "Driver={Microsoft Access Driver (*.mdb, *.accdb)};Dbq="
         else
@@ -95,13 +77,6 @@ if(.Platform$OS.type == "windows") {
 
     odbcConnectDbase <- function(dbf.file, ...)
     {
-        full.path <- function(filename) {
-            fn <- gsub("\\", "/", filename, fixed = TRUE)
-            is.abs <- length(grep("^[A-Za-z]:|/", fn)) > 0L
-            gsub("/", "\\",
-                 if(!is.abs) file.path(getwd(), filename) else filename,
-                 fixed = TRUE)
-        }
         con <- if(missing(dbf.file))
             "Driver={Microsoft dBASE Driver (*.dbf)};DriverID=277;Dbq="
         else

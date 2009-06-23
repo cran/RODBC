@@ -11,7 +11,7 @@ sqlQuery(channel, query, errors = TRUE, ..., rows_at_time = 1)
 
 sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
               max = 0, buffsize = 1000,
-              nullstring = NA, na.strings = "NA",
+              nullstring = NA_character_, na.strings = "NA",
               believeNRows = TRUE, dec = getOption("dec"),
               stringsAsFactors = default.stringsAsFactors())
 }
@@ -21,33 +21,32 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
   \item{errors}{if TRUE halt and display error, else return -1}
   \item{\dots}{additional arguments to be passed to \code{sqlGetResults}.}
   \item{rows_at_time}{The number of rows to fetch at a time, up to 1024.  Not
-    all drivers work correctly with values > 1.  See Details.}
-  \item{as.is}{which (if any) character columns should be converted,
-    as in \code{\link{read.table}}?  See the details.}
-  \item{max}{limit on the number of rows to fetch, with 0 indicating no limit.}
+    all drivers work correctly with values > 1.  See \sQuote{Details}.}
+  \item{as.is}{which (if any) columns returned as character should be
+    converted to another type?  Allowed values are as for
+    \code{\link{read.table}}.  See \sQuote{details}.}
+  \item{max}{limit on the number of rows to fetch, with \code{0}
+    indicating no limit.}
   \item{buffsize}{an initial guess at the number of rows, used if
-    \code{max = 0} and \code{believeNRows == FALSE} for the driver.}
-  \item{nullstring}{
-    character string to be used when reading \code{SQL_NULL_DATA}
-    character items from the database.
-  }
-  \item{na.strings}{
-    character string(s) to be mapped to \code{NA} when reading character
-    data.
-  }
+    \code{max = 0} and \code{believeNRows == FALSE}.}
+  \item{nullstring}{character string to be used when reading
+    \code{SQL_NULL_DATA} character items from the database.}
+  \item{na.strings}{character vector of strings to be mapped to
+    \code{NA} when reading character data.}
   \item{believeNRows}{logical.  Is the number of rows returned by the
     ODBC connection believable?  This might already be set to false when
     the channel was opened, and can that setting cannot be overridden.}
   \item{dec}{The character for the decimal place to be assumed when
     converting character columns to numeric.}
-  \item{stringsAsFactors}{should character columns not excluded by
-    \code{as.is} and not converted to anything else be converted to factors?}
+  \item{stringsAsFactors}{logical: should columns returned as character and not
+    excluded by \code{as.is} and not converted to anything else be
+    converted to factors?}
 }
 \details{
-  \code{sqlQuery} is the workhorse function of RODBC.  It sends the SQL
+  \code{sqlQuery} is the workhorse function of \pkg{RODBC}.  It sends the SQL
   statement \code{query} to the server, using connection \code{channel}
   returned by \code{\link{odbcConnect}}, and retrieves (some or all of)
-  the results via \code{sqlGetResults}.
+  the results \emph{via} \code{sqlGetResults}.
 
   SQL beginners should note that the term 'Query' includes
   any valid SQL statement including table creation, alteration, updates
@@ -67,17 +66,23 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
   Where possible \code{sqlGetResults} transfers data directly: this
   happens for \code{double}, \code{real}, \code{integer} and
   \code{smallint} columns in the table.  All other SQL data types are
-  converted to character strings by the ODBC interface.  If the
-  \code{as.is} is true for a column, it is returned as character.
-  Otherwise (where detected) \code{date}, \code{datetime} and
-  \code{timestamp} values are converted to \code{"Date"} and
-  \code{"POSIXct"} values respectively.  (Some drivers seem to confuse times
-  with dates, so times may get converted too.)  Other types are
-  converted by \R using \code{\link{type.convert}}.  When
-  character data are to be converted to numeric data, the setting of
-  \code{options("dec")} to map the character used up the ODBC driver in
-  setting decimal points---this is set to a locale-specific value
-  when RODBC is initialized if it is not already set.
+  converted to character strings by the ODBC interface.
+  
+  This paragraph applies only to SQL data types which are returned by
+  ODBC as character vectors.  If \code{\link{odbcConnect}} set
+  \code{DBMSencoding} to a non-empty value, the character strings are
+  re-encoded.  Then if the \code{as.is} is true for a column, it is
+  returned as character.  Otherwise (where detected) \code{date},
+  \code{datetime} and \code{timestamp} values are converted to the
+  \code{"Date"} or \code{"POSIXct"} class.  (Some drivers
+  seem to confuse times with dates, so times may get converted
+  too. Also, some DBMSs (e.g. Oracle's) idea of \code{date} is a
+  date-time.)  Remaining cases are converted by \R using
+  \code{\link{type.convert}}.  When character data are to be converted
+  to numeric data, the setting of \code{options("dec")} to map the
+  character used up the ODBC driver in setting decimal points---this is
+  set to a locale-specific value when \pkg{RODBC} is initialized if it
+  is not already set.
   
   Using \code{buffsize} will yield a marginal increase in speed if set
   to no less than the maximum number of rows when \code{believeNRows =
@@ -86,15 +91,15 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
 
   Modern drivers should work (and work faster, especially if
   communicating with a remote machine) with \code{rows_a_time = 1024}.
-  However, some drivers may mis-fetch multiple rows, so set this to
-  \code{1} if the results are incorrect.
+  However, some drivers may mis-fetch multiple rows, so the default is
+  \code{1}.
 }
 \value{
-  A data frame (possibly with 0 rows) on success.
-  If \code{errors = TRUE}, a character vector of error message(s),
+  A data frame (possibly with 0 rows) on success.  On error,
+  if \code{errors = TRUE} a character vector of error message(s),
   otherwise error code \code{-1} (general, call
   \code{\link{odbcGetErrMsg}} for details) or \code{-2} (no data, which
-  may not be an error as some SQL commands do return no data).
+  may not be an error as some SQL statements do return no data).
 }
 \seealso{
   \code{\link{odbcConnect}}, \code{\link{sqlFetch}},
@@ -108,7 +113,8 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
 channel <- odbcConnect("test")
 sqlSave(channel, USArrests, rownames = "State", verbose = TRUE)
 # options(dec=".") # optional, if DBMS is not locale-aware
-## note case of State, Murder, rape are DBMS-dependent.
+## note case of State, Murder, rape are DBMS-dependent,
+## and at least one Oracle driver needs column and table names double-quoted.
 sqlQuery(channel, paste("select State, Murder from USArrests",
                         "where Rape > 30 order by Murder"))
 close(channel)

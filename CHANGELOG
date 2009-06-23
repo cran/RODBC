@@ -1,3 +1,43 @@
+Version: 1.2-6 (2009-06-23, released)
+
+	* Split INSTALL file out of README.
+	
+	* Clarify that it is the ODBC driver that needs to recognize
+	primary keys: apparently Access has them but the driver does not.
+
+	* close() was leaking a RODBChandle stucture, found by Valgrind.
+
+	* odcUpdate() could write one character beyond a character buffer:
+	used by sqlSave(fast=TRUE).
+
+	* sqlSave(fast=TRUE) failed if the driver reported column sizes of
+	date/dateime fields incorrectly, as sqliteodbc does.  Now these
+	are retrieved by sqlTypeInfo(), and if they gives silly sizes, a
+	sensible default is used.
+
+	* sqlSave(fast=FALSE) could write logical columns with ' TRUE' due
+	to a deficiency in as.matrix.data.frame().
+
+	* sqlClear() now works with systems that need remapped/quoted
+	table names.
+
+	* Use NA_character_ as default for 'nullstring'.
+
+	* Rework help pages, with many more details on catalogs, schema
+	and behaviour of specific drivers.
+
+	* There is limited support for dotted table names in sqlClear,
+	sqlDrop and sqlFetch.
+
+	* sqlTables, sqlColumns, sqlPrimaryKeys have extra arguments to
+	restrict/change the search for the table(s) where this supported
+	by the ODBC driver.
+
+	* There is a now a test suite, the relevant parts of which are run
+	if the environment variable RODBC_TESTING is set.  (This depends
+	on specific DSN names being available, and so is intended only for
+	the maintainer's use.)
+
 Version: 1.2-5 (2009-01-21, released)
 
 	* Adapt help to Rd version 2
@@ -38,7 +78,7 @@ Version: 1.2-2 (2007-10-19, released)
 
 Version: 1.2-1 (2007-06-03, released)
 
-	* Use (const char *) for compatibility with pre-2.6.0.
+	* Use (const char *) for compatibility with R 2.6.0.
 	* Add comments about MySQL's broken Connector/ODBC beta.
 
 Version: 1.2-0 (2007-04-24, released)
@@ -47,11 +87,6 @@ Version: 1.2-0 (2007-04-24, released)
 
 	* Internally, keep an ODBC environment open throughout the session
 	rather than use one for every channel.
-
-	* sqlwrite can use SQLBulkOperations where supported for forward-only
-	cursors.  (So far we have only found support in the MyODBC 3.51
-	and later drivers.  Also, this does not appear to work correctly
-	for column types that need conversion in the DBMS.)
 
 	* odbcDriverConnect has new arguments to set the values of
 	'rows_at_time' and 'bulk_add' for the connection.
@@ -98,12 +133,12 @@ Version: 1.1-9 (2007-04-02, released)
 
 Version: 1.1-8 (2007-01-02, released)
 
-	* make use of symbol registration for .Call entry points.
+	* Make use of symbol registration for .Call entry points.
 
-	* add odbcEndTran() function for use when odbcSetAutoCommit() has
+	* Add odbcEndTran() function for use when odbcSetAutoCommit() has
 	been used to disable auto-commit.
 
-	* add odbcDataSources() function to list User and System DSNs.
+	* Add odbcDataSources() function to list User and System DSNs.
 
 	* sqlUpdate(fast=FALSE) now quotes date and time columns as some
 	drivers appear to need it.

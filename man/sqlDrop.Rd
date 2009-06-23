@@ -1,53 +1,33 @@
-\name{RODBCtables}
-\alias{sqlPrimaryKeys}
-\alias{sqlColumns}
+\name{sqlDrop}
 \alias{sqlDrop}
 \alias{sqlClear}
 
 \title{Operations on Tables in ODBC databases}
 \description{
-  Operations on tables in ODBC databases.
+  \code{sqlClear} deletes all the rows of the table \code{sqtable}.
+
+  \code{sqlDrop} removes the table \code{sqtable} (if permitted).
 }
 \usage{
 sqlClear(channel, sqtable, errors = TRUE)
 
 sqlDrop(channel, sqtable, errors = TRUE)
-
-sqlColumns(channel, sqtable, errors = FALSE, as.is = TRUE,
-           special = FALSE)
-
-sqlPrimaryKeys(channel, sqtable, errors = FALSE, as.is = TRUE)
 }
 \arguments{
   \item{channel}{connection object as returned by \code{\link{odbcConnect}}.}
-  \item{sqtable}{character: a database table name accessible from the
-    connected dsn.}
-  \item{errors}{if TRUE halt and display error, else return -1}
-  \item{as.is}{as in \code{\link{sqlGetResults}}.}
-  \item{special}{return only the column(s) needed to specify a row
-    uniquely.  Depending on the database, there might be none.}
+  \item{sqtable}{character string: a database table name accessible from the
+    connected DSN.  This can be \sQuote{dotted} name of the form
+    \code{myschema.mytable}.}
+  \item{errors}{logical: if \code{TRUE} halt and display error, else
+    return \code{-1}.}
 }
 \details{
-  \code{sqlClear} deletes the content of the table \code{sqtable}.  No
-  confirmation is requested.
-
-  \code{sqlDrop} removes the table \code{sqtable}.  No confirmation
-  is requested.
-
-  \code{sqlColumns} and \code{sqlPrimaryKeys} return information as data
-  frames.  The column names are not constant across ODBC versions so the
-  data should be accessed by column number.  The argument \code{special}
-  to \code{sqlColumns} returns the columns needed to specify a row
-  uniquely.  This is intended to form the basis of a WHERE clause for
-  updates (see \code{\link{sqlUpdate}}).
+  \sQuote{Dotted} table names are allowed on systems that support them
+  but the existence of the table is not checked and so attempting these
+  operations of a non-existent table will give a low-level error.
 }
-\value{
-  A data frame on success, or character/numeric on error depending on the
-  \code{errors} parameter.  If no data is returned, either a zero-row
-  data frame or an error. (For example, if there are no primary keys or
-  special column(s) in this table
-  an empty data frame is returned, but if primary keys are not supported
-  by the DBMS, an error code results.)
+\value{  
+  Character/numeric depending on the \code{errors} argument.
 }
 \seealso{
   \code{\link{odbcConnect}}, \code{\link{sqlQuery}}, \code{\link{sqlFetch}},

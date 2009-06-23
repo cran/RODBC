@@ -13,35 +13,41 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
 }
 \arguments{
   \item{channel}{connection handle returned by \code{\link{odbcConnect}}.}
-  \item{sqtable}{a database table name accessible from the connected dsn.
-    This should be either a character string or a character vector of
+  \item{sqtable}{a database table name accessible from the connected DSN.
+    This should be either a literal character string or a character vector of
     length 1.}
   \item{\dots}{additional arguments to be passed to
-    \code{\link{sqlQuery}} or \code{\link{sqlGetResults}}. See Details.}
+    \code{\link{sqlQuery}} or \code{\link{sqlGetResults}}.  See
+    \sQuote{Details}.}
   \item{colnames}{logical: retrieve column names from first row of table?
     (For use when \code{sqlSave(colnames = TRUE)} was used.)}
   \item{rownames}{either logical or character.
     If logical, retrieve row names from the first column
     (\code{rownames}) in the table?  If character, the column name to
-    retrieve them.}
+    retrieve them from.}
 }
 \details{
-  \code{sqlFetch} retrieves the the entire contents of the table
+  \code{sqlFetch} by default retrieves the the entire contents of the table
   \code{sqtable}.  Rownames and column names are restored as indicated
   (assuming that they have been placed in the table by the corresponding
   arguments to \code{\link{sqlSave}}).
-  \code{sqlFetchMore} will retrieve further results from the query
-  (provided there has been no other ODBC query on that channel in the
-  meantime).
 
-  It tries to cope with the peculiar way the Excel ODBC driver handles
-  table names, and to quote Access table names which contain spaces.
+  Alternatively, \code{sqlFetch} can fetch the first \code{max} rows, in
+  which case \code{sqlFetchMore} will retrieve further result rows,
+  provided there has been no other ODBC query on that channel in the
+  meantime.
+
+  These functions try to cope with the peculiar way the Excel ODBC
+  driver handles table names, and to quote Access table names which
+  contain spaces.  Dotted table names, e.g. \code{myschema.mytable}, are
+  allowed on systems that support them, but the existence of the table
+  will not be checked.
 
   Useful additional parameters to pass to \code{\link{sqlQuery}} or
   \code{\link{sqlGetResults}} include
   \describe{
     \item{\code{max}:}{limit on the number of rows to fetch, with
-      0 (the default) indicating no limit.}
+      \code{0} (the default) indicating no limit.}
     
     \item{\code{nullstring}:}{character string to be used when reading
       \code{SQL_NULL_DATA} character items from the database:
@@ -56,7 +62,7 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
       when converting character columns to numeric.}
 
     \item{\code{rows_at_time}:}{Allow for multiple rows to be retrieved at
-      once.  The default is 1000.}
+      once.  The default is \code{1}.}
   }
 }
 \value{
@@ -65,9 +71,9 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
 }
 \note{
   If the table name desired is not a valid SQL name (alphanumeric plus
-  \code{_}), use \code{\link{sqlQuery}} with whatever quoting mechanism
-  your DBMS vendor provides (e.g. \code{[ ]} on Microsoft products and
-  backticks on recent versions of MySQL).
+  \code{_}), you can use \code{\link{sqlQuery}} with whatever quoting
+  mechanism your DBMS vendor provides (e.g. \code{[ ]} on Microsoft
+  products and backticks on recent versions of MySQL).
 }
 \seealso{
   \code{\link{sqlSave}}, \code{\link{sqlQuery}},

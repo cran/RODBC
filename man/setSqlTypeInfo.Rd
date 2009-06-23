@@ -11,17 +11,18 @@ setSqlTypeInfo(driver, value)
 getSqlTypeInfo(driver)
 }
 \arguments{
-  \item{driver}{A character string specifying the \code{DBMS_nam}e as returned
+  \item{driver}{A character string specifying the \code{DBMS_name} as returned
     by \code{\link{odbcGetInfo}}.  Optional for \code{getSqlTypeInfo}.}
   \item{value}{A named list with character values.  This should have
     names \code{"double"}, \code{"integer"}, \code{"character"} and
-    \code{"logical"}.}
+    \code{"logical"}, and values SQL types appropriate to the DBMS.}
 }
 \details{
   This information is used by \code{\link{sqlSave}} if it creates a
-  table in the DBMS.
+  table in the DBMS.  Mappings are included for MySQL, PostgeSQL,
+  SQLite, Oracle, MS SQL Server, Access, Excel and Dbase drivers.
 
-  The types chosen should be nullable to allow \code{NA}s to be
+  The SQL types chosen should be nullable to allow \code{NA}s to be
   represented.  (Bit and boolean types generally are not.)
 }
 \value{

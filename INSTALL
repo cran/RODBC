@@ -1,0 +1,60 @@
+
+Installation instructions
+=========================
+
+Windows
+-------
+
+RODBC should install from the sources without any problem, but most
+users will get a pre-compiled binary from CRAN.
+
+However, ODBC itself needs to be installed and set up.  Most recent
+versions of Windows come with it installed, and if not it can be
+installed as part of MDAC.  Some basic ODBC drivers come with the
+distribution, and others are part of the installation of a DBMS
+(e.g. SQL Server) or available alongside the DBMS (e.g. MySQL,
+PostgreSQL).
+
+
+Unix-alikes (including Mac OS X)
+--------------------------------
+
+An ODBC driver manager needs to be installed, as well as an ODBC
+driver for each database to be used.  Testing is done using unixODBC
+(http://www.unixODBC.org), but iOBDC (http://www.iODBC.org) has also
+been used.  The RODBC package is installed in the standard way (R CMD
+INSTALL RODBC) and needs the ODBC driver manager header files and
+library (-lodbc or -lodbc32 or -liodbc) to be available.  Use the
+configure options --with-odbc-include and --with-odbc-lib or
+environment variables ODBC_INCLUDE and ODBC_LIBS to set the include
+and library paths as needed.
+
+In Linux binary distributions it is likely that unixODBC-devel or
+unixODBC-dev or some such will be needed.
+
+A specific ODBC driver manager can be specified by the
+--with-odbc-manager configure option, with likely values odbc or
+iodbc.  If this is done for odbc and the program odbc_config is found,
+it is used to set the libpath as a last resort (it is often wrong),
+and to add any additional CFLAGS.  (Note that it does not contain
+information on the include path.)
+
+64-bit versions
+---------------
+
+Microsoft altered some of the ODBC types to allow 64-bit operation on
+Windows Server 2003 and later.  However, they did not change the
+corresponding ODBC declaration.  MS increased the ODBCVER to 3.52, but
+it seems few of those who adopted the change did so.
+
+As from RODBC 1.1-6, the new types are used, and configure defines
+replacements if they are not found.  This works fine on MinGW and
+iodbc, which will use 64-bit types if ODBC was compiled to use them.
+However, on unixODBC on a system with 64-bit longs, whether 64-bit
+types are declared in the headers depends on the macro
+BUILD_REAL_64_BIT_MODE.  So if unixODBC was compiled with that
+defined, RODBC also needs to be.  It seems that most systems do not
+define the macro, but Debian does (and, I am told, has altered the
+headers so the default is to assume it is defined and no further action
+is then needed).
+

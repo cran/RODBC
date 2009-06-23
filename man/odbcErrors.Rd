@@ -13,7 +13,7 @@ odbcClearError(channel)
 }
 \arguments{
   \item{channel}{connection handle as returned by
-    \code{\link{odbcConnect}()} of class \code{"RODBC"}.}  
+    \code{\link{odbcConnect}} of class \code{"RODBC"}.}  
 }
 \value{
   \code{odbcGetErrMsg} returns a (possibly zero-length)

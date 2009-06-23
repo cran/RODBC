@@ -150,33 +150,53 @@ odbcUpdate <-
           as.character(params), as.integer(vflag))
 }
 
-odbcTables <- function(channel)
+## odbcTables <- function(channel)
+## {
+##     if(!odbcValidChannel(channel))
+##        stop("first argument is not an open RODBC channel")
+##     .Call(C_RODBCTables, attr(channel, "handle_ptr"))
+## }
+
+## catalog, schema, tableName are 'pattern-value's
+## IBM says % is special, and asks for all schemas or tableTypes to be listed.
+## MSDN says there are values SQL_ALL_CATALOGS, SQL_ALL_SCHEMAS,
+## SQL_ALL_TABLE_TYPES, but the headers define these as "%".
+## tableType is a character vector containing one of more of
+## "TABLE" "VIEW" "SYSTEM TABLE" "ALIAS" "SYNONYM" (may be single-quoted).
+## http://publib.boulder.ibm.com/infocenter/dzichelp/v2r2/index.jsp?topic=/com.ibm.db29.doc.odbc/db2z_fntables.htm
+odbcTables <- function(channel, catalog = NULL, schema = NULL,
+                        tableName = NULL, tableType = NULL)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
-    .Call(C_RODBCTables, attr(channel, "handle_ptr"))
+    tableType  <- if(is.character(tableType) && length(tableType))
+        paste(tableType, collapse=",") else NULL
+    .Call(C_RODBCTables2, attr(channel, "handle_ptr"),
+          catalog, schema, tableName, tableType)
 }
 
-odbcColumns <- function(channel, table)
+odbcColumns <- function(channel, table, catalog = NULL, schema = NULL)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
-    .Call(C_RODBCColumns, attr(channel, "handle_ptr"), as.character(table))
+    .Call(C_RODBCColumns, attr(channel, "handle_ptr"),
+          as.character(table), catalog, schema)
 }
 
-odbcSpecialColumns <- function(channel, table)
+odbcSpecialColumns <- function(channel, table, catalog = NULL, schema = NULL)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
     .Call(C_RODBCSpecialColumns, attr(channel, "handle_ptr"),
-          as.character(table))
+          as.character(table), catalog, schema)
 }
 
-odbcPrimaryKeys <- function(channel, table)
+odbcPrimaryKeys <- function(channel, table, catalog = NULL, schema = NULL)
 {
     if(!odbcValidChannel(channel))
         stop("first argument is not an open RODBC channel")
-    .Call(C_RODBCPrimaryKeys, attr(channel, "handle_ptr"), as.character(table))
+    .Call(C_RODBCPrimaryKeys, attr(channel, "handle_ptr"),
+          as.character(table), catalog, schema)
 }
 
 ## this does no error checking, but may add an error message
@@ -201,7 +221,7 @@ odbcClose <- function(channel)
     if(!odbcValidChannel(channel))
        stop("argument is not an open RODBC channel")
     res <- .Call(C_RODBCClose, attr(channel, "handle_ptr"))
-    if(res > 0) invisible(TRUE) else {
+    if(res > 0) invisible(FALSE) else {
         warning(paste(odbcGetErrMsg(channel), sep="\n"))
         FALSE
     }
@@ -214,8 +234,8 @@ odbcCloseAll <- function()
 }
 
 odbcFetchRows <-
-    function(channel, max = 0, buffsize = 1000, nullstring = NA,
-             believeNRows = TRUE)
+    function(channel, max = 0, buffsize = 1000,
+             nullstring = NA_character_, believeNRows = TRUE)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")

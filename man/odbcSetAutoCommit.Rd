@@ -6,9 +6,9 @@
   Set ODBC database connection's auto-commit mode.
 }
 \usage{
-odbcSetAutoCommit(channel, autoCommit=TRUE)
+odbcSetAutoCommit(channel, autoCommit = TRUE)
 
-odbcEndTran(channel, commit=TRUE)
+odbcEndTran(channel, commit = TRUE)
 }
 \arguments{
   \item{channel}{RODBC connection object returned by \code{odbcConnect}.}
@@ -33,9 +33,9 @@ odbcEndTran(channel, commit=TRUE)
 }
 \value{
   \code{odbcSetAutoCommit} stops if \code{channel} is an invalid
-  connection.  The function returns (-1) on error, (0) on success and (1)
-  on success with a message that would be returned by
-  \code{odbcGetErrMsg}.
+  connection.  The function returns \code{-1} on error, \code{0} on
+  success and \code{} on success with a message that would be returned
+  by \code{odbcGetErrMsg}.
 }
 \author{
   Norman Yamada, Yasser El-Zein

@@ -14,15 +14,16 @@ odbcClose(channel)
 odbcCloseAll()
 }
 \arguments{
-  \item{channel, con}{RODBC connection object returned by \code{odbcConnect}.}
+  \item{channel, con}{RODBC connection object as returned by
+    \code{odbcConnect}.}
   \item{\dots}{additional arguments passed from the generic.}
 }
 \details{
-  \code{odbcClose} cleans up and frees resources. It is also the method for the
+  \code{odbcClose} cleans up and frees resources.  It is also the method for the
   generic function \code{close}.
 
   \code{odbcCloseAll} closes all open channels (amongst the first 1000
-  used in the session)
+  used in the session).
 
   Channels are closed at the end of an \R session, and may also be
   closed by garbage collection if no object refers to them.

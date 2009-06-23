@@ -2,10 +2,12 @@ ODBC is a package to provide connectivity to databases supporting the
 ODBC interface.  The package itself is platform independent and
 provide access to any database for which a driver exists.  It has been
 tested with MySQL and PostgreSQL on both Linux and Windows (and to
-those DBMSs on Linux hosts from R under Windows), Microsoft Access,
-SQL Server and Excel spreadsheets, and users have reported
-success with connections to Oracle and DBase.  We have also used
-SQLite-3.3.13 with sqliteodbc-0.73 for simple tasks.
+those DBMSs on Linux hosts from R under Windows), Oracle on Windows,
+Microsoft Access, SQL Server and Excel spreadsheets and DBase files,
+and users have reported success with connections to DB2.  We have also
+used SQLite3 with sqliteodbc for simple tasks.
+
+For installation, see file INSTALL in the sources.
 
 Basic usage is covered in the R Data Import/Export manual.
 
@@ -23,16 +25,9 @@ ODBC under Windows
 ==================
 
 ODBC is often installed by applications that can use this interface
-(it is part of MDAC).  A freely available (in the free-of-charge not
-the copyleft sense) implementation can be downloaded from
-http://www.microsoft.com/data/odbc/.  Updated drivers are also
-available there for several data sources.  A free version called MSDE
-2000 of SQL Server 2000 with ODBC driver is available at
-http://www.microsoft.com/sql/msde/.
-
-DSNs are usually set up using the "ODBC data sources" control panel
-('Data Sources (ODBC)' in the 'Administrative Tools' section on 2000/XP).
-If using RGui a DSN can be prepared via dialog boxes using
+(it is part of MDAC).  DSNs are usually set up using the control panel
+('Data Sources (ODBC)' in the 'Administrative Tools' section on
+2000/XP).  If using RGui a DSN can be prepared via dialog boxes using
 
 R> channel <- odbcDriverConnect("")
 
@@ -44,34 +39,18 @@ Office 2007 versions can be downloaded from
 http://www.microsoft.com/downloads/details.aspx?FamilyID=7554f536-8c28-4598-9b72-ef94e038c891&DisplayLang=en
 
 
-ODBC under Unix/Linux
-=====================
+ODBC under Unix/Linux/Mac OS X
+==============================
 
-An ODBC driver manager needs to be installed, as well as an ODBC
-driver for each database to be used.  Testing is done using unixODBC
-(http://www.unixODBC.org), but iOBDC (http://www.iODBC.org) has also
-been used.  The RODBC package is installed in the standard way (R CMD
-INSTALL RODBC) and needs the ODBC driver manager header files and
-library (-lodbc or -lodbc32 or -liodbc) to be available.  Use the
-configure options --with-odbc-include and --with-odbc-lib or
-environment variables ODBC_INCLUDE and ODBC_LIBS to set the include
-and library paths as needed.
-
-A specific ODBC driver manager can be specified by the --with-odbc-manager
-configure option, with likely values odbc or iodbc.  If this is done for
-odbc and the program odbc_config is found, it is used to set the libpath
-as a last resort (it is often wrong), and to add any additional CFLAGS.
-(Note that it does not contain information on the include path.)
-
-A tutorial on using unixODBC on Linux can be found at
+A (somewhat biased) tutorial on using unixODBC on Linux can be found at
 http://www.easysoft.com/developer/interfaces/odbc/linux.html
 
 DSNs are described in files: the user's file is ~/.odbc.ini.  Mine is:
 
 gannet% cat .odbc.ini
 [test]
-Description     = myodbc
-Driver          = myodbc3
+Description     = testmysql
+Driver          = MySQL
 Trace           = No
 TraceFile       =
 Server          = localhost
@@ -89,9 +68,8 @@ UserName        = ripley
 Port            = 5432
 Socket          =
 Database        = testdb
-ReadOnly        = 0
 
-[test]
+[sqlite3]
 Description     = sqlite3
 Driver          = sqlite3
 Database	= /tmp/mysqlite3.db
@@ -109,34 +87,33 @@ More sophisticated connections, e.g. to remote machines, can be built
 using odbcDriverConnect or as DSNs.
 
 Note that you need to ensure that .../etc/odbcinst.ini contains the
-rest of the driver information.  (UnixODBC uses /usr/local/etc/odbcinst.ini
-and iODBC /etc/odbcinst.ini, by default. However, some RPM-based installations
-will differ.)  We have (with paths differing by platform)
+rest of the driver information.  (UnixODBC uses
+/usr/local/etc/odbcinst.ini and iODBC /etc/odbcinst.ini, by
+default. However, some RPM-based installations will differ: Fedora
+uses /etc/odbcinst.ini) We have (with paths differing by platform)
 
-gannet% cat /usr/local/etc/odbcinst.ini
-[myodbc3]
-Description = MySQL driver.
-Driver      = /usr/local/lib/libmyodbc3.so
-FileUsage   = 1
+gannet% cat /etc/odbcinst.ini
+[MySQL]
+Description    = ODBC for MySQL
+Driver         = /usr/lib64/libmyodbc3.so
+Setup          = /usr/lib64/libmyodbc3.so
+FileUsage      = 1
 
 [PostgreSQL]
-Description  = PostgreSQL driver
-Driver       = /usr/lib/libodbcpsql.so
-Setup        = /usr/lib/libodbcpsqlS.so
-FileUsage    = 1
+Description     = ODBC for PostgreSQL
+Driver          = /usr/lib64/psqlodbc.so
+Setup           = /usr/lib64/psqlodbc.so
+FileUsage       = 1
 
 [sqlite3]
-Description = sqliteodbc-0.73
+Description = sqliteodbc
 Driver = /usr/local/lib64/libsqlite3odbc.so
+Setup = /usr/local/lib64/libsqlite3odbc.so
 FileUsage = 1
 
-for use with MySQL using the MyODBC 3.51 driver (both from
-http://www.mysql.com), and PostgreSQL using the driver from the
-psqlODBC project (http://psqlodbc.projects.postgresql.org).  For
-PostgreSQL, CommLog = 1 adds user-level logging.  The Sqlite ODBC
-driver is from http://www.ch-werner.de/sqliteodbc/.  (UnixODBC allows
-Driver64 here to allow for different paths on 32-bit and 64=bit
-platforms.)
+The Sqlite ODBC driver is from http://www.ch-werner.de/sqliteodbc/.
+(UnixODBC allows Driver64 here to allow for different paths on 32-bit
+and 64=bit platforms.)
 
 
 One quirk to be watched is the use of connections to the DBMS via the
@@ -145,33 +122,12 @@ will use Unix sockets to 'localhost', but this driver seems unreliable
 (see the ChangeLog).  The current driver will only use a TCP/IP port,
 and to use that needs postmaster started with the -i flag (which is
 not the default) and with tcp/ip enabled in the configuration file
-(which is the default).  The PostgreSQL drivers are seriously
-under-documented (but some older docs exists at
-http://www.postgresql.org/docs/7.2/static/odbc.html)!  It seems that
-recently they default to readonly, so ReadOnly = 0 has to be added as
-above.
+(which is the default).
 
-Users of unixODBC and iODBC can use gODBCConfig and iodbcadm-gtk
-repspectively to prepare user and systems DSNs: they are reworkings of
-the Window's ODBC administation multi-tabbed dialog box.  Both write in
-~/.odbc.ini, in slightly different formats.
-
-
-64-bit versions
-===============
-
-Microsoft altered some of the ODBC types to allow 64-bit operation on
-Windows Server 2003 and later.  However, they did not change the corresponding
-ODBC declaration.  MS increased the ODBCVER to 3.52, but it seems few of
-those who adopted the change did so.
-
-As from RODBC 1.1-6, the new types are used, and configure defines
-replacements if they are not found.  This works fine on MinGW and iodbc,
-which will use 64-bit types if ODBC was compiled to use them.  However,
-on unixODBC on a system with 64-bit longs, whether 64-bit types are 
-declared in the headers depends on the macro BUILD_REAL_64_BIT_MODE.
-So if unixODBC was compiled with that defined, RODBC also needs to be.
-It seems that most systems (including Fedora Core 3/4/5) do not define the
-macro, but Debian does (and, I am told, has altered the headers so the 
-default is to assume it is defined so no further action is then needed).
-
+Users of unixODBC and iODBC can use graphical front ends (called
+something like gODBCConfig and iodbcadm-gtk repspectively) to prepare
+user and systems DSNs: they are reworkings of the Window's ODBC
+administation multi-tabbed dialog box.  Both write in ~/.odbc.ini, in
+slightly different formats.  A version of the iODBC administation
+application is provided on Mac OS X as Applications/Utilities/ODBC
+Administator.  iODBC also has a web-based DSN administrator.

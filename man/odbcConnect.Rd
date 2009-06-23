@@ -2,7 +2,7 @@
 \alias{odbcConnect}
 \alias{odbcDriverConnect}
 \alias{odbcReConnect}
-\alias{print.RODBC}
+%\alias{print.RODBC}
 #ifdef windows
 \alias{odbcConnectAccess}
 \alias{odbcConnectDbase}
@@ -18,7 +18,8 @@
 odbcConnect(dsn, uid = "", pwd = "", ...)
 
 odbcDriverConnect(connection = "", case, believeNRows = TRUE,
-                  colQuote, tabQuote = colQuote, DBMSencoding = "",
+                  colQuote, tabQuote = colQuote,
+                  DBMSencoding = "",
                   rows_at_time = 1000, bulk_add = NULL)
 
 odbcReConnect(channel, case, believeNRows)
@@ -37,11 +38,12 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   \item{connection}{character string. See your ODBC documentation for the
     format.}
   \item{...}{further arguments to be passed to \code{odbcDriverConnect}.}
-  \item{case}{Controls case changes for different DBMS engines.  See Details.}
+  \item{case}{Controls case changes for different DBMS engines.  See
+    \sQuote{Details}.}
   \item{channel}{RODBC connection object returned by \code{odbcConnect}.}
   \item{believeNRows}{logical.  Is the number of rows returned by the
     ODBC connection believable?  Not true for Oracle and Sybase,
-    apparently.  Nor for MySQL Connector/ODBC 5.00.11.}
+    apparently, nor for MySQL Connector/ODBC 5.00.11.}
   \item{colQuote, tabQuote}{how to quote column (table) names in SQL
     statements.  Can be of length 0 (no quoting), a length-1 character
     vector giving the quote character for both ends, or a length-2
@@ -56,26 +58,25 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
 #endif
   }
   \item{DBMSencoding}{character string naming the encoding returned by
-    the DBMS. The default means the encoding of the locale \R is running
-    under. Values other than the default require \code{\link{iconv}} to 
+    the DBMS.  The default means the encoding of the locale \R is running
+    under.  Values other than the default require \code{\link{iconv}} to 
     be available: see \code{\link{capabilities}}.}
   \item{rows_at_time}{The number of rows to fetch at a time, up to 1024.  Not
-    all drivers work correctly with values > 1: see
-    \code{\link{sqlQuery}}.}
+    all drivers work correctly with values > 1: see \code{\link{sqlQuery}}.}
   \item{bulk_add}{if \code{"yes"}, \code{SQLBulkOperations} will be used
-    in \code{\link{sqlSave}}.  Set to \code{"no"} to suppress this.}
+    in future (not currently).  Set to \code{"no"} to suppress this.}
 #ifdef windows
   \item{access.file, dbf.file, xls.file}{file of an appropriate type.}
   \item{readOnly}{logical: should the connection be read-only?}
 #endif
 }
 \details{
-  \code{odbcConnect} establishes a connection to the dsn, and
-  \code{odbcDriverConnect} allows a more flexible specification via a
+  \code{odbcConnect} establishes a connection to the specified DSN, and
+  \code{odbcDriverConnect} allows a more flexible specification \emph{via} a
   connection string.  \code{odbcConnect} uses the connection string\cr
-  \code{"DSN=dsn;UID=uid;PWD=pwd"}, omitting the last two comments if
-  they are empty.  See the examples for other uses of connection strings.
-
+  \code{"DSN=\var{dsn};UID=\var{uid};PWD=\var{pwd}"}, omitting the last
+  two comments if they are empty.  See the examples for other uses of
+  connection strings.
 #ifdef windows
 
   Under the Windows GUI, specifying an incomplete \code{connection}, for
@@ -84,8 +85,8 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   unless a driver is specified, a Windows restriction.)
 #endif
 
-  For databases that translate table and column names the case must be
-  set as appropriate.  Allowable values are \code{"nochange"},
+  For databases that translate table and column names \code{case} must be
+  set appropriately.  Allowable values are \code{"nochange"},
   \code{"toupper"} and \code{"tolower"} as well as the names of databases
   where the behaviour is known to us (currently \code{"mysql"} (which
   maps to lower case on Windows but not on Linux),
@@ -111,13 +112,13 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   connection strings for those file types.  The files given can be
   relative to the \R working directory or absolute paths (and it seems
   also relative to the user's home directory).  \bold{Note:} they will
-  only work with English versions of the Microsoft drivers, which may or
-  may not be installed in other locales.  The file name can be omitted
-  which will bring up a dialog box to search for a file.  The
+  only work with English-language versions of the Microsoft drivers,
+  which may or may not be installed in other locales.  The file name can
+  be omitted which will bring up a dialog box to search for a file.  The
   \code{2007} versions work with the drivers which are installed with
   Office 2007 and give access to formats such as \file{*.xlsx} and
-  \file{*.accdb}.  These drivers are also available separately:
-  see the package \file{README}.
+  \file{*.accdb}.  These drivers are also available separately: see the
+  package \file{README}.
 #endif
 
   If it is possible to set the DBMS to communicate in the character set
@@ -128,7 +129,7 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
 
 #ifdef windows
 \section{Excel Connections}{
-  The Excel driver by default makes read-only connections, and has only
+  The Excel drivers by default makes read-only connections, and have only
   limited abilities to create a new worksheet or to change a worksheet.
 
   A \sQuote{table} in an Excel \sQuote{database} (spreadsheet) can be
@@ -142,14 +143,24 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   (where non-standard table names are escaped by enclosing them in
   square brackets).
 
-  It assumes that the first row of the table in the worksheet contains
-  column headings: the driver parameter \code{FirstRowHasNames=0} is
+  It is assumed that the first row of the table in the worksheet contains
+  column headings: the driver parameter \code{FirstRowHasNames = 0} is
   supposed to turn this off (giving column names \code{F1} \dots) but it
-  is broken in many versions of the drivers, including those current in
-  WIndows XP SP2.
+  is broken in many versions of the drivers.
   % http://support.microsoft.com/?scid=kb%3Ben-us%3B257819&x=9&y=17
-
-  A connection that allows modification can be created via
+  
+  There are at least two known problems with reading columns that do not
+  have a format set \emph{before} data entry, and so start with format
+  \sQuote{General}.  First, the driver uses the first few rows to
+  determined the column type, and is over-fond of declaring
+  \sQuote{Numeric} even when there are non-numeric entries.  The default
+  number of rows consulted is 8, but attempt to change this in the DSN
+  setup are ignored.  Second, if a column is declared as \sQuote{Text},
+  numeric entries will be read as SQL nulls and hence \R \code{NA}s.
+  Unfortunately, in neither case does reformatting the column help.
+  % http://support.microsoft.com/kb/141284
+  
+  A connection that allows modification can be created \emph{via}
   \code{odbcConnectExcel(readOnly = FALSE)} or directly (see the examples).
   However, the Excel ODBC driver does not support deletion (including SQL
   \code{DROP}, \code{DELETE}, \code{UPDATE} and \code{ALTER}
@@ -159,7 +170,7 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   % http://www.stata.com/support/faqs/data/odbc_excel.html
   \code{\link{sqlSave}} can be used to create new worksheets (and it
   also creates a marked range for the contents of the worksheet) but not
-  to overwrite an existing worksheet, but can be
+  to overwrite an existing worksheet.  One can use
   \code{\link{sqlUpdate}} to update the contents of an existing worksheet.
 }
 #endif
