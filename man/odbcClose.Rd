@@ -26,14 +26,16 @@ odbcCloseAll()
   used in the session).
 
   Channels are closed at the end of an \R session, and may also be
-  closed by garbage collection if no object refers to them.
+  closed by garbage collection if no object refers to them.  In both
+  cases a warning is given (but may not be seen at the end of a console
+  session).
 }
 \value{
   Function \code{odbcClose} returns invisibly a logical indicating if it
   succeeded.
 }
 \author{
-  Michael Lapsley, Brian Ripley
+  Michael Lapsley and Brian Ripley
 }
 \seealso{
   \code{\link{odbcConnect}}

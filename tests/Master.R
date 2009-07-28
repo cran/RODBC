@@ -9,7 +9,7 @@ runone <- function(f)
     infile <- paste(f, "RR", sep = ".")
     outfile <- paste(f, "Rout", sep = ".")
     cmd <- paste(shQuote(file.path(R.home(), "bin", "R")),
-                 "CMD BATCH --vanilla --no-timing",
+                 "CMD BATCH --vanilla",
                  shQuote(infile), shQuote(outfile))
     res <- system(cmd)
     if (res) {
@@ -36,6 +36,11 @@ if(.Platform$OS.type == "windows") {
     res <- res + runone("access")
     res <- res + runone("excel")
     res <- res + runone("SQLServer")
+    res <- res + runone("mimer")
+    res <- res + runone("DB2")
+    res <- res + runone("Oracle")
 }
+
+proc.time()
 
 if(res) stop(gettextf("%d tests failed", res))

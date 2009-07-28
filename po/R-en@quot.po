@@ -24,8 +24,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.10.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-05-27 11:11\n"
-"PO-Revision-Date: 2009-05-27 11:11\n"
+"POT-Creation-Date: 2009-07-15 15:40\n"
+"PO-Revision-Date: 2009-07-15 15:40\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -44,6 +44,12 @@ msgstr "ODBC connection failed"
 
 msgid "Invalid case parameter: nochange | toupper | tolower | common db names"
 msgstr "Invalid case parameter: nochange | toupper | tolower | common db names"
+
+msgid "no parameters, so nothing to update"
+msgstr "no parameters, so nothing to update"
+
+msgid "missing columns in 'data'"
+msgstr "missing columns in ‘data’"
 
 msgid "argument is not an open RODBC channel"
 msgstr "argument is not an open RODBC channel"
@@ -84,12 +90,6 @@ msgstr "already exists"
 msgid "unable to append to table"
 msgstr "unable to append to table"
 
-msgid "creating a table and type info is not available"
-msgstr "creating a table and type info is not available"
-
-msgid "-- using varchar columns only"
-msgstr "-- using varchar columns only"
-
 msgid "argument 'varTypes' has no names and will be ignored"
 msgstr "argument ‘varTypes’ has no names and will be ignored"
 
@@ -107,6 +107,9 @@ msgstr "invalid channel"
 
 msgid ": table not found on channel"
 msgstr ": table not found on channel"
+
+msgid "missing argument 'query'"
+msgstr "missing argument ‘query’"
 
 msgid "invalid numeric 'as.is' expression"
 msgstr "invalid numeric ‘as.is’ expression"

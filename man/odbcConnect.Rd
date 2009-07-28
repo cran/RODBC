@@ -19,10 +19,10 @@ odbcConnect(dsn, uid = "", pwd = "", ...)
 
 odbcDriverConnect(connection = "", case, believeNRows = TRUE,
                   colQuote, tabQuote = colQuote,
-                  DBMSencoding = "",
-                  rows_at_time = 1000, bulk_add = NULL)
+                  interpretDot = TRUE, DBMSencoding = "",
+                  rows_at_time = 100, readOnlyOptimize = FALSE)
 
-odbcReConnect(channel, case, believeNRows)
+odbcReConnect(channel, ...)
 #ifdef windows
 
 odbcConnectAccess(access.file, uid = "", pwd = "", ...)
@@ -42,14 +42,17 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
     \sQuote{Details}.}
   \item{channel}{RODBC connection object returned by \code{odbcConnect}.}
   \item{believeNRows}{logical.  Is the number of rows returned by the
-    ODBC connection believable?  Not true for Oracle and Sybase,
-    apparently, nor for MySQL Connector/ODBC 5.00.11.}
+    ODBC connection believable?  Not true for some Oracle and Sybase drivers,
+    apparently, nor for Actual Technologies' SQLite driver for Mac OS X.}
   \item{colQuote, tabQuote}{how to quote column (table) names in SQL
-    statements.  Can be of length 0 (no quoting), a length-1 character
-    vector giving the quote character for both ends, or a length-2
-    character string giving the beginning and ending quotes.  ANSI SQL
-    uses double quotes, but the default mode for a MySQL server is to use
-    backticks.
+    statements.  Can be of length 0 (no quoting), a length--1 character
+    vector giving the quote character to be used at both ends, or a
+    length--2 character string giving the beginning and ending quotes.
+    ANSI SQL uses double quotes, but the default mode for a MySQL server
+    is to use backticks.
+%    RODBC 1.2-x only
+%    Note that you may need to set \code{tabQuote=""} to use
+%    qualified table names of the form \code{\var{schema}.\var{table_name}}.
 
     The defaults are backtick (\samp{`}) if the DBMS is identified
     as \code{"MySQL"} by the driver, and double quote otherwise.
@@ -57,14 +60,19 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
     The Access, DBase and Excel wrappers set \code{tabQuote = c("[", "]")}.
 #endif
   }
+  \item{interpretDot}{logical.  Should table names of the form
+    \code{\var{qualifier}.\var{table}} be interpreted  as table
+    \code{\var{table}} in schema \code{\var{qualifier}} (and for MySQL
+    \sQuote{schema} means database)?}
   \item{DBMSencoding}{character string naming the encoding returned by
     the DBMS.  The default means the encoding of the locale \R is running
     under.  Values other than the default require \code{\link{iconv}} to 
     be available: see \code{\link{capabilities}}.}
-  \item{rows_at_time}{The number of rows to fetch at a time, up to 1024.  Not
-    all drivers work correctly with values > 1: see \code{\link{sqlQuery}}.}
-  \item{bulk_add}{if \code{"yes"}, \code{SQLBulkOperations} will be used
-    in future (not currently).  Set to \code{"no"} to suppress this.}
+  \item{rows_at_time}{The default number of rows to fetch at a time,
+    between 1 and 1024.  Not all drivers work correctly with values > 1: see
+    \code{\link{sqlQuery}}.}
+  \item{readOnlyOptimize}{logical: should the connection be optimized
+    for read-only access?}
 #ifdef windows
   \item{access.file, dbf.file, xls.file}{file of an appropriate type.}
   \item{readOnly}{logical: should the connection be read-only?}
@@ -90,21 +98,34 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   \code{"toupper"} and \code{"tolower"} as well as the names of databases
   where the behaviour is known to us (currently \code{"mysql"} (which
   maps to lower case on Windows but not on Linux),
-  \code{"postgresql"} (lower), \code{"oracle"} (upper) and
+  \code{"postgresql"} (lower), and
   \code{"msaccess"} (nochange)).  If \code{case} is not specified, the
   default is \code{"nochange"} unless the appropriate value can be
-  figured out from the DBMS name reported by the ODBC driver.
+  figured out from the DBMS name reported by the ODBC driver.  It is
+  likely that \code{"toupper"} is desirable on IBM's DB2, but this is
+  not enforced.
 #ifdef windows
   (The DBase driver is unusual: it preserves names on reading, but
   converts both table and column names to upper case on writing, and
   truncates table names to 8 characters.  RODBC does not attempt to do
   any mapping for that driver.)
 #endif
-
+  
+  Note that \code{readOnlyOptimize} may do nothing, and is \strong{not}
+  guaranteed to enforce read-only access.  With drivers that support it,
+  it is used to optimize locking strategies, transaction management and
+  so on.  It does make access to Mimer read-only, and has no effect on
+  MySQL.
+  
   Function \code{odbcReConnect} re-connects to a database using the
   settings of an existing (and presumably now closed) channel object.
-  Arguments \code{case} and \code{believeNRows} are taken from the
-  object, but can be overridden by supplying those arguments.
+  Arguments given in the original call can be overridden as needed.
+
+  Note that if a password is supplied (either as a \code{pwd} argument
+  or as part of the DSN) it may be stored in the
+  \code{connection.string} element of the return value, but the value is
+  (from \pkg{RODBC} 1.3-0) replaced by \code{******}.  (This will break
+  \code{odbcReConnect}.)
 #ifdef windows
 
   \code{odbcConnectAccess}, \code{odbcConnectDbase} and
@@ -114,76 +135,33 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   also relative to the user's home directory).  \bold{Note:} they will
   only work with English-language versions of the Microsoft drivers,
   which may or may not be installed in other locales.  The file name can
-  be omitted which will bring up a dialog box to search for a file.  The
-  \code{2007} versions work with the drivers which are installed with
-  Office 2007 and give access to formats such as \file{*.xlsx} and
-  \file{*.accdb}.  These drivers are also available separately: see the
-  package \file{README}.
+  be omitted, which will on \code{Rgui} bring up a dialog box to search
+  for a file.  The \code{2007} versions work with the drivers which are
+  installed with Office 2007 and give access to formats such as
+  \file{*.xlsx} and \file{*.accdb}.  These drivers are also available
+  separately: see the package manual.
+
+  See the package manual for some of the peculiarities of the Excel
+  drivers.  \code{readOnly = TRUE} may allow very limited changes (to
+  insert and update rows).
 #endif
 
-  If it is possible to set the DBMS to communicate in the character set
-  of the \R session then this should be done.  For example, MySQL
-  can set the communication character set \emph{via} SQL, e.g.
-  \samp{SET NAMES 'utf8'}.
+  If it is possible to set the DBMS or ODBC driver to communicate in the
+  character set of the \R session then this should be done.  For
+  example, MySQL can set the communication character set \emph{via} SQL,
+  e.g. \samp{SET NAMES 'utf8'}.
 }
 
-#ifdef windows
-\section{Excel Connections}{
-  The Excel drivers by default makes read-only connections, and have only
-  limited abilities to create a new worksheet or to change a worksheet.
-
-  A \sQuote{table} in an Excel \sQuote{database} (spreadsheet) can be
-  either a \sQuote{named range}
-  (\url{http://support.microsoft.com/default.aspx?scid=KB;EN-US;Q195951&})
-  or a worksheet: the latter have table name the name of the worksheet
-  with \code{$} appended (and such names may contain spaces and other
-  characters not allowed in SQL table names).  RODBC will generally
-  allow worksheets to be referred to with or without the trailing
-  \code{$}, but this does need to be taken into account in SQL queries
-  (where non-standard table names are escaped by enclosing them in
-  square brackets).
-
-  It is assumed that the first row of the table in the worksheet contains
-  column headings: the driver parameter \code{FirstRowHasNames = 0} is
-  supposed to turn this off (giving column names \code{F1} \dots) but it
-  is broken in many versions of the drivers.
-  % http://support.microsoft.com/?scid=kb%3Ben-us%3B257819&x=9&y=17
-  
-  There are at least two known problems with reading columns that do not
-  have a format set \emph{before} data entry, and so start with format
-  \sQuote{General}.  First, the driver uses the first few rows to
-  determined the column type, and is over-fond of declaring
-  \sQuote{Numeric} even when there are non-numeric entries.  The default
-  number of rows consulted is 8, but attempt to change this in the DSN
-  setup are ignored.  Second, if a column is declared as \sQuote{Text},
-  numeric entries will be read as SQL nulls and hence \R \code{NA}s.
-  Unfortunately, in neither case does reformatting the column help.
-  % http://support.microsoft.com/kb/141284
-  
-  A connection that allows modification can be created \emph{via}
-  \code{odbcConnectExcel(readOnly = FALSE)} or directly (see the examples).
-  However, the Excel ODBC driver does not support deletion (including SQL
-  \code{DROP}, \code{DELETE}, \code{UPDATE} and \code{ALTER}
-  statements). In particular, \code{\link{sqlDrop}} will remove the data
-  in a worksheet but not the worksheet itself.
-  % http://publib.boulder.ibm.com/infocenter/db2luw/v8/index.jsp?topic=/com.ibm.db2.ii.doc/opt/tlsodb13.htm
-  % http://www.stata.com/support/faqs/data/odbc_excel.html
-  \code{\link{sqlSave}} can be used to create new worksheets (and it
-  also creates a marked range for the contents of the worksheet) but not
-  to overwrite an existing worksheet.  One can use
-  \code{\link{sqlUpdate}} to update the contents of an existing worksheet.
-}
-#endif
 \value{
   A non-negative integer which is used as handle if no error occurred,
-  -1 otherwise.  A successful return has class \code{"RODBC"}, and
+  \code{-1} otherwise.  A successful return has class \code{"RODBC"}, and
   attributes including
   \item{connection.string}{the full ODBC connection string.}
 %  \item(handle\_ptr}{an external pointer object.}
   \item{case}{the value of \code{case}.}
   \item{id}{a numeric ID for the channel.}
   \item{believeNRows}{the value of \code{believeNRows}.}
-%  \item(bulk\_add} \code{"yes"} if \code{SQLBulkOperations} is supported.
+  \item{rows\_at\_time}{the value of \code{row_at_time}.}
 }
 \author{
   Michael Lapsley, Brian Ripley
@@ -195,7 +173,7 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
 #ifdef unix
 # MySQL
 channel <- odbcConnect("test", uid="ripley", pwd="secret")
-# PostgreSQL
+# PostgreSQL: 'case' should be detected automatically
 channel <- odbcConnect("pg", uid="ripley", pwd="secret", case="postgresql")
 #endif
 #ifdef windows
@@ -212,13 +190,16 @@ channel2 <- odbcConnectAccess("test.mdb", uid="ripley")
 # Excel
 channel <- odbcConnect("bdr.xls") # if this was set up as a DSN
 channel2 <-
- odbcDriverConnect("DRIVER=Microsoft Excel Driver (*.xls);DBQ=C:\\bdr\\hills.xls; ReadOnly=False")
+ odbcDriverConnect(paste("DRIVER=Microsoft Excel Driver (*.xls)",
+                         "DBQ=D:\\bdr\\hills.xls",
+                         "ReadOnly=False", sep = ";"))
+## or "DRIVER=Microsoft Excel Driver (*.xls *.xlsx, *.xlsm, *.xlsb)"
 channel3 <- odbcConnectExcel("hills.xls")
 #endif
 
 # re-connection
 odbcCloseAll()
-channel <- odbcReConnect(channel) # must re-assign as the data may well change
+channel <- odbcReConnect(channel) # must re-assign as the data may change
 }}
 \keyword{IO}
 \keyword{database}

@@ -8,14 +8,13 @@
 }
 \usage{
 sqlSave(channel, dat, tablename = NULL, append = FALSE,
-        rownames = TRUE, colnames = FALSE,
-        verbose = FALSE, oldstyle = FALSE,
+        rownames = TRUE, colnames = FALSE, verbose = FALSE,
         safer = TRUE, addPK = FALSE, typeInfo, varTypes,
         fast = TRUE, test = FALSE, nastring = NULL)
 
 sqlUpdate(channel, dat, tablename = NULL, index = NULL,
-          verbose = FALSE, test = FALSE,
-          nastring = NULL, fast = TRUE)
+          verbose = FALSE, test = FALSE, nastring = NULL,
+          fast = TRUE)
 }
 \arguments{
   \item{channel}{connection handle returned by \code{\link{odbcConnect}}.}
@@ -29,10 +28,6 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
     character, the column name under which to save the rownames.}
   \item{colnames}{logical: save column names as the first row of table?}
   \item{verbose}{display statements as they are sent to the server?}
-
-  \item{oldstyle}{logical. If false, attempt to use \code{sqlTypeInfo}
-    to choose the types of columns when a table has to be created.  If
-    true, create all columns as \code{varchar(255)}.}
   \item{safer}{logical. If true, create a non-existing table but only
     allow appends to an existing table. If false, allow \code{sqlSave}
     to attempt to delete all the rows of an existing table, or to drop it.}
@@ -48,9 +43,7 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
     write all the data in one operation.}
   \item{test}{logical: if \code{TRUE} show what would be done, only.}
   \item{nastring}{optional character string to be used for writing
-    \code{NA}s to the database.  The default, \code{NULL}, attempts to
-    write a missing value as a database null.  Only supported for
-    \code{fast = FALSE}.}
+    \code{NA}s to the database.  See \sQuote{Details}.}
 }
 \details{
   \code{sqlSave} saves the data frame \code{dat} in the table
@@ -70,13 +63,13 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   names and it is desired that they are retained.  Note that there are
   drawbacks to this approach: it presupposes that the rows will be
   returned in correct order; not always valid.  It will also cause
-  numeric rows to be returned as factors.
+  numeric columns to be returned as factors.
 
   Argument \code{addPK = TRUE} causes the row names to be marked as a
   primary key.  This is usually a good idea, and may allow database
   updates to be done.  However, the drivers for some DBMSs (e.g. Access)
   do not support primary keys, and earlier versions of the PostgreSQL
-  ODBC driver have generated internal memory corruption if this option
+  ODBC driver generated internal memory corruption if this option
   is used.
   
   \code{sqlUpdate} updates the table where the rows already exist.  Data
@@ -84,26 +77,34 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   of) the columns in the table.  It also needs to contain the column(s)
   specified by \code{index} which together identify the rows to be
   updated.  If \code{index = NULL}, the function tries to identify such
-  rows.  First it looks for a primary key in the data frame, then for
-  the column(s) that the database regards as the optimal for defining a
-  row uniquely (these are returned by \code{\link{sqlColumns}(\dots,
-  special = TRUE)}).  Finally, the row names are used if they are stored
-  as column \code{"rownames"} in the table.
+  columns.  First it looks for a primary key for the table, then for the
+  column(s) that the database regards as the optimal for defining a row
+  uniquely (these are returned by \code{\link{sqlColumns}(special =
+  TRUE)}: if this returns a pseudo-column it cannot be used as we do not
+  have values for the rows to be changed).  Finally, the row names are
+  used if they are stored as column \code{"rownames"} in the table.
+  
+  When \code{fast = TRUE} \code{NA}s are always written as SQL nulls in
+  the database, and this is also the case if \code{fast = FALSE} and
+  \code{nastring = NULL} (its default value).  Otherwise \code{nastring}
+  gives the character string to be sent to the driver when \code{NA}s
+  are encountered: for all but the simplest applications it will be
+  better to prepare a data frame with non-null missing values already
+  substituted.
 
-  The value of \code{nastring} is used for all the columns and no
-  attempt is made to check if the column is nullable.  For all but the
-  simplest applications it will be better to prepare a data frame with
-  non-null missing values already substituted.
-
-  If \code{fast = FALSE} all data is sent as character strings.
+  If \code{fast = FALSE} all data are sent as character strings.
   If \code{fast = TRUE}, integer and double vectors are sent as types
   \code{SQL_C_SLONG} and \code{SQL_C_DOUBLE} respectively.  Some drivers
   seem to require \code{fast = FALSE} to send other types,
   e.g. \code{datetime}.  SQLite's approach is to use the data to determine
   how it is stored, and this does not work well with \code{fast = TRUE}.
-  
-  Note that table names in another schema such as \code{myschema.mytable}
-  cannot be used: see the help for \link{RODBC} for ways of handling schemas.  
+
+  If \code{tablename} contains \samp{.} and neither \code{catalog} nor
+  \code{schema} is supplied, an attempt is made to interpret
+  \code{\var{qualifier}.\var{table}} names as table \code{\var{table}}
+  in schema \code{\var{qualifier}} (and for MySQL \sQuote{schema} means
+  \sQuote{database}).  (This can be suppressed by opening the connection with
+  \code{interpretDot = FALSE}.)
 }
 \section{Warning}{
   \code{sqlSave(safer = FALSE)} uses the \sQuote{great white shark}

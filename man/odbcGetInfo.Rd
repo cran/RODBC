@@ -37,7 +37,7 @@ odbcGetInfo(channel)
       Data_Source_Name            Driver_Name             Driver_Ver
            "SQLServer"          "SQLNCLI.DLL"           "09.00.4035"
               ODBC_Ver            Server_Name
-          "03.52.0000"      "AUK\\SQLEXPRESS"
+          "03.52.0000"      "AUK\\\\SQLEXPRESS"
 }}
 \keyword{IO}
 \keyword{database}

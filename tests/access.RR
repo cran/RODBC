@@ -13,6 +13,7 @@ sqlDrop(channel, "USArrests", errors = FALSE)
 sqlSave(channel, USArrests)
 sqlTables(channel)
 sqlColumns(channel, "USArrests")
+sqlPrimaryKeys(channel, "USArrests") # reports none
 sqlFetch(channel, "USArrests")
 query <- paste("select rownames, murder from USArrests",
                "where Rape > 30",  "order by Murder")

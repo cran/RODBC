@@ -1,5 +1,5 @@
 # file RODBC/R/RODBC.R
-# copyright (C) 1999-2007  M. Lapsley and B. D. Ripley
+# copyright (C) 1999-2009  M. Lapsley and B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -53,50 +53,63 @@ odbcClearError <- function(channel)
     invisible()
 }
 
-odbcReConnect <- function(channel, case, believeNRows)
+odbcReConnect <- function(channel, ...)
 {
     if(!inherits(channel, "RODBC"))
         stop("Argument 'channel' must inherit from class RODBC")
-    if(missing(case)) case <- attr(channel, "case")
-    if(missing(believeNRows)) believeNRows <- attr(channel, "believeNRows")
-    odbcDriverConnect(attr(channel, "connection.string"), case, believeNRows,
-                      rows_at_time = attr(channel, "rows_at_time"),
-                      colQuote = attr(channel, "colQuote"),
-                      tabQuote = attr(channel, "tabQuote"))
+    Call <- attr(channel, "call")
+    dots <- list(...)
+    if("uid" %in% names(dots)) {
+        uid <- dots$uid; dots$uid <- NULL
+        Call$Connection <- sub("UID=[^;]+($|;)",
+                               paste("UID=", uid, ";", sep=""),
+                               Call$connection)
+    }
+    if("pwd" %in% names(dots)) {
+        pwd <- dots$pwd; dots$pwd <- NULL
+        Call$connection <- sub("PWD=[^;]+($|;)",
+                               paste("PWD=", pwd, ";", sep=""),
+                               Call$connection)
+    }
+    if(length(dots)) Call[names(dots)] <- dots
+    eval.parent(Call)
 }
 
-odbcConnect <-
-    function (dsn, uid = "", pwd = "", ...)
+
+odbcConnect <- function (dsn, uid = "", pwd = "", ...)
 {
+    Call <- match.call(); Call$uid <- Call$pwd <- NULL
+    Call[[1]] <- as.name("odbcDriverConnect")
     st <- paste("DSN=", dsn, sep="")
     if(nchar(uid)) st <- paste(st, ";UID=", uid, sep="")
     if(nchar(pwd)) st <- paste(st, ";PWD=", pwd, sep="")
-    odbcDriverConnect(st, ...)
+    Call[[2]] <- st; names(Call)[2] <- ""
+    eval.parent(Call)
 }
 
 odbcDriverConnect <-
     function (connection = "", case = "nochange", believeNRows = TRUE,
-              colQuote, tabQuote = colQuote, DBMSencoding= "",
-              rows_at_time = 1000, bulk_add = NULL)
+              colQuote, tabQuote = colQuote, interpretDot = TRUE,
+              DBMSencoding= "", rows_at_time = 100, readOnlyOptimize = FALSE)
 {
    id <- as.integer(1 + runif(1, 0, 1e5))
    stat <- .Call(C_RODBCDriverConnect, as.character(connection), id,
-                 as.integer(believeNRows))
-   if(stat < 0) {
+                 as.integer(believeNRows), as.logical(readOnlyOptimize))
+   if(stat < 0L) {
        warning("ODBC connection failed")
        return(stat)
    }
+   Call <- match.call()
    res <- .Call(C_RODBCGetInfo, attr(stat, "handle_ptr"))
-   if(missing(colQuote)) colQuote <- ifelse(res[1L] == "MySQL", "`", '"')
+   isMySQL <- res[1L] == "MySQL"
+   if(missing(colQuote)) colQuote <- ifelse(isMySQL, "`", '"')
    if(missing(case))
        case <- switch(res[1L],
                       "MySQL" = "mysql",
                       "PostgreSQL" = "postgresql",
-                      "ACCESS" = "msaccess",
                       "nochange")
    switch(case,
 	toupper = case <- 1L,
-	oracle = case <- 1L,
 	tolower = case <- 2L,
 	postgresql = case <- 2L,
 	nochange = case <- 0L,
@@ -105,13 +118,19 @@ odbcDriverConnect <-
  	stop("Invalid case parameter: nochange | toupper | tolower | common db names")
 	)
    case <- switch(case+1L, "nochange", "toupper", "tolower")
-   if(is.null(bulk_add))
-       bulk_add <- .Call(C_RODBCCanAdd, attr(stat, "handle_ptr"))
+   rows_at_time <- max(1, min(1024, rows_at_time))
+   cs <- attr(stat, "connection.string")
+   if(grepl("PWD=", cs)) {
+       attr(stat, "connection.string") <- sub("PWD=[^;]+($|;)", "PWD=******;", cs)
+       Call$connection <- sub("PWD=[^;]+($|;)", "PWD=******;", connection)
+   }
    structure(stat, class = "RODBC", case = case, id = id,
-             believeNRows = believeNRows, bulk_add = bulk_add,
+             believeNRows = believeNRows,
              colQuote = colQuote, tabQuote = tabQuote,
+             interpretDot = interpretDot,
              encoding = DBMSencoding,
-             rows_at_time = rows_at_time)
+             rows_at_time = rows_at_time, isMySQL = isMySQL,
+             call = Call)
 }
 
 odbcQuery <-
@@ -130,6 +149,9 @@ odbcUpdate <-
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
+    ## sanity checks!
+    if(length(params) == 0L || nrow(params) == 0L)
+        stop("no parameters, so nothing to update")
     if(nchar(enc <- attr(channel, "encoding"))) query <- iconv(query, to=enc)
     vflag <- 0
     if(verbose) vflag <- 1
@@ -140,22 +162,18 @@ odbcUpdate <-
                      nochange = cnames,
                      toupper = toupper(cnames),
                      tolower = tolower(cnames))
-    for(i in 1L:ncol(data))
+    for(i in seq_along(data))
         if(!is.numeric(data[[i]])) {
             data[[i]] <- as.character(data[[i]])
-            if(nchar(enc)) data[[i]] <- iconv(data[[i]], to=enc)
+            if(nchar(enc)) data[[i]] <- iconv(data[[i]], to = enc)
         }
+    ## now map names: ds[i] is the data col to go with param i.
+    ds <- match(params[[1]], cnames)
+    if(any(is.na(ds))) stop("missing columns in 'data'")
+    ## but pass 0-indexed version of ds
     .Call(C_RODBCUpdate, attr(channel, "handle_ptr"), as.character(query),
-          data, cnames, as.integer(nrow(data)), as.integer(ncol(data)),
-          as.character(params), as.integer(vflag))
+          data, ds-1L, params, as.integer(vflag))
 }
-
-## odbcTables <- function(channel)
-## {
-##     if(!odbcValidChannel(channel))
-##        stop("first argument is not an open RODBC channel")
-##     .Call(C_RODBCTables, attr(channel, "handle_ptr"))
-## }
 
 ## catalog, schema, tableName are 'pattern-value's
 ## IBM says % is special, and asks for all schemas or tableTypes to be listed.
@@ -165,22 +183,23 @@ odbcUpdate <-
 ## "TABLE" "VIEW" "SYSTEM TABLE" "ALIAS" "SYNONYM" (may be single-quoted).
 ## http://publib.boulder.ibm.com/infocenter/dzichelp/v2r2/index.jsp?topic=/com.ibm.db29.doc.odbc/db2z_fntables.htm
 odbcTables <- function(channel, catalog = NULL, schema = NULL,
-                        tableName = NULL, tableType = NULL)
+                        tableName = NULL, tableType = NULL, literal = FALSE)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
     tableType  <- if(is.character(tableType) && length(tableType))
         paste(tableType, collapse=",") else NULL
-    .Call(C_RODBCTables2, attr(channel, "handle_ptr"),
-          catalog, schema, tableName, tableType)
+    .Call(C_RODBCTables, attr(channel, "handle_ptr"),
+          catalog, schema, tableName, tableType, as.logical(literal))
 }
 
-odbcColumns <- function(channel, table, catalog = NULL, schema = NULL)
+odbcColumns <- function(channel, table, catalog = NULL, schema = NULL,
+                        literal = FALSE)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")
     .Call(C_RODBCColumns, attr(channel, "handle_ptr"),
-          as.character(table), catalog, schema)
+          as.character(table), catalog, schema, as.logical(literal))
 }
 
 odbcSpecialColumns <- function(channel, table, catalog = NULL, schema = NULL)
@@ -197,21 +216,6 @@ odbcPrimaryKeys <- function(channel, table, catalog = NULL, schema = NULL)
         stop("first argument is not an open RODBC channel")
     .Call(C_RODBCPrimaryKeys, attr(channel, "handle_ptr"),
           as.character(table), catalog, schema)
-}
-
-## this does no error checking, but may add an error message
-odbcColData <- function(channel)
-{
-    if(!odbcValidChannel(channel))
-       stop("first argument is not an open RODBC channel")
-    .Call(C_RODBCColData, attr(channel, "handle_ptr"))
-}
-
-odbcNumCols <- function(channel)
-{
-    if(!odbcValidChannel(channel))
-       stop("first argument is not an open RODBC channel")
-    .Call(C_RODBCNumCols, attr(channel, "handle_ptr"))
 }
 
 close.RODBC <- function(con, ...) odbcClose(con)
@@ -277,9 +281,9 @@ odbcClearResults <-  function(channel)
 
 print.RODBC <- function(x, ...)
 {
-    con <- strsplit(attr(x, "connection.string"), ";")[[1L]]
+    con <- strsplit(attr(x, "connection.string"), ";", fixed = TRUE)[[1L]]
     case <- paste("case=", attr(x, "case"), sep="")
-    cat("RODB Connection ", as.vector(x), "\nDetails:\n  ", sep = "")
+    cat("RODBC Connection ", as.vector(x), "\nDetails:\n  ", sep = "")
     cat(case, con, sep="\n  ")
     invisible(x)
 }
@@ -296,28 +300,6 @@ odbcEndTran <- function(channel, commit = TRUE)
     if(!odbcValidChannel(channel))
          stop("first argument is not an open RODBC channel")
     .Call(C_RODBCEndTran, attr(channel, "handle_ptr"), commit)
-}
-
-odbcBulkAdd <-
-    function(channel, query, data, params, first = 1, last = nrow(data),
-             test = FALSE, verbose = FALSE)
-{
-    if(!odbcValidChannel(channel))
-       stop("first argument is not an open RODBC channel")
-    vflag <- 0
-    if(verbose) vflag <- 1
-    if(test) vflag <- 2
-    ## apply the name mangling that was applied when the table was created
-    cnames <- mangleColNames(names(data))
-    cnames <- switch(attr(channel, "case"),
-                     nochange = cnames,
-                     toupper = toupper(cnames),
-                     tolower = tolower(cnames))
-    for(i in 1L:ncol(data))
-        if(!is.numeric(data[[i]])) data[[i]] <- as.character(data[[i]])
-    .Call(C_RODBCAdd, attr(channel, "handle_ptr"), query, data, cnames,
-          as.integer(first), as.integer(last), as.integer(ncol(data)),
-          as.character(params), as.integer(vflag))
 }
 
 odbcDataSources <- function(type = c("all", "user", "system"))

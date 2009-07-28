@@ -10,9 +10,11 @@ if(!inherits(channel, "RODBC")) q("no")
 odbcGetInfo(channel)
 sqlTables(channel)
 sqlDrop(channel, "USArrests", errors = FALSE)
-sqlSave(channel, USArrests)
+sqlSave(channel, USArrests, addPK = TRUE)
 sqlTables(channel)
 sqlColumns(channel, "USArrests")
+sqlColumns(channel, "USArrests", special=TRUE)
+sqlPrimaryKeys(channel, "USArrests")
 sqlFetch(channel, "USArrests")
 sqlQuery(channel, "select rownames, Murder from USArrests where Rape > 30 order by Murder")
 foo <-  USArrests[1:3, 2, drop = FALSE]
@@ -21,6 +23,24 @@ sqlUpdate(channel, foo, "USArrests")
 sqlFetch(channel, "USArrests", max = 5)
 sqlFetchMore(channel, max = 8)
 sqlDrop(channel, "USArrests")
+
+Btest <- Atest <-
+    data.frame(x = c(paste(1:100, collapse="+"), letters[2:4]), rn=1:4)
+Btest[,1] <- Atest[c(4,1:3),1]
+sqlDrop(channel, "Atest", errors = FALSE)
+colspec <- list(character="varchar(1000)", double="double",
+                integer="integer", logical="varchar(5)")
+sqlSave(channel, Atest, typeInfo = colspec)
+sqlColumns(channel, "Atest")[, 1:6]
+sqlFetch(channel, "Atest")
+sqlUpdate(channel, Btest, "Atest", index = "rn")
+sqlFetch(channel, "Atest")
+sqlDrop(channel, "Atest")
+varspec <- "varchar(1000)"; names(varspec) <- "x"
+sqlSave(channel, Atest, varTypes = varspec)
+sqlColumns(channel, "Atest")[, 1:6]
+sqlFetch(channel, "Atest")
+sqlDrop(channel, "Atest")
 
 dates <- as.character(seq(as.Date("2004-01-01"), by="week", length=10))
 times <- paste(1:10, "05", "00", sep=":")
@@ -46,5 +66,7 @@ sqlDrop(channel, "hills test")
 sqlSave(channel, hills, "hills test", verbose=TRUE, fast=FALSE)
 sqlUpdate(channel, hills[11:15,], "hills test", verbose=TRUE, fast=FALSE)
 sqlDrop(channel, "hills test")
+
+sqlTables(channel, catalog = "", schema = "", tableName = "", tableType = "%")
 
 close(channel)

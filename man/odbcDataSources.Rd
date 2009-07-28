@@ -13,22 +13,27 @@ odbcDataSources(type = c("all", "user", "system"))
 \value{
   A named character vector of DSN descriptions, with names the DSNs.
 }
+\author{
+  Brian Ripley
+}
 \examples{\dontrun{
-odbcDataSources()
+> odbcDataSources()
         test      sqlite3       testpg 
-#    "MySQL"    "sqlite3" "PostgreSQL"
+    "MySQL"    "sqlite3" "PostgreSQL"
 or
-                          testdb3                            mysql5
-         "MySQL ODBC 3.51 Driver"         "MySQL Connector/ODBC v5"
-                          sqlite3                           bdr.xls
-            "SQLite3 ODBC Driver"  "Microsoft Excel Driver (*.xls)"
-                          testacc                            testpg
-"Microsoft Access Driver (*.mdb)"                 "PostgreSQL ANSI"
-                          testdb5                         SQLServer
-          "MySQL ODBC 5.1 Driver"               "SQL Native Client"
+                          testdb3                           sqlite3
+         "MySQL ODBC 3.51 Driver"             "SQLite3 ODBC Driver"
+                          bdr.xls                           testacc
+ "Microsoft Excel Driver (*.xls)" "Microsoft Access Driver (*.mdb)"
+                           testpg                         SQLServer
+                "PostgreSQL ANSI"               "SQL Native Client"
+                           Oracle                               DB2
+       "Oracle in OraDb10g_home1"  "IBM DB2 ODBC DRIVER - DB2COPY1"
+                          testpgw                           testdb5
+             "PostgreSQL Unicode"           "MySQL ODBC 5.1 Driver"
                 SQLite Datasource           SQLite UTF-8 Datasource
              "SQLite ODBC Driver"      "SQLite ODBC (UTF-8) Driver"
-               SQLite3 Datasource
-            "SQLite3 ODBC Driver"
+               SQLite3 Datasource                             mimdb
+            "SQLite3 ODBC Driver"                           "MIMER"
 }}
 \keyword{utilities}

@@ -4,7 +4,7 @@
 
 \title{Reading Tables from ODBC Databases}
 \description{
-  Read a table of an ODBC database into a data frame.
+  Read some or all of a table from an ODBC database into a data frame.
 }
 \usage{
 sqlFetch(channel, sqtable, ..., colnames = FALSE, rownames = TRUE)
@@ -20,13 +20,16 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
     \code{\link{sqlQuery}} or \code{\link{sqlGetResults}}.  See
     \sQuote{Details}.}
   \item{colnames}{logical: retrieve column names from first row of table?
-    (For use when \code{sqlSave(colnames = TRUE)} was used.)}
+    (For use when \code{\link{sqlSave}(colnames = TRUE)} was used.)}
   \item{rownames}{either logical or character.
     If logical, retrieve row names from the first column
     (\code{rownames}) in the table?  If character, the column name to
     retrieve them from.}
 }
 \details{
+  Note the \sQuote{table} includes whatever table-like objects are
+  provided by the DBMS, in particular views and system tables.
+  
   \code{sqlFetch} by default retrieves the the entire contents of the table
   \code{sqtable}.  Rownames and column names are restored as indicated
   (assuming that they have been placed in the table by the corresponding
@@ -40,8 +43,8 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
   These functions try to cope with the peculiar way the Excel ODBC
   driver handles table names, and to quote Access table names which
   contain spaces.  Dotted table names, e.g. \code{myschema.mytable}, are
-  allowed on systems that support them, but the existence of the table
-  will not be checked.
+  allowed on systems that support them, unless the connection was opened
+  with \code{interpretDot = FALSE}.
 
   Useful additional parameters to pass to \code{\link{sqlQuery}} or
   \code{\link{sqlGetResults}} include
@@ -51,7 +54,7 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
     
     \item{\code{nullstring}:}{character string to be used when reading
       \code{SQL_NULL_DATA} character items from the database:
-      default \code{NA}.}
+      default \code{NA_character_}.}
     
     \item{\code{na.strings}:}{character string(s) to be mapped to
       \code{NA} when reading character data: default \code{"NA"}.}
@@ -62,7 +65,7 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
       when converting character columns to numeric.}
 
     \item{\code{rows_at_time}:}{Allow for multiple rows to be retrieved at
-      once.  The default is \code{1}.}
+      once.  See \code{\link{sqlQuery}}.}
   }
 }
 \value{
@@ -71,9 +74,10 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
 }
 \note{
   If the table name desired is not a valid SQL name (alphanumeric plus
-  \code{_}), you can use \code{\link{sqlQuery}} with whatever quoting
-  mechanism your DBMS vendor provides (e.g. \code{[ ]} on Microsoft
-  products and backticks on recent versions of MySQL).
+  \code{_}) and these functions are not able to interpret the name, you
+  can use \code{\link{sqlQuery}} with whatever quoting mechanism
+  your DBMS vendor provides (e.g. \code{[ ]} on some Microsoft
+  products and backticks on MySQL).
 }
 \seealso{
   \code{\link{sqlSave}}, \code{\link{sqlQuery}},
@@ -87,8 +91,8 @@ sqlFetchMore(channel, ..., colnames = FALSE, rownames = TRUE)
 channel <- odbcConnect("test")
 sqlSave(channel, USArrests)
 sqlFetch(channel, "USArrests") # get the lot
-sqlFetch(channel, "USArrests", max=20)
-sqlFetchMore(channel, max=20)
+sqlFetch(channel, "USArrests", max = 20, rows_at_time = 10)
+sqlFetchMore(channel, max = 20)
 sqlFetchMore(channel) # get the rest
 sqlDrop(channel, "USArrests") 
 close(channel)

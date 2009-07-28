@@ -1,11 +1,82 @@
+Version: 1.3-0 (2009-07-28, released)
+
+	* Documentation has been reorganized into a vignette/manual, and
+	files README and INSTALL have been removed.
+
+	* sqlSave(), sqlFetch() and sqlUpdate() now allow 'schema.table'
+	forms for the table name.
+
+	* The internals use grepl(), so R >= 2.9.0 is required.
+
+	* odbcDriverConnect() obfuscates any password returned in the
+	connection string.
+
+	* Binary columns in a table can now be retrieved.  They will be
+	returned as a column of class "ODBC_binary", which is a list of
+	raw vectors.
+
+	* The value of 'rows_at_time' set in odbcConnect (default now 100)
+	is now used in all queries.  The buffers allocated when fetching
+	character columns now depend on 'rows_at_time', so reducing this
+	will save memory if potentially large character columns are in the
+	result set, and can be done as an argument to sqlQuery() and
+	functions which call it such as sqlFetch().
+
+	* Apart from for the Excel driver, odbcTableExists() looks up just
+	the (remapped) name in sqlTables() so will be faster on some
+	systems.  Also, dotted table names are not quoted (which is what
+	drivers that support them seem to require).
+
+	* The internal function sqlwrite() used by sqlSave() now matches
+	column types to the information given by sqlTypeInfo() by number
+	rather than by name, as the Oracle ODBC driver returns names that
+	are aliases of those in the type table.
+
+	* The test suite now contains examples for IBM's DB2, for Oracle's
+	own OBDC driver and for Mimer (on Windows).
+
+	* sqlColumns() and sqlTables() have an extra argument 'literal' to
+	control the interpretation of wildcards.
+
+	* sqlSave(addPK=) causes that column to be created with a
+	'NOT NULL' constraint (needed by some DBMSs, including DB2).
+
+	* odbcColumns() and odbcPrimaryKeys() are no longer exported from
+	the namespace.
+
+	* sqlClear() now uses 'TRUNCATE TABLE' rather than 'DELETE FROM'.
+
+	* odbcDriverConnect() gains a 'readOnlyOptimize' argument for the
+	few systems (notably Mimer) which support it.
+
+	* sqlTypeInfo() allows more types to be specified.
+
+	* getSqlTypeInfo() has data for DB2 (on Windows) and Mimer.
+
+	* Several C-level errors are given in more detail.
+
+	* References to the unreleased 'bulk_add' option have been
+	removed.
+
+	* sqlSave(oldstyle = TRUE) has been removed.
+
+	* sql* functions now return invisibly if errors = FALSE.
+
+	* odbcDriverConnect() no longer access case = "oracle" as a
+	synonym for "toupper" (and Oracle is generally case-insensitive).
+
+	* odbcReConnect() has been re-designed to allow any of the
+	arguments to be changed.
+
+	
 Version: 1.2-6 (2009-06-23, released)
 
 	* Split INSTALL file out of README.
-	
+
 	* Clarify that it is the ODBC driver that needs to recognize
 	primary keys: apparently Access has them but the driver does not.
 
-	* close() was leaking a RODBChandle stucture, found by Valgrind.
+	* close() was leaking a RODBChandle stucture, found by valgrind.
 
 	* odcUpdate() could write one character beyond a character buffer:
 	used by sqlSave(fast=TRUE).
@@ -38,6 +109,7 @@ Version: 1.2-6 (2009-06-23, released)
 	on specific DSN names being available, and so is intended only for
 	the maintainer's use.)
 
+
 Version: 1.2-5 (2009-01-21, released)
 
 	* Adapt help to Rd version 2
@@ -45,6 +117,7 @@ Version: 1.2-5 (2009-01-21, released)
 	* Use integer constants
 
 	* Spelling corrections
+
 
 Version: 1.2-4 (2008-11-19, released)
 
@@ -55,12 +128,14 @@ Version: 1.2-4 (2008-11-19, released)
 
 	* sqlGetResults(): add 'stringsAsFactors' argument.
 
+
 Version: 1.2-3 (2008-01-24, released)
 
 	* Plug a memory leak in inRODBCClose (closing a connection),
 	reported by Stephan Henne.
 
 	* Use translateChar() on character data sent in.
+
 
 Version: 1.2-2 (2007-10-19, released)
 
@@ -76,10 +151,12 @@ Version: 1.2-2 (2007-10-19, released)
 	* Added odbcConnect{Access,Excel}2007() for use with Office 2007
 	formats and drivers.
 
+
 Version: 1.2-1 (2007-06-03, released)
 
 	* Use (const char *) for compatibility with R 2.6.0.
 	* Add comments about MySQL's broken Connector/ODBC beta.
+
 
 Version: 1.2-0 (2007-04-24, released)
 

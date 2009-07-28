@@ -3,6 +3,9 @@
 \alias{sqlCopyTable}
 
 \title{ODBC Copy}
+\description{
+  Functions to copy tables or result sets from one database to another.
+}
 \usage{
 sqlCopy(channel, query, destination, destchannel = channel,
         verbose = FALSE, errors = TRUE, \dots)
@@ -20,9 +23,6 @@ sqlCopyTable(channel, srctable, desttable, destchannel = channel,
   \item{errors}{if TRUE halt and display error, else return \code{-1}.}
   \item{\dots}{additional arguments to be passed to \code{\link{sqlSave}}.}
 }
-\description{
-  Functions to copy tables or result sets from one database to another.
-}
 \details{
   \code{sqlCopy} as is like \code{\link{sqlQuery}}, but saves the output
   of \code{query} in table \code{destination} on channel
@@ -32,9 +32,6 @@ sqlCopyTable(channel, srctable, desttable, destchannel = channel,
   \code{desttable} on DSN \code{destchannel}.  This is within the
   limitations of the ODBC lowest common denominator.  More precise
   control is possible \emph{via} \code{sqlQuery}.
-  
-  Note that table names in another schema such as \code{myschema.mytable}
-  cannot be used: see the help for \link{RODBC} for ways of handling schemas.
 }
 \value{
   See \code{\link{sqlGetResults}}.

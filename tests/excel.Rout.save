@@ -1,13 +1,11 @@
 
-R version 2.10.0 Under development (unstable) (2009-06-19 r48799)
+R version 2.9.1 Patched (2009-07-09 r48925)
 Copyright (C) 2009 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -17,19 +15,9 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
-[Previously saved workspace restored]
-
 > ##-*- R -*-
 > library(RODBC)
 > library(MASS)
-
-Attaching package: 'MASS'
-
-
-	The following object(s) are masked _by_ .GlobalEnv :
-
-	 hills 
-
 > USArrests[1,2] <- NA
 > hills <- hills[1:15,]
 > row.names(hills)[12] <- "Dollar ('$')"
@@ -64,14 +52,13 @@ Query: UPDATE [sids] SET "AREA"=0.061, "PERIMETER"=1.231, "CNTY_"=1827, "CNTY_ID
 > 
 > channel <- odbcConnectDbase("sids.dbf", case="toupper")
 > sqlDrop(channel, "HILLS 2", errors=FALSE)
-[1] -1
 > sqlSave(channel, hills, "HILLS 2", verbose=TRUE)
 Query: CREATE TABLE [HILLS 2]  ("rownames" Char(254), "DIST" Numeric, "CLIMB" Numeric, "TIME" Numeric)
 Query: INSERT INTO [HILLS 2] ( "ROWNAMES", "DIST", "CLIMB", "TIME" ) VALUES ( ?,?,?,? )
-Binding: ROWNAMES: DataType 12
-Binding: DIST: DataType 8
-Binding: CLIMB: DataType 8
-Binding: TIME: DataType 8
+Binding: 'ROWNAMES' DataType 12, ColSize 254
+Binding: 'DIST' DataType 8, ColSize 53
+Binding: 'CLIMB' DataType 8, ColSize 53
+Binding: 'TIME' DataType 8, ColSize 53
 Parameters:
 no: 1: ROWNAMES Greenmantle/***/no: 2: DIST 2.5/***/no: 3: CLIMB 650/***/no: 4: TIME 16.083/***/
 no: 1: ROWNAMES Carnethy/***/no: 2: DIST 6/***/no: 3: CLIMB 2500/***/no: 4: TIME 48.35/***/
@@ -90,10 +77,10 @@ no: 1: ROWNAMES Cairn Table/***/no: 2: DIST 6/***/no: 3: CLIMB 500/***/no: 4: TI
 no: 1: ROWNAMES Eildon Two/***/no: 2: DIST 4.5/***/no: 3: CLIMB 1500/***/no: 4: TIME 26.933/***/
 > sqlUpdate(channel, hills[11:15,],  "HILLS 2", verbose=TRUE)
 Query: UPDATE [HILLS 2] SET "DIST"=?, "CLIMB"=?, "TIME"=? WHERE "ROWNAMES"=?
-Binding: DIST: DataType 8
-Binding: CLIMB: DataType 8
-Binding: TIME: DataType 8
-Binding: ROWNAMES: DataType 12
+Binding: 'DIST' DataType 8, ColSize 53
+Binding: 'CLIMB' DataType 8, ColSize 53
+Binding: 'TIME' DataType 8, ColSize 53
+Binding: 'ROWNAMES' DataType 12, ColSize 254
 Parameters:
 no: 1: DIST 28/***/no: 2: CLIMB 2100/***/no: 3: TIME 192.667/***/no: 4: ROWNAMES Lairig Ghru/***/
 no: 1: DIST 5/***/no: 2: CLIMB 2000/***/no: 3: TIME 43.05/***/no: 4: ROWNAMES Dollar ('$')/***/
@@ -101,7 +88,6 @@ no: 1: DIST 9.5/***/no: 2: CLIMB 2200/***/no: 3: TIME 65/***/no: 4: ROWNAMES Lom
 no: 1: DIST 6/***/no: 2: CLIMB 500/***/no: 3: TIME 44.133/***/no: 4: ROWNAMES Cairn Table/***/
 no: 1: DIST 4.5/***/no: 2: CLIMB 1500/***/no: 3: TIME 26.933/***/no: 4: ROWNAMES Eildon Two/***/
 > sqlDrop(channel, "HILLS 2")
-character(0)
 > close(channel)
 > 
 > 
@@ -274,10 +260,10 @@ Eildon Two    4.5  1500  26.933
 > sqlSave(channel, hills, "hills_test2", verbose=TRUE)
 Query: CREATE TABLE [hills_test2]  ("rownames" VARCHAR(255), "dist" NUMBER, "climb" NUMBER, "time" NUMBER)
 Query: INSERT INTO [hills_test2] ( "rownames", "dist", "climb", "time" ) VALUES ( ?,?,?,? )
-Binding: rownames: DataType 12
-Binding: dist: DataType 8
-Binding: climb: DataType 8
-Binding: time: DataType 8
+Binding: 'rownames' DataType 12, ColSize 255
+Binding: 'dist' DataType 8, ColSize 53
+Binding: 'climb' DataType 8, ColSize 53
+Binding: 'time' DataType 8, ColSize 53
 Parameters:
 no: 1: rownames Greenmantle/***/no: 2: dist 2.5/***/no: 3: climb 650/***/no: 4: time 16.083/***/
 no: 1: rownames Carnethy/***/no: 2: dist 6/***/no: 3: climb 2500/***/no: 4: time 48.35/***/
@@ -296,10 +282,10 @@ no: 1: rownames Cairn Table/***/no: 2: dist 6/***/no: 3: climb 500/***/no: 4: ti
 no: 1: rownames Eildon Two/***/no: 2: dist 4.5/***/no: 3: climb 1500/***/no: 4: time 26.933/***/
 > sqlUpdate(channel, hills[11:15,], "hills_test2", verbose=TRUE)
 Query: UPDATE [hills_test2] SET "dist"=?, "climb"=?, "time"=? WHERE "rownames"=?
-Binding: dist: DataType 8
-Binding: climb: DataType 8
-Binding: time: DataType 8
-Binding: rownames: DataType 12
+Binding: 'dist' DataType 8, ColSize 53
+Binding: 'climb' DataType 8, ColSize 53
+Binding: 'time' DataType 8, ColSize 53
+Binding: 'rownames' DataType 12, ColSize 255
 Parameters:
 no: 1: dist 28/***/no: 2: climb 2100/***/no: 3: time 192.667/***/no: 4: rownames Lairig Ghru/***/
 no: 1: dist 5/***/no: 2: climb 2000/***/no: 3: time 43.05/***/no: 4: rownames Dollar ('$')/***/
@@ -324,7 +310,3 @@ Lomonds       9.5  2200  65.000
 Cairn Table   6.0   500  44.133
 Eildon Two    4.5  1500  26.933
 > close(channel)
-> 
-> proc.time()
-   user  system elapsed 
-   1.12    0.34    1.76 

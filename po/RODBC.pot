@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2009-05-27 11:11+0100\n"
+"POT-Creation-Date: 2009-07-15 15:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,105 +16,94 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: RODBC.c:157
-msgid "[RODBC] ERROR: Could not SQLAllocEnv"
-msgstr ""
-
-#: RODBC.c:158
-msgid "[RODBC] ERROR: Could not SQLAllocConnect"
-msgstr ""
-
-#: RODBC.c:159
-msgid "[RODBC] ERROR: Could not SQLDriverConnect"
-msgstr ""
-
-#: RODBC.c:160
-msgid "[RODBC] Error SQLFreeconnect"
-msgstr ""
-
-#: RODBC.c:161
-msgid "[RODBC] Error SQLDisconnect"
-msgstr ""
-
-#: RODBC.c:163
-msgid "[RODBC] ERROR: Could not SQLExecDirect"
-msgstr ""
-
-#: RODBC.c:164
-msgid "[RODBC] ERROR: Could not SQLPrepare"
-msgstr ""
-
-#: RODBC.c:165
-msgid "[RODBC] ERROR: SQLTables failed"
-msgstr ""
-
-#: RODBC.c:166
+#: RODBC.c:152
 msgid "[RODBC] ERROR: Could not SQLAllocStmt"
 msgstr ""
 
-#: RODBC.c:167
-msgid "[RODBC] ERROR: Row count failed"
+#: RODBC.c:165
+msgid "[RODBC] ERROR: Could not SQLAllocEnv"
 msgstr ""
 
-#: RODBC.c:168
-msgid "[RODBC] ERROR: SQLDescribe Col failed"
-msgstr ""
-
-#: RODBC.c:169
-msgid "[RODBC] ERROR: SQLBindCol failed"
-msgstr ""
-
-#: RODBC.c:170
-msgid "[RODBC] ERROR: Failure in SQLPrimary keys"
-msgstr ""
-
-#: RODBC.c:171
-msgid "[RODBC] ERROR: Failure in SQLColumns"
-msgstr ""
-
-#: RODBC.c:240
+#: RODBC.c:216
 msgid "[RODBC] ERROR:invalid connection argument"
 msgstr ""
 
-#: RODBC.c:306
+#: RODBC.c:285
 #, c-format
 msgid "[RODBC] ERROR: state %s, code %d, message %s"
 msgstr ""
 
-#: RODBC.c:774 RODBC.c:810 RODBC.c:954
+#: RODBC.c:288
+msgid "[RODBC] ERROR: Could not SQLDriverConnect"
+msgstr ""
+
+#: RODBC.c:292
+msgid "[RODBC] ERROR: Could not SQLAllocConnect"
+msgstr ""
+
+#: RODBC.c:385
+msgid "[RODBC] ERROR: Failure in SQLPrimary keys"
+msgstr ""
+
+#: RODBC.c:430
+msgid "[RODBC] ERROR: Failure in SQLColumns"
+msgstr ""
+
+#: RODBC.c:466
+msgid "[RODBC] ERROR: Failure in SQLSpecialColumns"
+msgstr ""
+
+#: RODBC.c:520 RODBC.c:568
+msgid "[RODBC] ERROR: SQLTables failed"
+msgstr ""
+
+#: RODBC.c:643
+msgid "[RODBC] ERROR: SQLRowCount failed"
+msgstr ""
+
+#: RODBC.c:693
+msgid "[RODBC] ERROR: SQLDescribeCol failed"
+msgstr ""
+
+#: RODBC.c:740
+msgid "[RODBC] ERROR: SQLBindCol failed"
+msgstr ""
+
+#: RODBC.c:759 RODBC.c:791 RODBC.c:960
 msgid "[RODBC] No results available"
 msgstr ""
 
-#: RODBC.c:816
+#: RODBC.c:797
 msgid "No Data"
 msgstr ""
 
-#: RODBC.c:868 RODBC.c:1181 RODBC.c:1686
+#: RODBC.c:861
 #, c-format
 msgid "character data truncated in column '%s'"
 msgstr ""
 
-#: RODBC.c:1102 RODBC.c:1605
-msgid "Missing column name"
+#: RODBC.c:1109
+msgid "[RODBC] SQLBindParameter failed"
 msgstr ""
 
-#: RODBC.c:1142
-msgid "[RODBC] Failed Bind Param in Update"
+#: RODBC.c:1154
+#, c-format
+msgid "character data '%s' truncated to %d bytes in column '%s'"
 msgstr ""
 
-#: RODBC.c:1197
+#: RODBC.c:1171
 msgid "[RODBC] Failed exec in Update"
 msgstr ""
 
-#: RODBC.c:1270
+#: RODBC.c:1203
+msgid "[RODBC] Error in SQLDisconnect"
+msgstr ""
+
+#: RODBC.c:1208
+msgid "[RODBC] Error in SQLFreeconnect"
+msgstr ""
+
+#: RODBC.c:1227
 #, c-format
 msgid "closing unused RODBC handle %d\n"
-msgstr ""
-
-#: RODBC.c:1543
-msgid "invalid 'first' or 'last'"
-msgstr ""
-
-#: RODBC.c:1704
-msgid "[RODBC] Failed SQLBulkOperations"
 msgstr ""
