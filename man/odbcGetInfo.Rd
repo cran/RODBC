@@ -18,7 +18,8 @@ odbcGetInfo(channel)
 \author{
   Brian Ripley
 }
-\examples{\dontrun{odbcGetInfo(channel) # under Windows XP
+\examples{\dontrun{
+odbcGetInfo(channel) # under Windows XP
 ## MySQL returned
              DBMS_Name               DBMS_Ver        Driver_ODBC_Ver
                "MySQL"     "5.1.35-community"                "03.51"

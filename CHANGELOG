@@ -1,3 +1,10 @@
+Version: 1.3-1 (2009-10-11, released)
+
+	* man/odbcConnect.Rd:  Rendering issues for Rd2 convertors.
+	Stress that some ODBC drivers do not work correctly with bulk
+	fetches, and that this is not a bug in RODBC.
+
+
 Version: 1.3-0 (2009-07-28, released)
 
 	* Documentation has been reorganized into a vignette/manual, and
@@ -62,7 +69,7 @@ Version: 1.3-0 (2009-07-28, released)
 
 	* sql* functions now return invisibly if errors = FALSE.
 
-	* odbcDriverConnect() no longer access case = "oracle" as a
+	* odbcDriverConnect() no longer allows case = "oracle" as a
 	synonym for "toupper" (and Oracle is generally case-insensitive).
 
 	* odbcReConnect() has been re-designed to allow any of the

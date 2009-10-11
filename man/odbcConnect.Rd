@@ -2,7 +2,6 @@
 \alias{odbcConnect}
 \alias{odbcDriverConnect}
 \alias{odbcReConnect}
-%\alias{print.RODBC}
 #ifdef windows
 \alias{odbcConnectAccess}
 \alias{odbcConnectDbase}
@@ -47,12 +46,9 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   \item{colQuote, tabQuote}{how to quote column (table) names in SQL
     statements.  Can be of length 0 (no quoting), a length--1 character
     vector giving the quote character to be used at both ends, or a
-    length--2 character string giving the beginning and ending quotes.
+    length--2 character vector giving the beginning and ending quotes.
     ANSI SQL uses double quotes, but the default mode for a MySQL server
     is to use backticks.
-%    RODBC 1.2-x only
-%    Note that you may need to set \code{tabQuote=""} to use
-%    qualified table names of the form \code{\var{schema}.\var{table_name}}.
 
     The defaults are backtick (\samp{`}) if the DBMS is identified
     as \code{"MySQL"} by the driver, and double quote otherwise.
@@ -67,7 +63,8 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   \item{DBMSencoding}{character string naming the encoding returned by
     the DBMS.  The default means the encoding of the locale \R is running
     under.  Values other than the default require \code{\link{iconv}} to 
-    be available: see \code{\link{capabilities}}.}
+    be available: it always is from \R 2.10.0, otherwise see
+    \code{\link{capabilities}}.}
   \item{rows_at_time}{The default number of rows to fetch at a time,
     between 1 and 1024.  Not all drivers work correctly with values > 1: see
     \code{\link{sqlQuery}}.}
@@ -82,10 +79,10 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   \code{odbcConnect} establishes a connection to the specified DSN, and
   \code{odbcDriverConnect} allows a more flexible specification \emph{via} a
   connection string.  \code{odbcConnect} uses the connection string\cr
-  \code{"DSN=\var{dsn};UID=\var{uid};PWD=\var{pwd}"}, omitting the last
-  two comments if they are empty.  See the examples for other uses of
-  connection strings.
+  \code{"DSN=\var{dsn};UID=\var{uid};PWD=\var{pwd}"},\cr
+  omitting the last two components if they are empty.
 #ifdef windows
+  See the examples for other uses of connection strings.
 
   Under the Windows GUI, specifying an incomplete \code{connection}, for
   example the default \code{""}, will bring up a dialog box to complete the
@@ -93,17 +90,16 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   unless a driver is specified, a Windows restriction.)
 #endif
 
-  For databases that translate table and column names \code{case} must be
-  set appropriately.  Allowable values are \code{"nochange"},
-  \code{"toupper"} and \code{"tolower"} as well as the names of databases
-  where the behaviour is known to us (currently \code{"mysql"} (which
-  maps to lower case on Windows but not on Linux),
-  \code{"postgresql"} (lower), and
-  \code{"msaccess"} (nochange)).  If \code{case} is not specified, the
-  default is \code{"nochange"} unless the appropriate value can be
-  figured out from the DBMS name reported by the ODBC driver.  It is
-  likely that \code{"toupper"} is desirable on IBM's DB2, but this is
-  not enforced.
+  For DBMSs that translate table and column names \code{case} must
+  be set appropriately.  Allowable values are \code{"nochange"},
+  \code{"toupper"} and \code{"tolower"} as well as the names of
+  databases where the behaviour is known to us (currently
+  \code{"mysql"}, which maps to lower case on Windows but not on Linux,
+  \code{"postgresql"} (lower), and \code{"msaccess"} (nochange)).  If
+  \code{case} is not specified, the default is \code{"nochange"} unless
+  the appropriate value can be figured out from the DBMS name reported
+  by the ODBC driver.  It is likely that \code{"toupper"} is desirable
+  on IBM's DB2, but this is not enforced.
 #ifdef windows
   (The DBase driver is unusual: it preserves names on reading, but
   converts both table and column names to upper case on writing, and
@@ -152,16 +148,23 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   e.g. \samp{SET NAMES 'utf8'}.
 }
 
+\note{
+  Several errors which have been reported as bugs in \pkg{RODBC} 1.3-0
+  which were in fact ODBC driver errors that can be circumvented by
+  setting \code{rows_at_time = 1} (and the warning under that argument has
+  always been there).  The drivers involved have been third-party
+  Oracle drivers and old SQL Server drivers.
+}
+
 \value{
   A non-negative integer which is used as handle if no error occurred,
   \code{-1} otherwise.  A successful return has class \code{"RODBC"}, and
   attributes including
   \item{connection.string}{the full ODBC connection string.}
-%  \item(handle\_ptr}{an external pointer object.}
   \item{case}{the value of \code{case}.}
   \item{id}{a numeric ID for the channel.}
   \item{believeNRows}{the value of \code{believeNRows}.}
-  \item{rows\_at\_time}{the value of \code{row_at_time}.}
+  \item{rows_at_time}{the value of \code{rows_at_time}.}
 }
 \author{
   Michael Lapsley, Brian Ripley

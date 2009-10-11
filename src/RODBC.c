@@ -761,7 +761,7 @@ SEXP RODBCNumCols(SEXP chan)
     return ScalarInteger((int) NCOLS);
 }
 
-#define ROWSNA -1
+#define ROWSNA (SQLLEN) -1
 
 static SEXP mkRaw(char *ptr, unsigned int len)
 {

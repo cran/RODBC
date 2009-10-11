@@ -6,7 +6,7 @@
 \description{
   List the table-like objects accessible from an ODBC connection.  What
   objects are \sQuote{table-like} depends on the DBMS, ODBC driver and
-  perhaps even the configuration settings.  In particular some
+  perhaps even the configuration settings: in particular some
   connections report system tables and some do not.
 }
 \usage{
@@ -42,7 +42,7 @@ sqlTables(channel, errors = FALSE, as.is = TRUE,
   \code{"SYNONYM"}, or a driver-specific type name) and the fifth
   column any remarks.
 
-  Strangely, the Microsoft Excel driver considers worksheets to be
+  Oddly, the Microsoft Excel driver considers worksheets to be
   system tables, and named ranges to be tables.
 }
 
@@ -68,7 +68,7 @@ sqlTables(channel, errors = FALSE, as.is = TRUE,
   list all databases use just \code{catalog = "\%"}.  In the 5.1.x
   driver, use \code{catalog="\var{db_name}", tableName="\%"} to list the
   tables in another database, and to list the table types use the
-  displayed form above.
+  form displayed above.
 
   For PostgreSQL's ODBC driver \code{catalog} is ignored (except that
   \code{catalog = ""} is required when listing schema or table types) and

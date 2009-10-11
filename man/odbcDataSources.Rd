@@ -19,7 +19,7 @@ odbcDataSources(type = c("all", "user", "system"))
 \examples{\dontrun{
 > odbcDataSources()
         test      sqlite3       testpg 
-    "MySQL"    "sqlite3" "PostgreSQL"
+     "MySQL"    "sqlite3" "PostgreSQL"
 or
                           testdb3                           sqlite3
          "MySQL ODBC 3.51 Driver"             "SQLite3 ODBC Driver"

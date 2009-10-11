@@ -17,7 +17,7 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
 }
 \arguments{
   \item{channel}{connection handle as returned by \code{\link{odbcConnect}}.}
-  \item{query}{any valid SQL statement}
+  \item{query}{any valid SQL statement.}
   \item{errors}{logical: if true halt and display error, else return \code{-1}.}
   \item{\dots}{additional arguments to be passed to \code{sqlGetResults}.}
   \item{rows_at_time}{The number of rows to fetch at a time, between 1
@@ -95,7 +95,7 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
   communicating with a remote machine) with \code{rows_at_time = 100},
   the usual default, or more.  (However, some drivers may mis-fetch
   multiple rows, in which case set \code{rows_at_time = 1} when creating
-  the the connection).  However, if \code{max} is specified then this
+  the connection.)  However, if \code{max} is specified then this
   may fetch too many rows and hence it could be reduced (but then this
   setting applies to all subsequent fetches from that result set).
   Another circumstance in which you might want to reduce

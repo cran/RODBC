@@ -62,15 +62,15 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   is intended for cases where case conversion alters the original column
   names and it is desired that they are retained.  Note that there are
   drawbacks to this approach: it presupposes that the rows will be
-  returned in correct order; not always valid.  It will also cause
+  returned in the correct order; not always valid.  It will also cause
   numeric columns to be returned as factors.
 
   Argument \code{addPK = TRUE} causes the row names to be marked as a
   primary key.  This is usually a good idea, and may allow database
-  updates to be done.  However, the drivers for some DBMSs (e.g. Access)
-  do not support primary keys, and earlier versions of the PostgreSQL
-  ODBC driver generated internal memory corruption if this option
-  is used.
+  updates to be done.  However, the ODBC drivers for some DBMSs
+  (e.g. Access) do not support primary keys, and earlier versions of the
+  PostgreSQL ODBC driver generated internal memory corruption if this
+  option is used.
   
   \code{sqlUpdate} updates the table where the rows already exist.  Data
   frame \code{dat} should contain columns with names that map to (some
@@ -84,7 +84,7 @@ sqlUpdate(channel, dat, tablename = NULL, index = NULL,
   have values for the rows to be changed).  Finally, the row names are
   used if they are stored as column \code{"rownames"} in the table.
   
-  When \code{fast = TRUE} \code{NA}s are always written as SQL nulls in
+  When \code{fast = TRUE}, \code{NA}s are always written as SQL nulls in
   the database, and this is also the case if \code{fast = FALSE} and
   \code{nastring = NULL} (its default value).  Otherwise \code{nastring}
   gives the character string to be sent to the driver when \code{NA}s
