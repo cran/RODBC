@@ -1,7 +1,7 @@
 # English translations for R package.
-# Copyright (C) 2009 The R Foundation
+# Copyright (C) 2010 The R Foundation
 # This file is distributed under the same license as the R package.
-# Automatically generated, 2009.
+# Automatically generated, 2010.
 #
 # All this catalog "translates" are quotation characters.
 # The msgids must be ASCII and therefore cannot contain real quotation
@@ -27,10 +27,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.10.0\n"
+"Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2009-07-15 15:40+0100\n"
-"PO-Revision-Date: 2009-07-15 15:40+0100\n"
+"POT-Creation-Date: 2010-04-30 10:33+0100\n"
+"PO-Revision-Date: 2010-04-30 10:33+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -38,94 +38,94 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: RODBC.c:152
+#: RODBC.c:153
 msgid "[RODBC] ERROR: Could not SQLAllocStmt"
 msgstr "[RODBC] ERROR: Could not SQLAllocStmt"
 
-#: RODBC.c:165
+#: RODBC.c:166
 msgid "[RODBC] ERROR: Could not SQLAllocEnv"
 msgstr "[RODBC] ERROR: Could not SQLAllocEnv"
 
-#: RODBC.c:216
+#: RODBC.c:217
 msgid "[RODBC] ERROR:invalid connection argument"
 msgstr "[RODBC] ERROR:invalid connection argument"
 
-#: RODBC.c:285
+#: RODBC.c:286
 #, c-format
 msgid "[RODBC] ERROR: state %s, code %d, message %s"
 msgstr "[RODBC] ERROR: state %s, code %d, message %s"
 
-#: RODBC.c:288
+#: RODBC.c:289
 msgid "[RODBC] ERROR: Could not SQLDriverConnect"
 msgstr "[RODBC] ERROR: Could not SQLDriverConnect"
 
-#: RODBC.c:292
+#: RODBC.c:293
 msgid "[RODBC] ERROR: Could not SQLAllocConnect"
 msgstr "[RODBC] ERROR: Could not SQLAllocConnect"
 
-#: RODBC.c:385
+#: RODBC.c:386
 msgid "[RODBC] ERROR: Failure in SQLPrimary keys"
 msgstr "[RODBC] ERROR: Failure in SQLPrimary keys"
 
-#: RODBC.c:430
+#: RODBC.c:431
 msgid "[RODBC] ERROR: Failure in SQLColumns"
 msgstr "[RODBC] ERROR: Failure in SQLColumns"
 
-#: RODBC.c:466
+#: RODBC.c:467
 msgid "[RODBC] ERROR: Failure in SQLSpecialColumns"
 msgstr "[RODBC] ERROR: Failure in SQLSpecialColumns"
 
-#: RODBC.c:520 RODBC.c:568
+#: RODBC.c:521 RODBC.c:569
 msgid "[RODBC] ERROR: SQLTables failed"
 msgstr "[RODBC] ERROR: SQLTables failed"
 
-#: RODBC.c:643
+#: RODBC.c:644
 msgid "[RODBC] ERROR: SQLRowCount failed"
 msgstr "[RODBC] ERROR: SQLRowCount failed"
 
-#: RODBC.c:693
+#: RODBC.c:694
 msgid "[RODBC] ERROR: SQLDescribeCol failed"
 msgstr "[RODBC] ERROR: SQLDescribeCol failed"
 
-#: RODBC.c:740
+#: RODBC.c:741
 msgid "[RODBC] ERROR: SQLBindCol failed"
 msgstr "[RODBC] ERROR: SQLBindCol failed"
 
-#: RODBC.c:759 RODBC.c:791 RODBC.c:960
+#: RODBC.c:760 RODBC.c:792 RODBC.c:961
 msgid "[RODBC] No results available"
 msgstr "[RODBC] No results available"
 
-#: RODBC.c:797
+#: RODBC.c:798
 msgid "No Data"
 msgstr "No Data"
 
-#: RODBC.c:861
+#: RODBC.c:862
 #, c-format
 msgid "character data truncated in column '%s'"
 msgstr "character data truncated in column ‘%s’"
 
-#: RODBC.c:1109
+#: RODBC.c:1110
 msgid "[RODBC] SQLBindParameter failed"
 msgstr "[RODBC] SQLBindParameter failed"
 
-#: RODBC.c:1154
+#: RODBC.c:1155
 #, c-format
 msgid "character data '%s' truncated to %d bytes in column '%s'"
 msgstr "character data ‘%s’ truncated to %d bytes in column ‘%s’"
 
-#: RODBC.c:1171
+#: RODBC.c:1172
 msgid "[RODBC] Failed exec in Update"
 msgstr "[RODBC] Failed exec in Update"
 
-#: RODBC.c:1203
+#: RODBC.c:1204
 msgid "[RODBC] Error in SQLDisconnect"
 msgstr "[RODBC] Error in SQLDisconnect"
 
-#: RODBC.c:1208
+#: RODBC.c:1209
 msgid "[RODBC] Error in SQLFreeconnect"
 msgstr "[RODBC] Error in SQLFreeconnect"
 
-#: RODBC.c:1227
+#: RODBC.c:1228
 #, c-format
 msgid "closing unused RODBC handle %d\n"
 msgstr "closing unused RODBC handle %d\n"

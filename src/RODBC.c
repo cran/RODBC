@@ -37,6 +37,7 @@ __declspec(dllimport) window RConsole;
 # include <unistd.h>
 #endif
 #include <string.h>
+#include <limits.h> /* for INT_MAX */
 
 #include <sql.h>
 #include <sqlext.h>

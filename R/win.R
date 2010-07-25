@@ -29,6 +29,8 @@ if(.Platform$OS.type == "windows") {
     ## originally based on suggestions from xiao.gang.fan1@libertysurf.fr
     odbcConnectExcel <- function(xls.file, readOnly = TRUE, ...)
     {
+        if (.Machine$sizeof.pointer > 4)
+            stop("odbcConnectExcel is only usable with 32-bit Windows")
         con <- if(missing(xls.file))
             "Driver={Microsoft Excel Driver (*.xls)};DriverId=790;Dbq="
         else {
@@ -55,6 +57,8 @@ if(.Platform$OS.type == "windows") {
 
     odbcConnectAccess <- function(access.file, uid = "", pwd = "", ...)
     {
+        if (.Machine$sizeof.pointer > 4)
+            stop("odbcConnectAccess is only usable with 32-bit Windows")
         con <- if(missing(access.file))
             "Driver={Microsoft Access Driver (*.mdb)};Dbq="
         else
@@ -77,6 +81,8 @@ if(.Platform$OS.type == "windows") {
 
     odbcConnectDbase <- function(dbf.file, ...)
     {
+        if (.Machine$sizeof.pointer > 4)
+            warning("odbcConnectDbase is probably only usable with 32-bit Windows")
         con <- if(missing(dbf.file))
             "Driver={Microsoft dBASE Driver (*.dbf)};DriverID=277;Dbq="
         else

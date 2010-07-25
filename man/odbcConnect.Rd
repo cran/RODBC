@@ -55,6 +55,7 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
 #ifdef windows
     The Access, DBase and Excel wrappers set \code{tabQuote = c("[", "]")}.
 #endif
+    A user reported that the SAS ODBC driver required \code{colQuote = NULL}.
   }
   \item{interpretDot}{logical.  Should table names of the form
     \code{\var{qualifier}.\var{table}} be interpreted  as table
@@ -128,14 +129,21 @@ odbcConnectExcel2007(xls.file, readOnly = TRUE, ...)
   \code{odbcConnectExcel} are convenience wrappers to generate
   connection strings for those file types.  The files given can be
   relative to the \R working directory or absolute paths (and it seems
-  also relative to the user's home directory).  \bold{Note:} they will
-  only work with English-language versions of the Microsoft drivers,
-  which may or may not be installed in other locales.  The file name can
-  be omitted, which will on \code{Rgui} bring up a dialog box to search
-  for a file.  The \code{2007} versions work with the drivers which are
-  installed with Office 2007 and give access to formats such as
-  \file{*.xlsx} and \file{*.accdb}.  These drivers are also available
-  separately: see the package manual.
+  also relative to the user's home directory). The file name can be
+  omitted, which will on \code{Rgui} bring up a dialog box to search for
+  a file.
+
+  \bold{Note:} they will only work with English-language 32-bit versions
+  of the Microsoft drivers, which may or may not be installed in other
+  locales, and are not usable from 64-bit \R.  The \code{2007} versions
+  work with the drivers which are installed with Office 2007/2010 and
+  give access to formats such as \file{*.xlsx} and \file{*.accdb}.
+  These drivers are also available separately and there is a 64-bit
+  version: see the package manual.  (You must have the 32-bit drivers
+  when using 32-bit \R and the 64-bit drivers when using 64-bit \R:
+  otherwise there will be a cryptic message about a driver not being
+  found.  And the 64-bit drivers cannot be installed alongside 32-bit
+  Microsoft Office, and \emph{vice versa}.
 
   See the package manual for some of the peculiarities of the Excel
   drivers.  \code{readOnly = TRUE} may allow very limited changes (to

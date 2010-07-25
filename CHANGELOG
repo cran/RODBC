@@ -1,3 +1,12 @@
+Version: 1.3-2 (2010-07-06, unreleased)
+
+        * po: add German translations from Chris Leick
+
+	* man/odbcConnect.Rd, manual: mention Access 2010 drivers (which
+	are also available for 64-bit Windows) and update info about
+	sources of ODBC drivers.
+
+
 Version: 1.3-1 (2009-10-11, released)
 
 	* man/odbcConnect.Rd:  Rendering issues for Rd2 convertors.

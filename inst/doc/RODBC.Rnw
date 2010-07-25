@@ -1177,32 +1177,35 @@ additional \code{CFLAGS}.
 A fairly comprehensive list of drivers is maintained at
 \url{http://www.sqlsummit.com/ODBCVend.htm}, and one for
 \code{unixODBC}\footnote{that the author works for Easysoft is
-  conspicuous.}  at \url{http://www.unixodbc.org/drivers.html}.
+  conspicuous.} at \url{http://www.unixodbc.org/drivers.html}.
 \code{unixODBC} ships with a number of drivers (although in most cases
 the DBMS vendor's driver is preferred)---these include for MySQL,
 PostgreSQL, Mimer and flat files.
 
 MySQL provides drivers under the name `Connector/ODBC' (formerly
-MyODBC') in source form, and binaries for all common R platforms.
+MyODBC') in source form, and binaries for all common 32-bit and most
+64-bit R platforms.
 
 PostgreSQL has an associated project at
 \url{http://pgfoundry.org/projects/psqlodbc/} and another project for
-a driver in development at
-\url{http://pgfoundry.org/projects/odbcng/}.  (Documentation for
-\code{psqlodbc} is currently hard to find, but there is some in the
-PostgreSQL 7.2 manual at
+at \url{http://pgfoundry.org/projects/odbcng/} and
+\url{http://projects.commandprompt.com/public/odbcng}.  (Documentation
+for \code{psqlodbc} is currently hard to find, but there is some in
+the PostgreSQL 7.2 manual at
 \url{http://www.postgresql.org/docs/7.2/static/odbc.html} from before
-it was unbundled.)
+it was unbundled.)  There are drivers for Unix-alikes and 32-bit
+Windows -- 64-bit Windows support is planned for PostgreSQL 9.0.
 
-An SQLite ODBC driver for Unix-alikes and Windows are available from
+An SQLite ODBC driver for Unix-alikes, including Mac OS X, and (32-
+and 64-bit) Windows is available from
 \url{http://www.ch-werner.de/sqliteodbc/}.
 
 Oracle provides ODBC drivers as a supplement to its `Instant Client'
-for some of its platforms (including 32-bit Windows and \verb|ix86|
-Linux, but not Mac OS X nor \verb|x86_64| Linux).  See
+for some of its platforms (including 32/64-bit Windows and Linux but
+not currently Mac OS X).  See
 \url{http://www.oracle.com/technology/software/tech/oci/instantclient/}.
 One quirk of the Windows driver is that the Oracle binaries must be in
-the path, so \code{PATH} should include e.g{} \verb|c:\Oracle\bin|.
+the path, so \code{PATH} should include e.g.{} \verb|c:\Oracle\bin|.
 
 For IBM's DB2, search its site for drivers for `ODBC and CLI'. There
 are some notes about using this under Linux at
@@ -1218,16 +1221,21 @@ ODBC support, so
 The `HowTos' at \url{http://developer.mimer.se/howto/index.tml}
 provide some useful hints.
 
-Some details of the Microsoft `ODBC Desktop Database Drivers' (for
-Access, Excel, Paradox, dBase and text files on Windows) can be found
-at
+Some details of the 32-bit Microsoft `ODBC Desktop Database Drivers'
+(for Access, Excel, Paradox, dBase and text files on Windows) can be
+found at
 \url{http://msdn.microsoft.com/en-us/library/ms709326%28VS.85%29.aspx}.
 There is also a Visual FoxPro driver and an (outdated) Oracle driver.
 
-Windows drivers for Access 2007 and Excel 2007 are bundled with Office
-2007 but can be installed separately \emph{via} the installer
+32-bit Windows drivers for Access 2007 and Excel 2007 are bundled with
+Office 2007 but can be installed separately \emph{via} the installer
 \code{AccessDatabaseEngine.exe} available from
-\url{http://www.microsoft.com/downloads/details.aspx?FamilyID=7554f536-8c28-4598-9b72-ef94e038c891&DisplayLang=en}
+\url{http://www.microsoft.com/downloads/details.aspx?FamilyID=7554f536-8c28-4598-9b72-ef94e038c891&DisplayLang=en}.
+The Access/Excel 2010 versions at
+\url{http://www.microsoft.com/downloads/details.aspx?familyid=C06B8369-60DD-4B64-A44B-84B371EDE16D&displaylang=en}
+have a 64-bit version: however the 64-bit drivers cannot be installed
+alongside 32-bit versions of Office (as far as we know, and definitely
+not for Office 2007).
 
 For recent versions of Mac OS X, low-cost and easy-to-use drivers are
 available from \url{http://www.actualtechnologies.com/products.php}:
@@ -1306,10 +1314,17 @@ The ODBC driver managers have `User DSNs' and `System DSNs': these
 differ only in where the information is stored, the first on a
 per-user basis and the second for all users of the system.
 
-Windows has a GUI to set up DSNs, called something like `Data Sources
-(ODBC)' under `Administrative Tools' in the Control Panel. You can
-add, remove and edit (`configure') DSNs there (see figure~2).  When
-adding a DSN, first select the ODBC driver and then complete the
+Windows has a GUI\footnote{Extra care is needed on a 64-bit version of
+  Windows, as this GUI shows only 64-bit settings for ODBC, including
+  drivers and DSNs.  If you are running 32-bit R (and hence 32-bit
+  ODBC) on 64-bit Windows, you need the 32-bit version of the GUI at
+  something like
+  \texttt{c:\textbackslash{}Windows\textbackslash{}SysWOW64\textbackslash{}odbcad32.exe}
+  -- and beware that both 32- and 64-bit versions are called
+  \texttt{odbcad32.exe}.} to set up DSNs, called something like `Data
+Sources (ODBC)' under `Administrative Tools' in the Control Panel. You
+can add, remove and edit (`configure') DSNs there (see figure~2).
+When adding a DSN, first select the ODBC driver and then complete the
 driver-specific dialog box.  There will usually be an option to test
 the DSN and it is wise to do so.
 
