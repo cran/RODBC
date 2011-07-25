@@ -1,4 +1,10 @@
-Version: 1.3-2 (2010-07-06, unreleased)
+Version: 1.3-3 (2011-07-25, released)
+
+	* COPYING: change to name to GPL-2.
+
+	* po: add Danish translations from Joe Hansen.
+
+Version: 1.3-2 (2010-07-25, released)
 
         * po: add German translations from Chris Leick
 

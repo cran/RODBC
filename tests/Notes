@@ -11,3 +11,5 @@ need to be started.  The shell used to run these tests must have the
 Oracle binaries (e:/Oracle/bin) in the path.
 
 The Oracle and Mimer tests need DB_PWD set.
+
+sqlite3 worked with sqliteodbc 0.83 but not 0.91.

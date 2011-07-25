@@ -8,7 +8,7 @@ runone <- function(f)
     message("  Running ", sQuote(f))
     infile <- paste(f, "RR", sep = ".")
     outfile <- paste(f, "Rout", sep = ".")
-    cmd <- paste(shQuote(file.path(R.home(), "bin", "R")),
+    cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                  "CMD BATCH --vanilla",
                  shQuote(infile), shQuote(outfile))
     res <- system(cmd)

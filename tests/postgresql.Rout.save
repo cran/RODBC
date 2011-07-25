@@ -1,7 +1,8 @@
 
-R version 2.10.0 Under development (unstable) (2009-07-11 r48929)
-Copyright (C) 2009 The R Foundation for Statistical Computing
+R version 2.13.1 (2011-07-08)
+Copyright (C) 2011 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
+Platform: i386-pc-mingw32/i386 (32-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -234,14 +235,14 @@ Kansas      6.0     115       66 18.0
 5          ripley      public      dtest        logi        12   varchar
 > sqlFetch(channel, "Dtest")
         dates    times                      dt  logi
-1  2004-01-01 01:05:00 2004-01-01 01:05:00.372  TRUE
-2  2004-01-08 02:05:00 2004-01-08 02:05:00.573    NA
-3  2004-01-15 03:05:00 2004-01-15 03:05:00.908 FALSE
-4  2004-01-22 04:05:00 2004-01-22 04:05:00.202 FALSE
+1  2004-01-01 01:05:00 2004-01-01 01:05:00.371  TRUE
+2  2004-01-08 02:05:00 2004-01-08 02:05:00.572    NA
+3  2004-01-15 03:05:00 2004-01-15 03:05:00.907 FALSE
+4  2004-01-22 04:05:00 2004-01-22 04:05:00.200 FALSE
 5  2004-01-29 05:05:00 2004-01-29 05:05:00.898 FALSE
-6  2004-02-05 06:05:00 2004-02-05 06:05:00.945  TRUE
+6  2004-02-05 06:05:00 2004-02-05 06:05:00.944  TRUE
 7  2004-02-12 07:05:00 2004-02-12 07:05:00.661    NA
-8  2004-02-19 08:05:00 2004-02-19 08:05:00.629 FALSE
+8  2004-02-19 08:05:00 2004-02-19 08:05:00.628 FALSE
 9  2004-02-26 09:05:00 2004-02-26 09:05:00.062 FALSE
 10 2004-03-04 10:05:00 2004-03-04 10:05:00.206 FALSE
 > sqlDrop(channel, "Dtest")

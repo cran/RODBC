@@ -8,10 +8,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2010-04-30 10:33+0100\n"
+"POT-Creation-Date: 2011-05-30 09:16+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -57,53 +58,61 @@ msgstr ""
 msgid "[RODBC] ERROR: SQLTables failed"
 msgstr ""
 
-#: RODBC.c:644
+#: RODBC.c:643
+msgid "[RODBC] ERROR: DBC driver claims there are < 0 columns!"
+msgstr ""
+
+#: RODBC.c:649
 msgid "[RODBC] ERROR: SQLRowCount failed"
 msgstr ""
 
-#: RODBC.c:694
+#: RODBC.c:654
+msgid "[RODBC] ERROR: DBC driver claims there are < 0 rows!"
+msgstr ""
+
+#: RODBC.c:704
 msgid "[RODBC] ERROR: SQLDescribeCol failed"
 msgstr ""
 
-#: RODBC.c:741
+#: RODBC.c:751
 msgid "[RODBC] ERROR: SQLBindCol failed"
 msgstr ""
 
-#: RODBC.c:760 RODBC.c:792 RODBC.c:961
+#: RODBC.c:770 RODBC.c:802 RODBC.c:971
 msgid "[RODBC] No results available"
 msgstr ""
 
-#: RODBC.c:798
+#: RODBC.c:808
 msgid "No Data"
 msgstr ""
 
-#: RODBC.c:862
+#: RODBC.c:872
 #, c-format
 msgid "character data truncated in column '%s'"
 msgstr ""
 
-#: RODBC.c:1110
+#: RODBC.c:1120
 msgid "[RODBC] SQLBindParameter failed"
 msgstr ""
 
-#: RODBC.c:1155
+#: RODBC.c:1165
 #, c-format
 msgid "character data '%s' truncated to %d bytes in column '%s'"
 msgstr ""
 
-#: RODBC.c:1172
+#: RODBC.c:1182
 msgid "[RODBC] Failed exec in Update"
 msgstr ""
 
-#: RODBC.c:1204
+#: RODBC.c:1214
 msgid "[RODBC] Error in SQLDisconnect"
 msgstr ""
 
-#: RODBC.c:1209
+#: RODBC.c:1219
 msgid "[RODBC] Error in SQLFreeconnect"
 msgstr ""
 
-#: RODBC.c:1228
+#: RODBC.c:1238
 #, c-format
 msgid "closing unused RODBC handle %d\n"
 msgstr ""
