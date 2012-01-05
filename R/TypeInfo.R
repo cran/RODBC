@@ -1,5 +1,5 @@
 # file RODBC/R/TypeInfo.R
-# copyright (C) 2004-2009  B. D. Ripley
+# copyright (C) 2004-2011  B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -39,29 +39,31 @@ sqlTypeInfo <-
 }
 
 typesR2DBMS <-
-    list(MySQL = list(double="double", integer="integer",
-         character="varchar(255)", logical="varchar(5)"),
-         ACCESS = list(double="DOUBLE", integer="INTEGER",
-         character="VARCHAR(255)", logical="varchar(5)"),
-         ## float is double, real is single
-         "Microsoft SQL Server" = list(double="float", integer="int",
-         character="varchar(255)", logical="varchar(5)"),
-         PostgreSQL = list(double="float8", integer="int4",
-         character="varchar(255)", logical="varchar(5)"),
-         ## was double="double precision", integer="integer"
-         Oracle = list(double="binary_double", integer="decimal",
-         character="varchar(255)", logical="varchar(5)"),
-         SQLite = list(double="double", integer="integer",
-         character="varchar(255)", logical="varchar(5)"),
-         EXCEL = list(double="NUMBER", integer="NUMBER",
-         character="VARCHAR(255)", logical="LOGICAL"),
-         DBASE = list(double="Numeric", integer="Numeric",
-         character="Char(254)", logical="Logical"),
-         "DB2/NT" = list(double="DOUBLE", integer="INTEGER",
-         character="VARCHAR(255)", logical="VARCHAR(5)"),
-         "Mimer SQL Engine" = list(double="DOUBLE PRECISION",
-         integer="INTEGER", character="VARCHAR(255)", logical="VARCHAR(5)")
-         )
+    list2env(list(
+                  MySQL = list(double="double", integer="integer",
+                  character="varchar(255)", logical="varchar(5)"),
+                  ACCESS = list(double="DOUBLE", integer="INTEGER",
+                  character="VARCHAR(255)", logical="varchar(5)"),
+                  ## float is double, real is single
+                  "Microsoft SQL Server" = list(double="float", integer="int",
+                  character="varchar(255)", logical="varchar(5)"),
+                  PostgreSQL = list(double="float8", integer="int4",
+                  character="varchar(255)", logical="varchar(5)"),
+                  ## was double="double precision", integer="integer"
+                  Oracle = list(double="binary_double", integer="decimal",
+                  character="varchar(255)", logical="varchar(5)"),
+                  SQLite = list(double="double", integer="integer",
+                  character="varchar(255)", logical="varchar(5)"),
+                  EXCEL = list(double="NUMBER", integer="NUMBER",
+                  character="VARCHAR(255)", logical="LOGICAL"),
+                  DBASE = list(double="Numeric", integer="Numeric",
+                  character="Char(254)", logical="Logical"),
+                  "DB2/NT" = list(double="DOUBLE", integer="INTEGER",
+                  character="VARCHAR(255)", logical="VARCHAR(5)"),
+                  "Mimer SQL Engine" = list(double="DOUBLE PRECISION",
+                  integer="INTEGER", character="VARCHAR(255)",
+                  logical="VARCHAR(5)")
+                  ))
 
 getSqlTypeInfo <- function(driver)
 {

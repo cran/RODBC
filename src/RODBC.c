@@ -1,5 +1,5 @@
 /*
- *  RODDC/src/RODBC.c by M. Lapsley and B. D. Ripley  Copyright (C) 1999-2009
+ *  RODDC/src/RODBC.c by M. Lapsley and B. D. Ripley  Copyright (C) 1999-2011
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdlib.h>
+
 #ifdef WIN32
 # include <windows.h>
 # undef ERROR
@@ -36,9 +37,11 @@ __declspec(dllimport) window RConsole;
 #else
 # include <unistd.h>
 #endif
+
 #include <string.h>
 #include <limits.h> /* for INT_MAX */
 
+#define MAX_CHANNELS 1000
 #include <sql.h>
 #include <sqlext.h>
 
@@ -70,7 +73,7 @@ __declspec(dllimport) window RConsole;
 
    Given that, how do we know what these mean?
 
-   MinGW: if _WIN64 is defined, they are 64-bit, otherwise (unsigned) long.
+   MinGW[-w64]: if _WIN64 is defined, they are 64-bit, otherwise (unsigned) long.
 
    unixODBC: if SIZEOF_LONG == 8 && BUILD_REAL_64_BIT_MODE they are
    64-bit.  In applications, SIZEOF_LONG == 8 is determined by
@@ -136,7 +139,7 @@ typedef struct rodbcHandle {
 } RODBCHandle, *pRODBCHandle;
 
 static unsigned int nChannels = 0; /* number of channels opened in session */
-static pRODBCHandle opened_handles[1001];
+static pRODBCHandle opened_handles[MAX_CHANNELS+1];
 
 static SQLHENV hEnv=NULL;
 
@@ -269,12 +272,12 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows, SEXP ReadOnly)
 	    setAttrib(ans, install("handle_ptr"), ptr);
 	    /* Rprintf("opening %d (%p, %p)\n", nChannels,
 	       ptr, thisHandle); */
-	    if(nChannels <= 1000) opened_handles[nChannels] = thisHandle;
+	    if(nChannels <= MAX_CHANNELS) opened_handles[nChannels] = thisHandle;
 	    UNPROTECT(3);
 	    return ans;
 	} else {
 	    if (retval == SQL_ERROR) {
-		SQLCHAR state[5], msg[1000];
+		SQLCHAR state[6], msg[1000];
 		SQLSMALLINT buffsize=1000, msglen, i=1;
 		SQLINTEGER code;
 		while(1) {
@@ -1197,7 +1200,7 @@ static int inRODBCClose(pRODBCHandle thisHandle)
     SQLRETURN retval;
 
     /* Rprintf("closing %p\n", thisHandle); */
-    if(thisHandle->channel <= 1000) opened_handles[thisHandle->channel] = NULL;
+    if(thisHandle->channel <= MAX_CHANNELS) opened_handles[thisHandle->channel] = NULL;
     retval = SQLDisconnect( thisHandle->hDbc );
     if( retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO ) {
 	/* was errlist_append, but errorlist is squashed before return! */
@@ -1236,7 +1239,7 @@ SEXP RODBCCloseAll(void)
 {
     int i;
 
-    for(i = 1; i <= my_min(nChannels, 100); i++)
+    for(i = 1; i <= my_min(nChannels, MAX_CHANNELS); i++)
 	if(opened_handles[i])
 	    inRODBCClose(opened_handles[i]);
 

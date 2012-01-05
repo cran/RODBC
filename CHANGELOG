@@ -1,3 +1,7 @@
+Version: 1.3-2 (2011-??-??, unreleased)
+
+	* R/RODBC.R, R/TypeInfo.R: use an environment for typesR2DBMS.
+	
 Version: 1.3-3 (2011-07-25, released)
 
 	* COPYING: change to name to GPL-2.

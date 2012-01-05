@@ -18,15 +18,10 @@
 #
 #
 #
-.onLoad <- function(lib, pkg)
+.onLoad <- function(libname, pkgname)
 {
     if(is.null(getOption("dec")))
         options(dec = Sys.localeconv()["decimal_point"])
-}
-
-.onAttach <- function(lib, pkg)
-{
-    unlockBinding("typesR2DBMS", asNamespace("RODBC"))
 }
 
 .onUnload <- function(libpath)
