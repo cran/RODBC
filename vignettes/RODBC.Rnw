@@ -2,7 +2,6 @@
 \usepackage{hyperref,color,url,alltt,parskip}
 %\usepackage{Sweave}
 \usepackage{graphicx}
-\graphicspath{{../../manual/}}
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\pkg}[1]{\texttt{#1}}
 \newcommand{\var}[1]{\emph{#1}}
@@ -28,7 +27,7 @@ plainpages=true,%
 linkcolor=black,%
 citecolor=black,%
 urlcolor=Blue,%
-pdfstartview==FitW,%
+pdfstartview=FitH,%
 pdfview={XYZ null null null},%
 %pdfpagemode=UseNone,%
 pdfauthor={B. D. Ripley}%
@@ -1029,8 +1028,11 @@ avoid comparing non-ASCII character data in SQLite.
 Actual Technologies sell an SQLite driver for Mac OS X which requires
 \code{believeNRows = FALSE} and has a number of other issues including
 that it seems not to support dropping tables.  (Christian Werner's
-SQLite~ODBC driver was easy to install from the sources and works
+SQLite~ODBC driver was easy to install from the sources and worked
 correctly.)
+
+Version of the SQLite~ODBC driver since  0.87 have segfaulted on
+the test suite.
 
 \subsection*{Oracle}
 

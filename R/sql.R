@@ -644,6 +644,7 @@ sqlGetResults <-
                 data[[i]] <- as.POSIXct(data[[i]])
             else
                 data[[i]] <- type.convert(as.character(data[[i]]),
+                                          na.strings = na.strings,
                                           as.is = !stringsAsFactors,
                                           dec = dec)
         }
