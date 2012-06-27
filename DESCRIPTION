@@ -1,7 +1,7 @@
 Package: RODBC
-Version: 1.3-5
-Revision: $Rev: 3160 $
-Date: 2012-03-09
+Version: 1.3-6
+Revision: $Rev: 3312 $
+Date: 2012-06-27
 Author: Brian Ripley, and from 1999 to Oct 2002 Michael Lapsley
 Maintainer: Brian Ripley <ripley@stats.ox.ac.uk>
 Title: ODBC Database Access
@@ -10,8 +10,9 @@ SystemRequirements: An ODBC3 driver manager and drivers.
 Depends: R (>= 2.12.0), utils
 Imports: stats
 LazyLoad: yes
+Biarch: yes
 License: GPL-2 | GPL-3
-BuildVignettes: no
-Packaged: 2012-03-09 06:01:02 UTC; ripley
+Packaged: 2013-06-28 08:54:37 UTC; ripley
+NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2012-03-09 06:03:14
+Date/Publication: 2013-06-28 10:54:57
