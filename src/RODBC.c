@@ -1,5 +1,5 @@
 /*
- *  RODDC/src/RODBC.c by M. Lapsley and B. D. Ripley  Copyright (C) 1999-2011
+ *  RODDC/src/RODBC.c by M. Lapsley and B. D. Ripley  Copyright (C) 1999-2013
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1527,12 +1527,9 @@ static const R_CallMethodDef CallEntries[] = {
     {NULL, NULL, 0}
 };
 
-#include <Rversion.h>
 void R_init_RODBC(DllInfo *dll)
 {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
-#if defined(R_VERSION) && R_VERSION >= R_Version(2, 16, 0)
     R_forceSymbols(dll, TRUE);
-#endif
 }

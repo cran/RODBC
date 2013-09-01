@@ -224,6 +224,7 @@ odbcClose <- function(channel)
         warning(paste(odbcGetErrMsg(channel), sep="\n"))
         FALSE
     }
+    invisible(TRUE)
 }
 
 odbcCloseAll <- function()

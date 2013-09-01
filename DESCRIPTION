@@ -1,6 +1,6 @@
 Package: RODBC
-Version: 1.3-8
-Revision: $Rev: 3349 $
+Version: 1.3-9
+Revision: $Rev: 3350 $
 Date: 2013-09-01
 Author: Brian Ripley, and from 1999 to Oct 2002 Michael Lapsley
 Maintainer: Brian Ripley <ripley@stats.ox.ac.uk>
@@ -12,7 +12,7 @@ Imports: stats
 LazyLoad: yes
 Biarch: yes
 License: GPL-2 | GPL-3
-Packaged: 2013-09-03 15:18:24 UTC; ripley
+Packaged: 2013-10-31 22:07:50 UTC; ripley
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2013-09-03 17:23:30
+Date/Publication: 2013-11-01 07:32:05

@@ -1,12 +1,13 @@
 \documentclass[a4paper,11pt]{article}
 \usepackage{hyperref,color,url,alltt,parskip}
 %\usepackage{Sweave}
+\usepackage{Rd}  % mainly for upright quotes.
 \usepackage{graphicx}
-\newcommand{\code}[1]{\texttt{#1}}
-\newcommand{\pkg}[1]{\texttt{#1}}
-\newcommand{\var}[1]{\emph{#1}}
-\newcommand{\link}[1]{#1}
-\newcommand{\sQuote}[1]{`#1'}
+%\newcommand{\code}[1]{\texttt{#1}}
+%\newcommand{\pkg}[1]{\texttt{#1}}
+%\newcommand{\var}[1]{\emph{#1}}
+%\newcommand{\link}[1]{#1}
+%\newcommand{\sQuote}[1]{`#1'}
 \newenvironment{smallexample}{\begin{alltt}\scriptsize}{\end{alltt}}
 \newenvironment{example}{\begin{alltt}\small}{\end{alltt}}
 
@@ -30,6 +31,7 @@ urlcolor=Blue,%
 pdfstartview=FitH,%
 pdfview={XYZ null null null},%
 %pdfpagemode=UseNone,%
+pdftitle={ODBC Connectivity for R},%
 pdfauthor={B. D. Ripley}%
 }
 
@@ -38,6 +40,7 @@ pdfauthor={B. D. Ripley}%
 %\VignetteIndexEntry{ODBC Connectivity}
 %\VignetteDepends{RODBC}
 %\VignetteKeywords{databases}
+%\VignetteKeywords{ODBC}
 %\VignettePackage{RODBC}
 
 %\SweaveOpts{engine=R,eps=FALSE}
@@ -59,24 +62,27 @@ Ripley.  Version 1.0-1 was released in January 2003, and \pkg{RODBC}
 is nowadays a mature and much-used platform for interfacing R to
 database systems.
 
+Thanks to Marc Schwartz for contributing some of the experiences
+here.  See also the archives of the \code{R-sig-db} mailing list.
+
 \section{ODBC Concepts}
 
 ODBC aims to provide a common API for access to SQL\footnote{SQL is a
   language for querying and managing data in databases---see
   \url{http://en.wikipedia.org/wiki/SQL}.}-based database management
-systems (DBMSs) such as MySQL, PostgreSQL, Microsoft Access and SQL
-Server, DB2, Oracle and SQLite.  It originated on Windows in the early
-1990s, but ODBC \emph{driver managers} \code{unixODBC} and
-\code{iODBC} are nowadays available on a wide range of platforms (and
-a version of \code{iODBC} ships with recent versions of Mac OS X).
-The connection to the particular DBMS needs an \emph{ODBC driver}:
-these may come with the DBMS or the ODBC driver manager or be provided
-separately by the DBMS developers, and there are
-third-party\footnote{but there are close links between \code{unixODBC}
-  and Easysoft, and \code{iODBC} and OpenLink.}  developers such as
-Actual Technologies, Easysoft and OpenLink. (This means that for some
-DBMSs there are several different ODBC drivers available, and they can
-behave differently.)
+systems (DBMSs) such as MySQL\footnote{and its fork, MariaDB},
+PostgreSQL, Microsoft Access and SQL Server, DB2, Oracle and SQLite.
+It originated on Windows in the early 1990s, but ODBC \emph{driver
+  managers} \code{unixODBC} and \code{iODBC} are nowadays available on
+a wide range of platforms (and a version of \code{iODBC} shipped with
+versions of Mac OS X prior to 10.9).  The connection to the particular
+DBMS needs an \emph{ODBC driver}: these may come with the DBMS or the
+ODBC driver manager or be provided separately by the DBMS developers,
+and there are third-party\footnote{but there are close links between
+  \code{unixODBC} and Easysoft, and \code{iODBC} and OpenLink.}
+developers such as Actual Technologies, Easysoft and OpenLink. (This
+means that for some DBMSs there are several different ODBC drivers
+available, and they can behave differently.)
 
 Microsoft provides drivers on Windows for non-SQL database systems
 such as DBase and FoxPro, and even for flat files and Excel
@@ -344,7 +350,7 @@ The main tool to create a table is \code{sqlSave}.  It is safest to
 use this after having removed any existing table of the same name,
 which can be done by
 \begin{example}
-sqlDrop(ch, "\var{table\_name}", errors=FALSE)
+sqlDrop(ch, "\var{table\_name}", errors = FALSE)
 \end{example}
 Then in the simplest usage
 \begin{example}
@@ -368,8 +374,8 @@ columns; in others it needs some hints (and e.g.{} for Oracle dates
 are stored as date-times).  The files in the \code{RODBC/tests}
 directory in the sources and the installed file \code{tests.R} provide
 some examples.  One of the options is the \code{fast} argument: the
-default is \code{fast=TRUE} which transfers data in binary format: the
-alternative is \code{fast=FALSE} which transfer data as character
+default is \code{fast = TRUE} which transfers data in binary format: the
+alternative is \code{fast = FALSE} which transfer data as character
 strings a row at a time---this is slower but can work better with some
 drivers (and worse with others).
 
@@ -430,7 +436,7 @@ same names.
 
 Double- and single-precision numeric values and 32- and 16-bit
 integers (only) are transferred as binary values, and all other types
-as character strings.  However, unless \code{as.is=TRUE},
+as character strings.  However, unless \code{as.is = TRUE},
 \code{sqlGetResults} (used by all the higher-level functions to return
 a data frame) converts character data to an date/date-time class or
 \emph{via} \code{type.convert}.
@@ -605,10 +611,7 @@ Commonly used data types fall into a number of groups:
 
 % An example is BOOLEAN in Mimer
 It is possible (but rare) for the DBMS to support data types that the
-ODBC driver cannot handle.  Most DBMSs have binary data types which
-have no corresponding R data type (\code{raw} corresponds to a single
-byte, not a fixed or variable length set of bytes): these are not
-currently covered by \pkg{RODBC}.
+ODBC driver cannot handle.
 
 
 \subsection{Data types when saving a data frame}
@@ -902,7 +905,7 @@ named range).
 
 As far as we know, no similar issues affect the Actual Technologies
 Mac OS X Excel driver: however, it allows only read-only access to
-Excel files and does not support Excel 2007/2008 \code{.xlsx} files.
+Excel files and does not support Excel 2007-and-later \code{.xlsx} files.
 
 
 \section{DBMS-specific tidbits}
@@ -916,6 +919,8 @@ These include MySQL (the name of a database, mainly populated
 beginning with MySQL~5.1), SQL Server and Mimer.
 
 \subsection*{MySQL}
+
+Comments about MySQL are mostly applicable to its forks such as MariaDB.
 
 We have already mentioned \code{USE \var{database}} as the way to change
 the database in use.  \code{SHOW DATABASES} lists the databases `for
@@ -999,7 +1004,7 @@ and how to handle unknown column sizes (default as the maximum), and
 whether `Text' is taken as \code{varchar} or \code{longvarchar} (which
 affects the reported maximum size for a \code{varchar} column).
 
-There is a single binary data types, \code{bytea}.
+There is a single binary data type, \code{bytea}.
 
 
 \subsection*{SQLite}
@@ -1154,12 +1159,21 @@ available for Mac OS X and Windows from CRAN.
 To install from the sources, an \emph{ODBC Driver Manager} is
 required.  Windows normally comes with one (it is part of MDAC and can
 be installed separately if required).  Mac OS X since 10.2 has shipped
-with \code{iODBC}, which is also available for other Unix-alikes.  But for
-other systems the driver manager of choice is \code{unixODBC}, part of almost
-all Linux distributions and with sources downloadable from
-\url{http://www.unixODBC.org}.  In Linux binary distributions it is
-likely that package \code{unixODBC-devel} or \code{unixodbc-dev} or
-some such will be needed.
+with \code{iODBC} (\url{http://www.iodbc.org}, this is also available
+for other Unix-alikes) but from 10.9 the headers are no longer
+included in the OS X SDK.  At present the CRAN OS X binary package is
+compiled against iODBC.
+
+For other systems the driver manager of choice is likely to be
+\code{unixODBC}, part of almost all Linux distributions and with
+sources downloadable from \url{http://www.unixODBC.org}.  In Linux
+binary distributions it is likely that package \code{unixODBC-devel}
+or \code{unixodbc-dev} or some such will be needed.
+
+Both \code{unixODBC} and \code{iODBC} can be installed from the
+sources under OS X 10.9: the latter requires configuring with
+\code{--disable-gui}.  They need ODBC drivers compiled for the driver
+manager in use.
 
 In most cases the package's \code{configure} script will find the
 driver manager files, and the package will install with no extra
@@ -1176,27 +1190,28 @@ additional \code{CFLAGS}.
 
 \subsection*{Sources of drivers}
 
-A fairly comprehensive list of drivers is maintained at
-\url{http://www.sqlsummit.com/ODBCVend.htm}, and one for
-\code{unixODBC}\footnote{that the author works for Easysoft is
-  conspicuous.} at \url{http://www.unixodbc.org/drivers.html}.
-\code{unixODBC} ships with a number of drivers (although in most cases
-the DBMS vendor's driver is preferred)---these include for MySQL,
-PostgreSQL, Mimer and flat files.
+Keeping track of ODBC drivers is a never-ending task, and this section
+is no longer actively maintained.  URIs are liable to move or disappear.
+
+A list of drivers for \code{unixODBC} is maintained\footnote{that the
+  author works for Easysoft is conspicuous.} at
+\url{http://www.unixodbc.org/drivers.html}.  \code{unixODBC} ships
+with a number of drivers (although in most cases the DBMS vendor's
+driver is preferred)---these include for MySQL, PostgreSQL, Mimer and
+flat files.
 
 MySQL provides drivers under the name `Connector/ODBC' (formerly
 MyODBC') in source form, and binaries for all common 32-bit and most
-64-bit R platforms.
+64-bit R platforms.  These are said to work also with MariaDB.
 
 PostgreSQL has an associated project at
 \url{http://pgfoundry.org/projects/psqlodbc/} and another project for
-at \url{http://pgfoundry.org/projects/odbcng/} and
-\url{http://projects.commandprompt.com/public/odbcng}.  (Documentation
-for \code{psqlodbc} is currently hard to find, but there is some in
-the PostgreSQL 7.2 manual at
+at \url{http://pgfoundry.org/projects/odbcng/}.  (Documentation for
+\code{psqlodbc} is currently hard to find, but there is some in the
+PostgreSQL 7.2 manual at
 \url{http://www.postgresql.org/docs/7.2/static/odbc.html} from before
 it was unbundled.)  There are drivers for Unix-alikes and Windows --
-64-bit Windows support is available for PostgreSQL 9.0.
+64-bit Windows support is available as from PostgreSQL 9.0.
 
 An SQLite ODBC driver for Unix-alikes, including Mac OS X, and (32-
 and 64-bit) Windows is available from
@@ -1205,7 +1220,8 @@ and 64-bit) Windows is available from
 Oracle provides ODBC drivers as a supplement to its `Instant Client'
 for some of its platforms (including 32/64-bit Windows and Linux but
 not currently Mac OS X).  See
-\url{http://www.oracle.com/technology/software/tech/oci/instantclient/}.
+\url{http://www.oracle.com/technetwork/database/features/instant-client/index-097480.html}
+%\url{http://www.oracle.com/technology/software/tech/oci/instantclient/}.
 One quirk of the Windows drivers is that the Oracle binaries must be
 in the path, so \code{PATH} should include e.g.{}
 \verb|c:\Oracle\bin|.
@@ -1233,19 +1249,24 @@ There is also a Visual FoxPro driver and an (outdated) Oracle driver.
 32-bit Windows drivers for Access 2007 and Excel 2007 are bundled with
 Office 2007 but can be installed separately \emph{via} the installer
 \code{AccessDatabaseEngine.exe} available from
-\url{http://www.microsoft.com/downloads/details.aspx?FamilyID=7554f536-8c28-4598-9b72-ef94e038c891&DisplayLang=en}.
+%\url{http://www.microsoft.com/downloads/details.aspx?FamilyID=7554f536-8c28-4598-9b72-ef94e038c891&DisplayLang=en}.
+\url{http://www.microsoft.com/en-us/download/details.aspx?id=23734}.
+
 The Access/Excel 2010 versions at
-\url{http://www.microsoft.com/downloads/details.aspx?familyid=C06B8369-60DD-4B64-A44B-84B371EDE16D&displaylang=en}
+%\url{http://www.microsoft.com/downloads/details.aspx?familyid=C06B8369-60DD-4B64-A44B-84B371EDE16D&displaylang=en}
+\url{http://www.microsoft.com/en-us/download/details.aspx?id=13255}
 have a 64-bit version: however the 64-bit drivers cannot be installed
 alongside 32-bit versions of Office (as far as we know, and definitely
 not for Office 2007).
 
-For recent versions of Mac OS X, low-cost and easy-to-use drivers are
-available from \url{http://www.actualtechnologies.com/products.php}:
-these cover MySQL/PostgreSQL/SQLite (one driver), SQL Server/Sybase,
-Oracle, and a read-only driver for Access and related formats
-(including Access 2007 and Excel, but not Excel 2007).  That SQLite
-driver needs \code{believeNRows = FALSE} set.
+For recent versions of Mac OS X, low-cost and easy-to-use \code{iODBC}
+drivers are available from
+\url{http://www.actualtech.com/products.php}: these cover
+MySQL/PostgreSQL/SQLite (one driver), SQL Server/Sybase, Oracle, and a
+read-only driver for Access and related formats (including Access 2007
+and Excel, but not Excel 2007).  That SQLite driver needs
+\code{believeNRows = FALSE} set.  Currently at least, installing those
+drivers on 10.9 installs \code{iODBC}.
 
 Mac OS X drivers for the MySQL, PostgreSQL and the major commercial
 databases are available from \url{http://uda.openlinksw.com/}.
@@ -1268,7 +1289,7 @@ Unix command line by one of
 \$  odbc\_config --odbcinstini
 \end{example}
 For \code{iODBC} use \code{iodbc\_config}: on Mac OS X the system
-location is \code{/Library/ODBC/odbcinst.ini}.
+location used by Apple was \code{/Library/ODBC/odbcinst.ini}.
 
 \begin{figure}
 \begin{example}
@@ -1349,28 +1370,33 @@ databases.  On that platform, calling \code{odbcDriverConnect()} with
 no arguments will bring up the main ODBC Data Sources dialog box to
 allow a DSN to be constructed on the fly.
 
-Mac OS X comes with a very similar GUI (figure~3) found at
-\textsf{Applications / Utilities / ODBC Administrator}.
+Mac OS X prior to 10.6 came with a very similar GUI (figure~3) found
+at \textsf{Applications / Utilities / ODBC Administrator}.
+This is now available as a download from
+\url{http://support.apple.com/kb/DL895}.  Another GUI for OS X is
+available from \url{http://www.odbcmanager.net/index.php}.
 
 \begin{figure}
 \centerline{\includegraphics[width=12cm]{macODBC}}
 \bigbreak
 \centerline{\includegraphics[width=12cm]{macAccess}}
-\caption{(Top) The main ODBC Administrator dialog box from a Mac OS X system.
+\caption{(Top) The main ODBC Administrator dialog box from a 
+  Mac OS X 10.5 system.
 (Bottom) A page of the  dialog box to specify a DSN for the Actual
 Technologies Access/Excel driver.}
 \label{fig:1b}
 \end{figure}
 
-Both \code{unixODBC} and \code{iODBC} provide GUIs (which might be
-packaged separately in binary distributions) to create DSNs, and
-\code{iODBC} also has a web-grounded DSN administrator.  UnixODBC's GUI
-is currently called \texttt{ODBCConfig} (see figure~4), and there is a
-KDE control widget called \texttt{DataManager} to manage both ODBC
-drivers and DSNs.  See the \code{unixODBC} user manual at
-\url{http://www.unixodbc.org/doc/UserManual/}. (On Fedora these are in
-the \code{unixODBC-kde} RPM.  It has been announced that they will
-become separate projects after \code{unixODBC 2.2.14}.)
+
+% Both \code{unixODBC} and \code{iODBC} provide GUIs (which might be
+% packaged separately in binary distributions) to create DSNs, and
+% \code{iODBC} also has a web-grounded DSN administrator.  UnixODBC's GUI
+% is currently called \texttt{ODBCConfig} (see figure~4), and there is a
+% KDE control widget called \texttt{DataManager} to manage both ODBC
+% drivers and DSNs.  See the \code{unixODBC} user manual at
+% \url{http://www.unixodbc.org/doc/UserManual/}. (On Fedora these are in
+% the \code{unixODBC-kde} RPM.  It has been announced that they will
+% become separate projects after \code{unixODBC 2.2.14}.)
 
 \begin{figure}
 \centerline{\includegraphics[width=12cm]{linuxDSN}}

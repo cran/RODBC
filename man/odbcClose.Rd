@@ -31,8 +31,8 @@ odbcCloseAll()
   session).
 }
 \value{
-  Function \code{odbcClose} returns invisibly a logical indicating if it
-  succeeded.
+  Function \code{odbcClose} returns a logical indicating if it
+  succeeded, invisibly unless a warning is given.
 }
 \author{
   Michael Lapsley and Brian Ripley

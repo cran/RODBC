@@ -1,9 +1,44 @@
-Version: 1.3-5 (2012-03-09, released)
+Version: 1.3-9 (2013-11-01, released)
+
+	* cleanup: remove detritus from OS X trial compiles.
+
+	* R/RODBC.R: return value is now as documented.
+
+	* src/RODBC.c: remove version dependence as package depends
+	on a later version of R.
+
+	* vignettes/RODBC.Rnw: updates, including for OS X Mavericks.
+
+	
+Version: 1.3-8 (2013-09-01, released)
+
+	* DESCRIPTION: depend on R (>= 3.0.0)
+
+	* Remove a.out.DSYM directory left over from OS X
+
+	* R/TypeInfo.R: Use registered symbol in .Call
+
+	* src/RODBC.c: remove repeated i++
+
+	
+Version: 1.3-7 (2012-07-01, released)
+
+	* LICENCE.note: rename LICENCE
+
+	
+Version: 1.3-6 (2012-06-28, released)
+
+	* DESCRIPTION: remove BuildVignettes: no
+
+	* vignettes/Makefile: remove as R 3.0.x misbehaves
+
+	
+Version: 1.3-5 (2012-06-09, released)
 
 	* R/sql.R: pass na.strings to type.convert, so "NA" need not be
 	converted.
 
-	* vignettes: assemble pieces from inst/doc and manual.
+	* vignettes/: assemble pieces from inst/doc and manual.
 
 
 Version: 1.3-4 (2012-01-05, released)

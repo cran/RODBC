@@ -1,8 +1,5 @@
 if(!nzchar(Sys.getenv("RODBC_TESTING"))) q("no")
 
-if(getRversion() < "2.9.0")
-    stop("testing is only supported in R >= 2.9.0")
-
 runone <- function(f)
 {
     message("  Running ", sQuote(f))
