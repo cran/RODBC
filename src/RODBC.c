@@ -1273,7 +1273,7 @@ geterr(pRODBCHandle thisHandle)
 	if(retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO) break;
 	sprintf(message,"%s %d %s", sqlstate, (int)NativeError, msg);
 	errlistAppend(thisHandle, message);
-	i++;
+	// i++;
     }
 }
 

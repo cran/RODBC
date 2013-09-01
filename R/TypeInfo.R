@@ -26,7 +26,7 @@ sqlTypeInfo <-
                           "date", "time", "binary", "varbinary",
                           "longvarbinary", "blob"),
                   nomatch = 1L) - 1L
-    stat <- .Call("RODBCTypeInfo", attr(channel, "handle_ptr"),
+    stat <- .Call(C_RODBCTypeInfo, attr(channel, "handle_ptr"),
                   as.integer(type), PACKAGE = "RODBC")
     if(!stat) {
         if(errors) return(odbcGetErrMsg(channel)) else return(invisible(-1L))
