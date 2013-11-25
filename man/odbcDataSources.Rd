@@ -1,3 +1,6 @@
+% file RODBC/man/odbcDataSources.Rd
+% copyright (C) 2006-13  M. Lapsley and B. D. Ripley
+%
 \name{odbcDataSources}
 \alias{odbcDataSources}
 \title{List ODBC Data Sources}

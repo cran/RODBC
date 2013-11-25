@@ -1,5 +1,5 @@
 # file RODBC/R/RODBC.R
-# copyright (C) 1999-2009  M. Lapsley and B. D. Ripley
+# copyright (C) 1999-2013  M. Lapsley and B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -213,7 +213,7 @@ odbcPrimaryKeys <- function(channel, table, catalog = NULL, schema = NULL)
           as.character(table), catalog, schema)
 }
 
-close.RODBC <- function(con, ...) odbcClose(con)
+close.RODBC <- function(con, ...) invisible(ifelse(odbcClose(con), 0L, 1L))
 
 odbcClose <- function(channel)
 {

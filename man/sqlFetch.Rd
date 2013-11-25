@@ -1,3 +1,6 @@
+% file RODBC/man/sqlFetch.Rd
+% copyright (C) 1999-2013  M. Lapsley and B. D. Ripley
+%
 \name{sqlFetch}
 \alias{sqlFetch}
 \alias{sqlFetchMore}

@@ -1,3 +1,6 @@
+% file RODBC/man/odbcSetAutoCommit.Rd
+% copyright (C) 2005-13  M. Lapsley and B. D. Ripley
+%
 \name{odbcSetAutoCommit}
 \alias{odbcSetAutoCommit}
 \alias{odbcEndTran}

@@ -1,3 +1,6 @@
+% file RODBC/man/odbcClose.Rd
+% copyright (C) 1999-2013  M. Lapsley and B. D. Ripley
+%
 \name{odbcClose}
 \alias{odbcClose}
 \alias{odbcCloseAll}
@@ -33,6 +36,8 @@ odbcCloseAll()
 \value{
   Function \code{odbcClose} returns a logical indicating if it
   succeeded, invisibly unless a warning is given.
+
+  The \code{close} method returns \code{0} (success) or \code{1}, invisibly.
 }
 \author{
   Michael Lapsley and Brian Ripley

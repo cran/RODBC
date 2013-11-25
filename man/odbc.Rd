@@ -1,3 +1,6 @@
+% file RODBC/man/odbc.Rd
+% copyright (C) 1999-2013  M. Lapsley and B. D. Ripley
+%
 \name{odbc-low-level}
 \alias{odbcQuery}
 \alias{odbcTables}

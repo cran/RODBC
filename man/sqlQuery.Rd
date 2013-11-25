@@ -1,3 +1,6 @@
+% file RODBC/man/sqlQuery.Rd
+% copyright (C) 1999-2013  M. Lapsley and B. D. Ripley
+%
 \name{sqlQuery}
 \alias{sqlQuery}
 \alias{sqlGetResults}

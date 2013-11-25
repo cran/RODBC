@@ -1,3 +1,6 @@
+% file RODBC/man/odbcGetInfo.Rd
+% copyright (C) 1999-2013  M. Lapsley and B. D. Ripley
+%
 \name{odbcGetInfo}
 \alias{odbcGetInfo}
 \title{Request Information on an ODBC Connection}

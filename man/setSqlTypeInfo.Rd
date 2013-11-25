@@ -1,3 +1,6 @@
+% file RODBC/man/sqlTypeInfo.Rd
+% copyright (C) 2004-13  M. Lapsley and B. D. Ripley
+%
 \name{setSqlTypeInfo}
 \alias{setSqlTypeInfo}
 \alias{getSqlTypeInfo}

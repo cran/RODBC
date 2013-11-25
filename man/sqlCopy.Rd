@@ -1,3 +1,6 @@
+% file RODBC/man/sqlCopy.Rd
+% copyright (C) 1999-2013  M. Lapsley and B. D. Ripley
+%
 \name{sqlCopy}
 \alias{sqlCopy}
 \alias{sqlCopyTable}

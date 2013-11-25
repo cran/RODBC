@@ -1,3 +1,6 @@
+% file RODBC/man/s.Rd
+% copyright (C) 1999-2013  M. Lapsley and B. D. Ripley
+%
 \name{sqlTables}
 \alias{sqlTables}
 

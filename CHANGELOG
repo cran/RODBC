@@ -1,8 +1,18 @@
+Version: 1.3-10 (2013-11-25, released)
+
+	* DESCRIPTION: use Authors@R
+
+	* R/RODBC.R, man/odbcClose.Rd: return value of close() method is
+	now more consistent with other methods.
+
+	* man/*.Rd: add copyright dates.
+
+
 Version: 1.3-9 (2013-11-01, released)
 
 	* cleanup: remove detritus from OS X trial compiles.
 
-	* R/RODBC.R: return value is now as documented.
+	* R/RODBC.R: return value of odbcClose is now as documented.
 
 	* src/RODBC.c: remove version dependence as package depends
 	on a later version of R.
@@ -21,12 +31,12 @@ Version: 1.3-8 (2013-09-01, released)
 	* src/RODBC.c: remove repeated i++
 
 	
-Version: 1.3-7 (2012-07-01, released)
+Version: 1.3-7 (2013-07-01, released)
 
 	* LICENCE.note: rename LICENCE
 
 	
-Version: 1.3-6 (2012-06-28, released)
+Version: 1.3-6 (2013-06-28, released)
 
 	* DESCRIPTION: remove BuildVignettes: no
 

@@ -1,3 +1,6 @@
+% file RODBC/man/RODBC-internal.Rd
+% copyright (C) 1999-2013  M. Lapsley and B. D. Ripley
+%
 \name{RODBC-internal}
 \alias{odbcUpdate}
 \alias{odbcCaseFlag}
