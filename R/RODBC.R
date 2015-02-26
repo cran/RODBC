@@ -85,7 +85,7 @@ odbcConnect <- function (dsn, uid = "", pwd = "", ...)
 odbcDriverConnect <-
     function (connection = "", case = "nochange", believeNRows = TRUE,
               colQuote, tabQuote = colQuote, interpretDot = TRUE,
-              DBMSencoding= "", rows_at_time = 100, readOnlyOptimize = FALSE)
+              DBMSencoding = "", rows_at_time = 100, readOnlyOptimize = FALSE)
 {
    id <- as.integer(1 + runif(1, 0, 1e5))
    stat <- .Call(C_RODBCDriverConnect, as.character(connection), id,
@@ -261,7 +261,7 @@ odbcGetInfo <- function(channel)
     res
 }
 
-odbcValidChannel <-  function(channel)
+odbcValidChannel <- function(channel)
 {
     inherits(channel, "RODBC") && is.integer(channel) &&
     .Call(C_RODBCcheckchannel, channel, attr(channel, "id")) > 0

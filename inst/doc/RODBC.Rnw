@@ -74,11 +74,11 @@ systems (DBMSs) such as MySQL\footnote{and its fork, MariaDB},
 PostgreSQL, Microsoft Access and SQL Server, DB2, Oracle and SQLite.
 It originated on Windows in the early 1990s, but ODBC \emph{driver
   managers} \code{unixODBC} and \code{iODBC} are nowadays available on
-a wide range of platforms (and a version of \code{iODBC} shipped with
-versions of Mac OS X prior to 10.9).  The connection to the particular
-DBMS needs an \emph{ODBC driver}: these may come with the DBMS or the
-ODBC driver manager or be provided separately by the DBMS developers,
-and there are third-party\footnote{but there are close links between
+a wide range of platforms (and \code{iODBC} shipped with versions of
+OS X prior to 10.9).  The connection to the particular DBMS needs
+an \emph{ODBC driver}: these may come with the DBMS or the ODBC driver
+manager or be provided separately by the DBMS developers, and there
+are third-party\footnote{but there are close links between
   \code{unixODBC} and Easysoft, and \code{iODBC} and OpenLink.}
 developers such as Actual Technologies, Easysoft and OpenLink. (This
 means that for some DBMSs there are several different ODBC drivers
@@ -86,8 +86,8 @@ available, and they can behave differently.)
 
 Microsoft provides drivers on Windows for non-SQL database systems
 such as DBase and FoxPro, and even for flat files and Excel
-spreadsheets. Actual Technologies sell a driver for Mac OS X that
-covers (some) Excel spreadsheets and flat files.
+spreadsheets. Actual Technologies sell a driver for OS X that covers
+(some) Excel spreadsheets and flat files.
 
 A connection to a specific database is called a \emph{Data Source
   Name} or DSN (see
@@ -257,7 +257,7 @@ the aim of many of the DBMSs, so this is a very powerful tool.  To
 learn SQL it is best to find a tutorial specific to the dialect you
 will use; for example Chapter~3 of the MySQL manual is a tutorial.  A
 basic tutorial which covers some common dialects\footnote{MySQL,
-  Oracle and SQL Server.}  can be found at
+  Oracle and Microsoft SQL Server.}  can be found at
 \url{http://www.1keydata.com/sql/sql.html}: tutorials on how to
 perform common tasks in several commonly used DBMSs are available at
 \url{http://sqlzoo.net/}.
@@ -438,7 +438,7 @@ Double- and single-precision numeric values and 32- and 16-bit
 integers (only) are transferred as binary values, and all other types
 as character strings.  However, unless \code{as.is = TRUE},
 \code{sqlGetResults} (used by all the higher-level functions to return
-a data frame) converts character data to an date/date-time class or
+a data frame) converts character data to a date/date-time class or
 \emph{via} \code{type.convert}.
 
 You can find out the DBMS names for the data types used in the columns
@@ -523,18 +523,19 @@ Commonly used data types fall into a number of groups:
   Many other DBMSs have separate types to hold Unicode character
   strings, often with names like \code{nvarchar} or \code{wvarchar}.
   Note that currently \pkg{RODBC} only uses the current locale for
-  character data, which could be UTF-8 (and will be on Mac OS X and in
+  character data, which could be UTF-8 (and will be on OS X and in
   many cases on Linux and other Unix-alikes), but is never UCS-2 as
   used on Windows.  So if character data is stored in the database in
   Unicode, it will be translated (with a possible loss of information)
   in non-Unicode locales.  (This may change in future versions of
   \pkg{RODBC}.)
 
-  Some DBMSs such as PostgreSQL and SQL Server allow variable-length
-  character strings of length only limited by resources.  These do not
-  fit well with the ODBC model that requires buffers to be allocated
-  to transfer character data, and so such types may be subjected (by
-  the ODBC driver) to a fixed limit or not work at all.
+  Some DBMSs such as PostgreSQL and Microsoft SQL Server allow
+  variable-length character strings of length only limited by
+  resources.  These do not fit well with the ODBC model that requires
+  buffers to be allocated to transfer character data, and so such
+  types may be subjected (by the ODBC driver) to a fixed limit or not
+  work at all.
 
 \item[Integer types] Most DBMSs have types for 32-bit (\code{integer},
   synomyn \code{int}) and 16-bit (\code{smallint}) integers.  Some,
@@ -569,7 +570,7 @@ Commonly used data types fall into a number of groups:
 \item[Other numeric types] It is common to store decimal quantities in
   databases (e.g.{} currency amounts) and types 2 and 3 are for
   decimals. Some DBMSs have specialized types to handle currencies,
-  e.g.{} \code{money} in SQL Server.
+  e.g.{} \code{money} in Microsoft SQL Server.
 
   Decimal types have a \emph{precision} (the maximum number of
   significant decimal digits) and \emph{scale} (the position of the
@@ -711,7 +712,7 @@ is the defintiive source of information about ODBC data types.
 This is a more technical section: few users will need to deal with
 these concepts.
 
-\sQuote{Schemas}\footnote{which is the usual plural in this technial
+\sQuote{Schemas}\footnote{which is the usual plural in this technical
   usage, athough \emph{schemata} is more usual in English.} are
 collections of objects (such as tables and views) within a database
 that are supported by some DBMSs: often a separate schema is
@@ -827,8 +828,8 @@ whereas for PostgreSQL the search path can be changed \emph{via}
 % see also https://stat.ethz.ch/pipermail/r-help/2008-May/161304.html
 In DB2, creating an alias in the current schema can be used to access
 tables in other schemas, and a \code{CURRENT SCHEMA} query can be used
-to change the current schema.  In MySQL and SQL Server a database can
-be selected by a \code{USE \var{database}} query.
+to change the current schema.  In MySQL and Microsoft SQL Server a
+database can be selected by a \code{USE \var{database}} query.
 
 \section{Internationalization Issues}
 
@@ -839,13 +840,14 @@ continents. So the client may need some help.
 
 In most cases numeric data are transferred to and from R in binary
 form, so the representation of the decimal point is not an issue.  But
-in some cases it could be (e.g.{} decimal rather than binary SQL data types
-will be transferred as character strings) and then the decimal point
-to be used will be taken from \code{options("dec")}: if unset this is
-set when \pkg{RODBC} is loaded from the setting of the current locale
-on the machine running R (\emph{via} \code{Sys.localeconv}).
-Some ODBC drivers (e.g.{} for SQL Server, Oracle) allow the locale (`NLS')
-to be used for numeric values to be selected for the connection.
+in some cases it could be (e.g.{} decimal rather than binary SQL data
+types will be transferred as character strings) and then the decimal
+point to be used will be taken from \code{options("dec")}: if unset
+this is set when \pkg{RODBC} is loaded from the setting of the current
+locale on the machine running R (\emph{via} \code{Sys.localeconv}).
+Some ODBC drivers (e.g.{} for Microsoft SQL Server, Oracle) allow the
+locale (`NLS') to be used for numeric values to be selected for the
+connection.
 
 The other internationalization issue is the character encoding used.
 When R and the DBMS are running on the same machine this is unlikely
@@ -867,8 +869,8 @@ recoding when sending data to or from the ODBC driver and thence the DBMS.
 The Microsoft Excel ODBC drivers (Windows only) have a number of
 peculiarities which mean that it should be used with care.
 
-It seems that its concept of a `table' is principally a \emph{named
-  range}. It treats worksheets as system tables, and appends a dollar
+It seems that their concept of a `table' is principally a \emph{named
+  range}. They treat worksheets as system tables, and append a dollar
 to their name (making then non-standard SQL table names: the quoting
 convention used is to enclose such names in square brackets).
 
@@ -904,7 +906,7 @@ worksheets) to be created by \code{sqlSave} (which also creates a
 named range).
 
 As far as we know, no similar issues affect the Actual Technologies
-Mac OS X Excel driver: however, it allows only read-only access to
+OS X Excel driver: however, it allows only read-only access to
 Excel files and does not support Excel 2007-and-later \code{.xlsx} files.
 
 
@@ -916,7 +918,7 @@ useful details.
 Recent versions of several DBMSs have a schema
 \code{INFORMATION\_SCHEMA} that holds many predefined system views.
 These include MySQL (the name of a database, mainly populated
-beginning with MySQL~5.1), SQL Server and Mimer.
+beginning with MySQL~5.1), Microsoft SQL Server and Mimer.
 
 \subsection*{MySQL}
 
@@ -1030,7 +1032,7 @@ de-selected in the DSN configuration).
 The default collation for text data is byte-by-byte comparisons, so
 avoid comparing non-ASCII character data in SQLite.
 
-Actual Technologies sell an SQLite driver for Mac OS X which requires
+Actual Technologies sell an SQLite driver for OS X which requires
 \code{believeNRows = FALSE} and has a number of other issues including
 that it seems not to support dropping tables.  (Christian Werner's
 SQLite~ODBC driver was easy to install from the sources and worked
@@ -1096,7 +1098,7 @@ used to store data in a MBCS, including various Unicode encodings.
 There are corresponding \code{BINARY}, \code{VARBINARY} and
 \code{BLOB} data types.
 
-\subsection*{SQL Server}
+\subsection*{Microsoft SQL Server}
 
 There are several hundred views in schemas \code{INFORMATION\_SCHEMA}
 and \code{sys} which will be listed by \code{sqlTables} and also by
@@ -1154,15 +1156,15 @@ There are corresponding \code{binary}, \code{varbinary} and
 \section{Installation}
 
 \pkg{RODBC} is simple to install, and binary distributions are
-available for Mac OS X and Windows from CRAN.
+available for Windows and OS X (before 10.9) from CRAN.
 
 To install from the sources, an \emph{ODBC Driver Manager} is
 required.  Windows normally comes with one (it is part of MDAC and can
-be installed separately if required).  Mac OS X since 10.2 has shipped
+be installed separately if required).  OS X from 10.2 to 10.8 shipped
 with \code{iODBC} (\url{http://www.iodbc.org}, this is also available
 for other Unix-alikes) but from 10.9 the headers are no longer
-included in the OS X SDK.  At present the CRAN OS X binary package is
-compiled against iODBC.
+included in the OS X SDK.  The CRAN OS X binary package (for 10.6 to
+10.8) is compiled against iODBC.
 
 For other systems the driver manager of choice is likely to be
 \code{unixODBC}, part of almost all Linux distributions and with
@@ -1171,7 +1173,7 @@ binary distributions it is likely that package \code{unixODBC-devel}
 or \code{unixodbc-dev} or some such will be needed.
 
 Both \code{unixODBC} and \code{iODBC} can be installed from the
-sources under OS X 10.9: the latter requires configuring with
+sources under OS X: the latter requires configuring with
 \code{--disable-gui}.  They need ODBC drivers compiled for the driver
 manager in use.
 
@@ -1213,13 +1215,13 @@ PostgreSQL 7.2 manual at
 it was unbundled.)  There are drivers for Unix-alikes and Windows --
 64-bit Windows support is available as from PostgreSQL 9.0.
 
-An SQLite ODBC driver for Unix-alikes, including Mac OS X, and (32-
+An SQLite ODBC driver for Unix-alikes, including OS X, and (32-
 and 64-bit) Windows is available from
 \url{http://www.ch-werner.de/sqliteodbc/}.
 
 Oracle provides ODBC drivers as a supplement to its `Instant Client'
 for some of its platforms (including 32/64-bit Windows and Linux but
-not currently Mac OS X).  See
+not currently OS X).  See
 \url{http://www.oracle.com/technetwork/database/features/instant-client/index-097480.html}
 %\url{http://www.oracle.com/technology/software/tech/oci/instantclient/}.
 One quirk of the Windows drivers is that the Oracle binaries must be
@@ -1259,7 +1261,7 @@ have a 64-bit version: however the 64-bit drivers cannot be installed
 alongside 32-bit versions of Office (as far as we know, and definitely
 not for Office 2007).
 
-For recent versions of Mac OS X, low-cost and easy-to-use \code{iODBC}
+For recent versions of OS X, low-cost and easy-to-use \code{iODBC}
 drivers are available from
 \url{http://www.actualtech.com/products.php}: these cover
 MySQL/PostgreSQL/SQLite (one driver), SQL Server/Sybase, Oracle, and a
@@ -1268,7 +1270,7 @@ and Excel, but not Excel 2007).  That SQLite driver needs
 \code{believeNRows = FALSE} set.  Currently at least, installing those
 drivers on 10.9 installs \code{iODBC}.
 
-Mac OS X drivers for the MySQL, PostgreSQL and the major commercial
+OS X drivers for the MySQL, PostgreSQL and the major commercial
 databases are available from \url{http://uda.openlinksw.com/}.
 
 
@@ -1288,7 +1290,7 @@ Unix command line by one of
 \$  odbcinst -j
 \$  odbc\_config --odbcinstini
 \end{example}
-For \code{iODBC} use \code{iodbc\_config}: on Mac OS X the system
+For \code{iODBC} use \code{iodbc\_config}: on OS X the system
 location used by Apple was \code{/Library/ODBC/odbcinst.ini}.
 
 \begin{figure}
@@ -1370,18 +1372,18 @@ databases.  On that platform, calling \code{odbcDriverConnect()} with
 no arguments will bring up the main ODBC Data Sources dialog box to
 allow a DSN to be constructed on the fly.
 
-Mac OS X prior to 10.6 came with a very similar GUI (figure~3) found
-at \textsf{Applications / Utilities / ODBC Administrator}.
-This is now available as a download from
-\url{http://support.apple.com/kb/DL895}.  Another GUI for OS X is
-available from \url{http://www.odbcmanager.net/index.php}.
+OS X prior to 10.6 came with a very similar GUI (figure~3) found at
+\textsf{Applications / Utilities / ODBC Administrator}.  This has been
+available as a download from \url{http://support.apple.com/kb/DL895}.
+Another GUI for OS X is available from
+\url{http://www.odbcmanager.net/index.php}.
 
 \begin{figure}
 \centerline{\includegraphics[width=12cm]{macODBC}}
 \bigbreak
 \centerline{\includegraphics[width=12cm]{macAccess}}
 \caption{(Top) The main ODBC Administrator dialog box from a 
-  Mac OS X 10.5 system.
+  OS X 10.5 system.
 (Bottom) A page of the  dialog box to specify a DSN for the Actual
 Technologies Access/Excel driver.}
 \label{fig:1b}

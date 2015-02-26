@@ -60,7 +60,6 @@ sqlFetch <-
        stop("first argument is not an open RODBC channel")
     if(missing(sqtable)) stop("missing argument 'sqtable'")
     dbname <- odbcTableExists(channel, sqtable)
-    DBMS <- odbcGetInfo(channel)[1L]
     ans <- sqlQuery(channel, paste("SELECT * FROM", dbname), ...)
     if(is.data.frame(ans)) {
         if(is.logical(colnames) && colnames) {
