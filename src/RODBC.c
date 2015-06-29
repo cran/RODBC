@@ -1,5 +1,7 @@
 /*
- *  RODDC/src/RODBC.c by M. Lapsley and B. D. Ripley  Copyright (C) 1999-2013
+ *  RODDC/src/RODBC.c 
+ *         M. Lapsley Copyright (C) 1999-2002
+ *         B. D. Ripley  Copyright (C) 2002-2015
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -363,7 +365,7 @@ SEXP RODBCPrimaryKeys(SEXP chan, SEXP table, SEXP cat, SEXP schem)
     pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     SQLRETURN res;
     const char *catalog = NULL, *schema = NULL;
-    int len1 = 0, len2 = 0;
+    SQLSMALLINT len1 = 0, len2 = 0;
 
     clearresults(thisHandle);
     res = SQLAllocHandle(SQL_HANDLE_STMT, thisHandle->hDbc, &thisHandle->hStmt);
@@ -373,11 +375,11 @@ SEXP RODBCPrimaryKeys(SEXP chan, SEXP table, SEXP cat, SEXP schem)
     } else {
 	if(TYPEOF(cat) == STRSXP && LENGTH(cat)) {
 	    catalog = translateChar(STRING_ELT(cat, 0));
-	    len1 = strlen(catalog);
+	    len1 = (SQLSMALLINT) strlen(catalog);
 	}
 	if(TYPEOF(schem) == STRSXP && LENGTH(schem)) {
 	    schema = translateChar(STRING_ELT(schem, 0));
-	    len2 = strlen(schema);
+	    len2 = (SQLSMALLINT) strlen(schema);
 	}
 
 	/* another case of a missing 'const' */
@@ -403,7 +405,8 @@ SEXP RODBCColumns(SEXP chan, SEXP table, SEXP cat, SEXP schem, SEXP sLiteral)
     pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     SQLRETURN res;
     const char *catalog = NULL, *schema = NULL;
-    int literal, len1 = 0, len2 = 0;
+    int literal;
+    SQLSMALLINT len1 = 0, len2 = 0;
 
     clearresults(thisHandle);
     res = SQLAllocHandle(SQL_HANDLE_STMT, thisHandle->hDbc, &thisHandle->hStmt);
@@ -413,11 +416,11 @@ SEXP RODBCColumns(SEXP chan, SEXP table, SEXP cat, SEXP schem, SEXP sLiteral)
     } else {
 	if(TYPEOF(cat) == STRSXP && LENGTH(cat)) {
 	    catalog = translateChar(STRING_ELT(cat, 0));
-	    len1 = strlen(catalog);
+	    len1 = (SQLSMALLINT) strlen(catalog);
 	}
 	if(TYPEOF(schem) == STRSXP && LENGTH(schem)) {
 	    schema = translateChar(STRING_ELT(schem, 0));
-	    len2 = strlen(schema);
+	    len2 = (SQLSMALLINT) strlen(schema);
 	}
 	literal = asLogical(sLiteral);
 	if(literal == NA_LOGICAL) literal = 0;
@@ -443,7 +446,7 @@ SEXP RODBCSpecialColumns(SEXP chan, SEXP table, SEXP cat, SEXP schem)
     pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     SQLRETURN res;
     const char *catalog = NULL, *schema = NULL;
-    int len1 = 0, len2 = 0;
+    SQLSMALLINT len1 = 0, len2 = 0;
 
     clearresults(thisHandle);
     res = SQLAllocHandle(SQL_HANDLE_STMT, thisHandle->hDbc, &thisHandle->hStmt);
@@ -453,11 +456,11 @@ SEXP RODBCSpecialColumns(SEXP chan, SEXP table, SEXP cat, SEXP schem)
     } else {
 	if(TYPEOF(cat) == STRSXP && LENGTH(cat)) {
 	    catalog = translateChar(STRING_ELT(cat, 0));
-	    len1 = strlen(catalog);
+	    len1 = (SQLSMALLINT) strlen(catalog);
 	}
 	if(TYPEOF(schem) == STRSXP && LENGTH(schem)) {
 	    schema = translateChar(STRING_ELT(schem, 0));
-	    len2 = strlen(schema);
+	    len2 = (SQLSMALLINT) strlen(schema);
 	}
 
 	/* another case of a missing 'const' */
@@ -484,7 +487,8 @@ SEXP RODBCTables(SEXP chan, SEXP cat, SEXP schem, SEXP name, SEXP type,
     pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
     SQLRETURN res;
     const char *catalog = NULL, *schema = NULL, *tName = NULL, *tType = NULL;
-    int stat = 1, literal, len1 = 0, len2 = 0, len3 = 0, len4 = 0;
+    int stat = 1, literal;
+    SQLSMALLINT len1 = 0, len2 = 0, len3 = 0, len4 = 0;
 
     clearresults(thisHandle);
 
@@ -495,19 +499,19 @@ SEXP RODBCTables(SEXP chan, SEXP cat, SEXP schem, SEXP name, SEXP type,
     } else {
 	if(TYPEOF(cat) == STRSXP && LENGTH(cat)) {
 	    catalog = translateChar(STRING_ELT(cat, 0));
-	    len1 = strlen(catalog);
+	    len1 = (SQLSMALLINT) strlen(catalog);
 	}
 	if(TYPEOF(schem) == STRSXP && LENGTH(schem)) {
 	    schema = translateChar(STRING_ELT(schem, 0));
-	    len2 = strlen(schema);
+	    len2 = (SQLSMALLINT) strlen(schema);
 	}
 	if(TYPEOF(name) == STRSXP && LENGTH(name)) {
 	    tName = translateChar(STRING_ELT(name, 0));
-	    len3 = strlen(tName);
+	    len3 = (SQLSMALLINT) strlen(tName);
 	}
 	if(TYPEOF(type) == STRSXP && LENGTH(type)) {
 	    tType = translateChar(STRING_ELT(type, 0));
-	    len4 = strlen(tType);
+	    len4 = (SQLSMALLINT) strlen(tType);
 	}
 
 	literal = asLogical(sLiteral);
@@ -582,9 +586,10 @@ SEXP RODBCGetInfo(SEXP chan)
     char buf[1000];
     SQLSMALLINT nbytes;
     SQLRETURN retval;
-    int InfoTypes[] = {SQL_DBMS_NAME, SQL_DBMS_VER, SQL_DRIVER_ODBC_VER,
-		       SQL_DATA_SOURCE_NAME, SQL_DRIVER_NAME, SQL_DRIVER_VER,
-		       SQL_ODBC_VER, SQL_SERVER_NAME};
+    SQLSMALLINT InfoTypes[] = 
+	{SQL_DBMS_NAME, SQL_DBMS_VER, SQL_DRIVER_ODBC_VER,
+	 SQL_DATA_SOURCE_NAME, SQL_DRIVER_NAME, SQL_DRIVER_VER,
+	 SQL_ODBC_VER, SQL_SERVER_NAME};
 
     /* Rprintf("using (%p, %p)\n", chan, thisHandle); */
     PROTECT(ans = allocVector(STRSXP, 8));

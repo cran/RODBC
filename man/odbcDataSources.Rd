@@ -1,5 +1,5 @@
 % file RODBC/man/odbcDataSources.Rd
-% copyright (C) 2006-13  M. Lapsley and B. D. Ripley
+% copyright (C) 2006-2013  B. D. Ripley
 %
 \name{odbcDataSources}
 \alias{odbcDataSources}

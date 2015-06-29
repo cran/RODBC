@@ -1,5 +1,6 @@
 % file RODBC/man/odbcGetInfo.Rd
-% copyright (C) 1999-2013  M. Lapsley and B. D. Ripley
+% copyright (C) 1999-2002  M. Lapsley
+% copyright (C) 2002-2013  B. D. Ripley
 %
 \name{odbcGetInfo}
 \alias{odbcGetInfo}

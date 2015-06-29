@@ -1,5 +1,6 @@
 # file RODBC/R/sql.R
-# copyright (C) 1999-2009  M. Lapsley and B. D. Ripley
+# copyright (C) 1999-2002  M. Lapsley
+# copyright (C) 2002-2009  B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by

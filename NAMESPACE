@@ -1,6 +1,7 @@
 useDynLib(RODBC, .registration = TRUE, .fixes = "C_")
 
 importFrom(stats, runif)
+importFrom(utils, type.convert)
 
 export(getSqlTypeInfo, odbcClearError, odbcClose, odbcCloseAll,
        odbcConnect, odbcDataSources, odbcDriverConnect, odbcEndTran,

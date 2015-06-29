@@ -1,5 +1,5 @@
 % file RODBC/man/odbcSetAutoCommit.Rd
-% copyright (C) 2005-13  M. Lapsley and B. D. Ripley
+% copyright (C) 2005-2013  B. D. Ripley
 %
 \name{odbcSetAutoCommit}
 \alias{odbcSetAutoCommit}
