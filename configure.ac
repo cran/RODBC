@@ -59,6 +59,7 @@ CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
 
 if test -n "${ODBC_CONFIG}"; then
   RODBC_CPPFLAGS=`odbc_config --cflags`
+  RODBC_CPPFLAGS="-I. ${RODBC_CPPFLAGS}"
 fi
 CPPFLAGS="${CPPFLAGS} ${RODBC_CPPFLAGS}"
 
