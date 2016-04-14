@@ -1,6 +1,6 @@
 # file RODBC/R/RODBC.R
 # copyright (C) 1999-2002  M. Lapsley
-# copyright (C) 2002-2013  B. D. Ripley
+# copyright (C) 2002-2016  B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ odbcReConnect <- function(channel, ...)
 odbcConnect <- function (dsn, uid = "", pwd = "", ...)
 {
     Call <- match.call(); Call$uid <- Call$pwd <- NULL
-    Call[[1]] <- as.name("odbcDriverConnect")
+    Call[[1]] <- quote(RODBC::odbcDriverConnect)
     st <- paste("DSN=", dsn, sep="")
     if(nchar(uid)) st <- paste(st, ";UID=", uid, sep="")
     if(nchar(pwd)) st <- paste(st, ";PWD=", pwd, sep="")

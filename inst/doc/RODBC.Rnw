@@ -1163,8 +1163,8 @@ required.  Windows normally comes with one (it is part of MDAC and can
 be installed separately if required).  OS X from 10.2 to 10.8 shipped
 with \code{iODBC} (\url{http://www.iodbc.org}, this is also available
 for other Unix-alikes) but from 10.9 the headers are no longer
-included in the OS X SDK.  The CRAN OS X binary package (for 10.6 to
-10.8) is compiled against iODBC.
+included in the OS X SDK.  The CRAN OS X binary package for 10.8 was
+compiled against iODBC.
 
 For other systems the driver manager of choice is likely to be
 \code{unixODBC}, part of almost all Linux distributions and with
@@ -1173,9 +1173,14 @@ binary distributions it is likely that package \code{unixODBC-devel}
 or \code{unixodbc-dev} or some such will be needed.
 
 Both \code{unixODBC} and \code{iODBC} can be installed from the
-sources under OS X: the latter requires configuring with
-\code{--disable-gui}.  They need ODBC drivers compiled for the driver
-manager in use.
+sources under OS X: they need ODBC drivers compiled for the driver
+manager in use.  At least for OS X 10.9--11, all that is required for
+\code{iODBC} is to unpack the sources and use their headers by
+something like
+
+\begin{example}
+ODBC_INCLUDE=/path/to/libiodbc-srcs/include' R CMD INSTALL RODBC
+\end{example}
 
 In most cases the package's \code{configure} script will find the
 driver manager files, and the package will install with no extra
@@ -1270,8 +1275,8 @@ and Excel, but not Excel 2007).  That SQLite driver needs
 \code{believeNRows = FALSE} set.  Currently at least, installing those
 drivers on 10.9 installs \code{iODBC}.
 
-OS X drivers for the MySQL, PostgreSQL and the major commercial
-databases are available from \url{http://uda.openlinksw.com/}.
+OS X drivers for MySQL, PostgreSQL and the major commercial databases
+are available from \url{http://uda.openlinksw.com/}.
 
 
 \subsection*{Specifying ODBC drivers}

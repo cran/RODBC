@@ -25,6 +25,8 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <stddef.h>
+#include <math.h>
 
 #ifdef WIN32
 # include <windows.h>
