@@ -1,6 +1,6 @@
 # original by Friedrich Leisch, much changed by BDR
 
-AC_INIT([RODBC], 1.2.1, [ripley@stats.ox.ac.uk])
+AC_INIT([RODBC], 1.3, [ripley@stats.ox.ac.uk])
 
 dnl A user-specifiable option
 odbc_mgr=""
@@ -25,6 +25,11 @@ if test [ -n "$odbc_include_path" ] ; then
 else
   if test [ -n "${ODBC_INCLUDE}" ] ; then
      RODBC_CPPFLAGS="-I. -I${ODBC_INCLUDE}"
+  else
+    if test -n "${ODBC_CONFIG}"; then
+      RODBC_CPPFLAGS=`odbc_config --cflags`
+      RODBC_CPPFLAGS="-I. ${RODBC_CPPFLAGS}"
+    fi
   fi
 fi
 
@@ -57,9 +62,6 @@ CPP=`"${R_HOME}/bin/R" CMD config CPP`
 CFLAGS=`"${R_HOME}/bin/R" CMD config CFLAGS`
 CPPFLAGS=`"${R_HOME}/bin/R" CMD config CPPFLAGS`
 
-if test -n "${ODBC_CONFIG}"; then
-  RODBC_CPPFLAGS=`odbc_config --cflags`
-fi
 CPPFLAGS="${CPPFLAGS} ${RODBC_CPPFLAGS}"
 
 dnl Check the headers can be found

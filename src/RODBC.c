@@ -1,7 +1,7 @@
 /*
  *  RODDC/src/RODBC.c 
  *         M. Lapsley Copyright (C) 1999-2002
- *         B. D. Ripley  Copyright (C) 2002-2015
+ *         B. D. Ripley  Copyright (C) 2002-2016
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 /* RODBC low level interface
  *
  */
-#include <config.h>
+#include "config.h"
 #include <stdio.h>
 #include <sys/types.h>
 #include <fcntl.h>
