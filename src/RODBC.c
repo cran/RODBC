@@ -1,7 +1,7 @@
 /*
  *  RODDC/src/RODBC.c 
  *         M. Lapsley Copyright (C) 1999-2002
- *         B. D. Ripley  Copyright (C) 2002-2016
+ *         B. D. Ripley  Copyright (C) 2002-2017
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1499,8 +1499,8 @@ SEXP RODBCListDataSources(SEXP stype)
 	}
     } while(retval == SQL_SUCCESS || retval == SQL_SUCCESS_WITH_INFO);
 
-    ans = lengthgets(ans, i);
-    nm = lengthgets(nm, i);
+    REPROTECT(ans = lengthgets(ans, i), pidx);
+    REPROTECT(nm = lengthgets(nm, i), nidx);
     setAttrib(ans, R_NamesSymbol, nm);
     UNPROTECT(2);
     return ans;
