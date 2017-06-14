@@ -592,7 +592,7 @@ sqlGetResults <-
         ## convert list to data frame
         class(value) <- "data.frame"
         names(value) <- make.unique(colnames)
-        row.names(value) <- seq(along=value[[1L]])
+        row.names(value) <- seq(along.with=value[[1L]])
         value
     }
     cols <- .Call(C_RODBCNumCols, attr(channel, "handle_ptr"))
@@ -623,7 +623,7 @@ sqlGetResults <-
                 if(is.character(data[,i]))
                     data[data[,i] %in% na.strings, i] <- NA
         if(is.logical(as.is)) {
-            as.is <- rep(as.is, length = cols)
+            as.is <- rep(as.is, length.out = cols)
         } else if(is.numeric(as.is)) {
             if(any(as.is < 1 | as.is > cols))
                 stop("invalid numeric 'as.is' expression")
