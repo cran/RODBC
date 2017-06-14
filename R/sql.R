@@ -623,7 +623,7 @@ sqlGetResults <-
                 if(is.character(data[,i]))
                     data[data[,i] %in% na.strings, i] <- NA
         if(is.logical(as.is)) {
-            as.is <- rep(as.is, length = cols)
+            as.is <- rep(as.is, length.out = cols)
         } else if(is.numeric(as.is)) {
             if(any(as.is < 1 | as.is > cols))
                 stop("invalid numeric 'as.is' expression")
