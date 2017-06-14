@@ -592,7 +592,7 @@ sqlGetResults <-
         ## convert list to data frame
         class(value) <- "data.frame"
         names(value) <- make.unique(colnames)
-        row.names(value) <- seq(along=value[[1L]])
+        row.names(value) <- seq(along.with=value[[1L]])
         value
     }
     cols <- .Call(C_RODBCNumCols, attr(channel, "handle_ptr"))
