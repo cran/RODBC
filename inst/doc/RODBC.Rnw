@@ -1156,7 +1156,7 @@ There are corresponding \code{binary}, \code{varbinary} and
 \section{Installation}
 
 \pkg{RODBC} is simple to install, and binary distributions are
-available for Windows from CRAN.
+available for Windows from CRAN, and sometimes for macOS.
 
 To install from the sources, an \emph{ODBC Driver Manager} is
 required.  Windows normally comes with one (it is part of MDAC and can
@@ -1177,7 +1177,7 @@ manager in use.  At least for macOS 10.9--12, all that is required for
 \code{iODBC} is to unpack the sources and use their headers by
 something like
 \begin{example}
-ODBC_INCLUDE=/path/to/libiodbc-srcs/include' R CMD INSTALL RODBC
+ODBC_INCLUDE=/path/to/libiodbc-srcs/include R CMD INSTALL RODBC
 \end{example}
 \noindent
 and the \code{iODBC} sources used by Apple can be found at
@@ -1226,8 +1226,8 @@ and 64-bit) Windows is available from
 \url{http://www.ch-werner.de/sqliteodbc/}.
 
 Oracle provides ODBC drivers as a supplement to its `Instant Client'
-for some of its platforms (including 32/64-bit Windows and Linux but
-not currently macOS).  See
+for some of its platforms (including 32/64-bit Windows, macOS and
+Linux).  See
 \url{https://www.oracle.com/technetwork/database/features/instant-client/index-097480.html}
 %\url{http://www.oracle.com/technology/software/tech/oci/instantclient/}.
 One quirk of the Windows drivers is that the Oracle binaries must be

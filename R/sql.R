@@ -1,6 +1,6 @@
 # file RODBC/R/sql.R
 # copyright (C) 1999-2002  M. Lapsley
-# copyright (C) 2002-2009  B. D. Ripley
+# copyright (C) 2002-2017  B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -592,7 +592,7 @@ sqlGetResults <-
         ## convert list to data frame
         class(value) <- "data.frame"
         names(value) <- make.unique(colnames)
-        row.names(value) <- seq(along=value[[1L]])
+        row.names(value) <- seq_along(value[[1L]])
         value
     }
     cols <- .Call(C_RODBCNumCols, attr(channel, "handle_ptr"))
@@ -623,9 +623,9 @@ sqlGetResults <-
                 if(is.character(data[,i]))
                     data[data[,i] %in% na.strings, i] <- NA
         if(is.logical(as.is)) {
-            as.is <- rep(as.is, length = cols)
+            as.is <- rep(as.is, length.out = cols)
         } else if(is.numeric(as.is)) {
-            if(any(as.is < 1 | as.is > cols))
+            if(any(as.is < 1L | as.is > cols))
                 stop("invalid numeric 'as.is' expression")
             i <- rep(FALSE, cols)
             i[as.is] <- TRUE
