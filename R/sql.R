@@ -1,6 +1,6 @@
 # file RODBC/R/sql.R
 # copyright (C) 1999-2002  M. Lapsley
-# copyright (C) 2002-2017  B. D. Ripley
+# copyright (C) 2002-2020  B. D. Ripley
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -582,7 +582,7 @@ sqlGetResults <-
               errors = FALSE, max = 0, buffsize = 1000,
               nullstring = NA_character_, na.strings = "NA",
               believeNRows = TRUE, dec = getOption("dec"),
-              stringsAsFactors = default.stringsAsFactors())
+              stringsAsFactors = FALSE)
 {
     if(!odbcValidChannel(channel))
        stop("first argument is not an open RODBC channel")

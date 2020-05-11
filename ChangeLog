@@ -1,6 +1,25 @@
+Version: 1.3-17 (2020-05-11, released)
+
+	* R/sql.R, man/sqlQuery.Rd: remove use of default.stringsAsFactors().
+
+	* DESCRIPTION: depend on R (>= 4.0.0) (for stringsAsFactors conformance)
+
+Version: 1.3-16 (2019-09-02, released)
+
+	* configure, configure.ac: remove unused 'R CMD config CPP'
+
+	* R/sql.R, inst/tests.R: avoid partial matches
+
+	* po/*.pot: update
+
+	* src/config.h.in: regenerate
+
+	* vignettes/RODBC.Rnw: stray quote, Oracle has macOS client,
+	update URL for it.
+
 Version: 1.3-15 (2017-04-13, released)
 
-	* RODBC/src/RODBC.c: Missed REPROTECT in line 1503.
+	* src/RODBC.c: Missed REPROTECT in line 1503.
 
 Version: 1.3-14 (2016-09-24, released)
 
@@ -8,7 +27,7 @@ Version: 1.3-14 (2016-09-24, released)
 
 	* R/RODBC.Rnw: mention opensource.apple.com, use macOS and https://
 
-	* RODBC/src/RODBC.c: Use "config.h" not <config.h>
+	* src/RODBC.c: Use "config.h" not <config.h>
 
 Version: 1.3-13 (2016-04-14, released)
 
@@ -17,29 +36,7 @@ Version: 1.3-13 (2016-04-14, released)
 
 	* R/RODBC.Rnw: add simplified instructions for OS X.
 
-	* RODBC/src/RODBC.c: include C headers directly, not just via R.h.
-
-Version: 1.3-16 (2019-09-03, released)
-
-	* configure, configure.ac: remove unused 'R CMD config CPP'
-	* config.h: remade
-
-Version: 1.3-15 (2017-04-13, released)
-
-	* RODBC/src/RODBC.c: Missed REPROTECT in line 1503.
-
-Version: 1.3-14 (2016-09-24, released)
-
-	* configure: tweaks for use of odbc-config
-
-	* R/RODBC.Rnw: mention opensource.apple.com, use macOS and https://
-
-	* RODBC/src/RODBC.c: Use "config.h" not <config.h>
-
-Version: 1.3-13 (2016-04-14, released)
-
-	* R/RODBC.R: Using RODBC::openConnect() works without RODBC on the
- 	search path.
+	* src/RODBC.c: include C headers directly, not just via R.h.
 
 Version: 1.3-12 (2015-06-29, released)
 

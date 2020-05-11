@@ -1,6 +1,6 @@
 % file RODBC/man/sqlQuery.Rd
 % copyright (C) 1999-2002  M. Lapsley
-% copyright (C) 2002-2013  B. D. Ripley
+% copyright (C) 2002-2020  B. D. Ripley
 %
 \name{sqlQuery}
 \alias{sqlQuery}
@@ -17,7 +17,7 @@ sqlGetResults(channel, as.is = FALSE,  errors = FALSE,
               max = 0, buffsize = 1000,
               nullstring = NA_character_, na.strings = "NA",
               believeNRows = TRUE, dec = getOption("dec"),
-              stringsAsFactors = default.stringsAsFactors())
+              stringsAsFactors = FALSE)
 }
 \arguments{
   \item{channel}{connection handle as returned by \code{\link{odbcConnect}}.}
