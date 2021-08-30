@@ -50,7 +50,8 @@ __declspec(dllimport) window RConsole;
 #include <sqlext.h>
 
 #include <R.h>
-#include <Rdefines.h>
+#include <Rinternals.h>
+//#include <Rdefines.h>
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -952,7 +953,8 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
     PROTECT(names = allocVector(STRSXP, 2));
     SET_STRING_ELT(names, 0, mkChar("data"));
     SET_STRING_ELT(names, 1, mkChar("stat"));
-    SET_NAMES(ans, names);
+    setAttrib(ans, R_NamesSymbol, names);
+//    SET_NAMES(ans, names);
     UNPROTECT(3); /* ans data names */
     return ans;
 }

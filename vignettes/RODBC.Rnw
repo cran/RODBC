@@ -74,10 +74,10 @@ systems (DBMSs) such as MySQL\footnote{and its fork, MariaDB},
 PostgreSQL, Microsoft Access and SQL Server, DB2, Oracle and SQLite.
 It originated on Windows in the early 1990s, but ODBC \emph{driver
   managers} \code{unixODBC} and \code{iODBC} are nowadays available on
-a wide range of platforms (and \code{iODBC} is used by macOS (aka OS
-X).  The connection to the particular DBMS needs an \emph{ODBC
-  driver}: these may come with the DBMS or the ODBC driver manager or
-be provided separately by the DBMS developers, and there are
+a wide range of platforms (and \code{iODBC} is used by macOS.  The
+connection to the particular DBMS needs an \emph{ODBC driver}: these
+may come with the DBMS or the ODBC driver manager or be provided
+separately by the DBMS developers, and there are
 third-party\footnote{but there are close links between \code{unixODBC}
   and Easysoft, and \code{iODBC} and OpenLink.}  developers such as
 Actual Technologies, Easysoft and OpenLink. (This means that for some
@@ -1163,7 +1163,7 @@ required.  Windows normally comes with one (it is part of MDAC and can
 be installed separately if required).  macOS from 10.2 to 10.8 shipped
 with \code{iODBC} (\url{http://www.iodbc.org}, this is also available
 for other Unix-alikes) but from 10.9 the headers are no longer
-included in the macOS SDK.
+included in the macOS SDK, but the libraries are still part of the OS.
 
 For other systems the driver manager of choice is likely to be
 \code{unixODBC}, part of almost all Linux distributions and with
@@ -1173,15 +1173,20 @@ or \code{unixodbc-dev} or some such will be needed.
 
 Both \code{unixODBC} and \code{iODBC} can be installed from the
 sources under macOS: they need ODBC drivers compiled for the driver
-manager in use.  At least for macOS 10.9--12, all that is required for
+manager in use.  At least for macOS 10.9--15 and 11, all that is required for
 \code{iODBC} is to unpack the sources and use their headers by
 something like
 \begin{example}
 ODBC_INCLUDE=/path/to/libiodbc-srcs/include R CMD INSTALL RODBC
 \end{example}
 \noindent
-and the \code{iODBC} sources used by Apple can be found at
-\url{https://opensource.apple.com}.
+The \code{iODBC} sources used by Apple can be found at
+\url{https://opensource.apple.com}, so for example one could use
+\begin{example}
+curl -OL https://opensource.apple.com/tarballs/iodbc/iodbc-42.6.tar.gz
+tar xf iodbc-42.6.tar.gz
+ODBC_INCLUDE=/path/to/iodbc-42.6/iodbc/include R CMD INSTALL RODBC
+\end{example}
 
 In most cases the package's \code{configure} script will find the
 driver manager files, and the package will install with no extra

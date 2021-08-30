@@ -1,3 +1,9 @@
+Version: 1.3-18 (2021-08-30, released)
+
+	* src/RODBC.c: Replace use of Rdefines.h
+	* vignttes/RODBC.Rnw: update/expand on installing on macOS.
+	* man/{sqlColumns,sqlTypeInfo}.Rd: find replacements for MS URLs.a
+
 Version: 1.3-17 (2020-05-11, released)
 
 	* R/sql.R, man/sqlQuery.Rd: remove use of default.stringsAsFactors().
