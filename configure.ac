@@ -1,12 +1,11 @@
 # original by Friedrich Leisch, much changed by BDR
 
-AC_INIT([RODBC], 1.3, [ripley@stats.ox.ac.uk])
+AC_INIT([RODBC],[1.3],[ripley@stats.ox.ac.uk])
 
 dnl A user-specifiable option
 odbc_mgr=""
 AC_ARG_WITH([odbc-manager],
-            AC_HELP_STRING([--with-odbc-manager=MGR],
-                           [specify the ODBC manager, e.g. odbc or iodbc]),
+            AS_HELP_STRING([--with-odbc-manager=MGR],[specify the ODBC manager, e.g. odbc or iodbc]),
             [odbc_mgr=$withval])
 
 if test "$odbc_mgr" = "odbc" ; then
@@ -16,8 +15,7 @@ fi
 dnl Select an optional include path, from a configure option
 dnl or from an environment variable.
 AC_ARG_WITH([odbc-include],
-            AC_HELP_STRING([--with-odbc-include=INCLUDE_PATH],
-                           [the location of ODBC header files]),
+            AS_HELP_STRING([--with-odbc-include=INCLUDE_PATH],[the location of ODBC header files]),
             [odbc_include_path=$withval])
 RODBC_CPPFLAGS="-I."
 if test [ -n "$odbc_include_path" ] ; then
@@ -35,8 +33,7 @@ fi
 
 dnl ditto for a library path
 AC_ARG_WITH([odbc-lib],
-            AC_HELP_STRING([--with-odbc-lib=LIB_PATH],
-                           [the location of ODBC libraries]),
+            AS_HELP_STRING([--with-odbc-lib=LIB_PATH],[the location of ODBC libraries]),
             [odbc_lib_path=$withval])
 if test [ -n "$odbc_lib_path" ] ; then
    LIBS="-L${odbc_lib_path} ${LIBS}"
