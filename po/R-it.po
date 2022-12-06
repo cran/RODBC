@@ -1,0 +1,139 @@
+# Italian translation of r-cran-rodbc
+# This file is distributed under the same license as the r-cran-rodbc package.
+# Daniele Medri <dmedri@gmail.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: R 4.2.0\n"
+"Report-Msgid-Bugs-To: bugs@r-project.org\n"
+"POT-Creation-Date: 2018-04-07 21:32\n"
+"PO-Revision-Date: 2022-04-13 12:42+0200\n"
+"Last-Translator: Daniele Medri <dmedri@gmail.com>\n"
+"Language-Team: Daniele Medri <dmedri@gmail.com>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.4.2\n"
+
+msgid "first argument is not an open RODBC channel"
+msgstr "il primo argomento non è un canale aperto RODBC"
+
+msgid "Argument 'channel' must inherit from class RODBC"
+msgstr "L'argomento 'channel' dev'essere ereditato dalla classe RODBC"
+
+msgid "ODBC connection failed"
+msgstr "ODBC connessione fallita"
+
+msgid "Invalid case parameter: nochange | toupper | tolower | common db names"
+msgstr "Parametro caso non valido: nochange | toupper | tolower | nomi comuni db"
+
+msgid "no parameters, so nothing to update"
+msgstr "nessun parametro, perciò nulla da aggiornare"
+
+msgid "missing columns in 'data'"
+msgstr "colonne mancanti in 'data'"
+
+msgid "argument is not an open RODBC channel"
+msgstr "l'argomento non è un canale aperto RODBC"
+
+msgid "argument 'driver' must be a character string"
+msgstr "l'argomento 'driver' dev'essere una stringa carattere"
+
+msgid "argument 'value' must be a named list of length >= 4"
+msgstr "l'argomento 'value' dev'essere una lista nominata di lunghezza >=4"
+
+msgid "missing argument 'sqtable'"
+msgstr "argomento 'sqtable' mancante"
+
+msgid "table"
+msgstr "tabella"
+
+msgid "not found"
+msgstr "non trovato"
+
+msgid "destination argument is not an open RODBC channel"
+msgstr "l'argomento destinazione non è un canale aperto RODBC"
+
+msgid "missing parameter"
+msgstr "parametro mancante"
+
+msgid "destination should be a name"
+msgstr "la destinazione dev'essere un nome"
+
+msgid "should be a name"
+msgstr "dovrebbe essere un nome"
+
+# Konsistent mit r-foreign und r-nlme
+msgid "should be a data frame"
+msgstr "dovrebbe essere un data frame"
+
+msgid "already exists"
+msgstr "esiste già"
+
+msgid "unable to append to table"
+msgstr "non è possibile accodarlo alla tabella"
+
+msgid "argument 'varTypes' has no names and will be ignored"
+msgstr "l'argomento 'varTypes' non ha nomi e sarà ignorato"
+
+msgid "column(s)"
+msgstr "colonne"
+
+msgid ","
+msgstr ","
+
+msgid "'dat' are not in the names of 'varTypes'"
+msgstr "'dat' non è tra i nomi di 'varTypes'"
+
+msgid "invalid channel"
+msgstr "canale non valido"
+
+msgid ": table not found on channel"
+msgstr ": tabella non trovata nel canale"
+
+msgid "dot.dot.dot names are not supported"
+msgstr "nomi dot.dot.dot non supportati"
+
+msgid "missing argument 'query'"
+msgstr "argomento 'query' mancante"
+
+msgid "invalid numeric 'as.is' expression"
+msgstr "espressione numerica 'as.is' non valida"
+
+msgid "'as.is' has the wrong length"
+msgstr "'as.is' ha lunghezza errata"
+
+msgid "!= cols ="
+msgstr "!= colonne ="
+
+msgid "should be a data frame or matrix"
+msgstr "dovrebbe essere una data frame o una matrice"
+
+msgid "index column(s)"
+msgstr "indice colonna"
+
+msgid "not in database table"
+msgstr "non nel database tabella"
+
+msgid "not in data frame"
+msgstr "non nel data frame"
+
+msgid "cannot update"
+msgstr "impossibile aggiornare"
+
+msgid "without unique column"
+msgstr "senza colonne univoche"
+
+msgid "data frame column(s)"
+msgstr "colonna data frame"
+
+msgid "odbcConnectExcel is only usable with 32-bit Windows"
+msgstr "odbcConnectExcel disponibile solo con Windows 32-bit"
+
+msgid "odbcConnectAccess is only usable with 32-bit Windows"
+msgstr "odbcConnectAccess disponibile solo con Windows 32-bit"
+
+msgid "odbcConnectDbase is probably only usable with 32-bit Windows"
+msgstr "odbcConnectDbase è probabilmente usabile solo con Windows 32-bit"

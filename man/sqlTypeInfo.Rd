@@ -39,7 +39,7 @@ sqlTypeInfo(channel, type = "all", errors = TRUE, as.is = TRUE)
 
   The columns returned may depend on the ODBC driver manager.  For a
   fully ODBC 3 manager, see
-  \url{https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlgettypeinfo-function?view=sql-server-ver15}
+  \url{https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqlgettypeinfo-function?view=sql-server-ver15}
 %%  \url{http://msdn.microsoft.com/en-us/library/ms714632(VS.85).aspx}:
   the symbolic constants mentioned there will be returned as numbers
   (and the values of the numeric constants can be found in the ODBC

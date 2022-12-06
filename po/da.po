@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rodbc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-04-07 21:32+0100\n"
+"POT-Creation-Date: 2022-04-15 16:31+0100\n"
 "PO-Revision-Date: 2011-05-28 18:30+01:00\n"
 "Last-Translator: Joe Hansen <joedalton2@yahoo.dk>\n"
 "Language-Team: Danish <debian-l10n-danish@lists.debian.org>\n"
@@ -16,94 +16,94 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: RODBC.c:160
+#: RODBC.c:161
 msgid "[RODBC] ERROR: Could not SQLAllocStmt"
 msgstr "[RODBC] FEJL: Kunne ikke SQLAllocStmt"
 
-#: RODBC.c:173
+#: RODBC.c:174
 msgid "[RODBC] ERROR: Could not SQLAllocEnv"
 msgstr "[RODBC] FEJL: Kunne ikke SQLAllocEnv"
 
-#: RODBC.c:224
+#: RODBC.c:225
 msgid "[RODBC] ERROR:invalid connection argument"
 msgstr "[RODBC] FEJL: Ugyldigt forbindelsesargument"
 
-#: RODBC.c:293
+#: RODBC.c:294
 #, c-format
 msgid "[RODBC] ERROR: state %s, code %d, message %s"
 msgstr "[RODBC] FEJL: tilstand %s, kode %d, besked %s"
 
-#: RODBC.c:296
+#: RODBC.c:297
 msgid "[RODBC] ERROR: Could not SQLDriverConnect"
 msgstr "[RODBC] FEJL: Kunne ikke SQLDriverConnect"
 
-#: RODBC.c:300
+#: RODBC.c:301
 msgid "[RODBC] ERROR: Could not SQLAllocConnect"
 msgstr "[RODBC] FEJL: Kunne ikke SQLAllocConnect"
 
-#: RODBC.c:393
+#: RODBC.c:394
 msgid "[RODBC] ERROR: Failure in SQLPrimary keys"
 msgstr "[RODBC] FEJL: Fejl i SQLPrimary-nøgler"
 
-#: RODBC.c:439
+#: RODBC.c:440
 msgid "[RODBC] ERROR: Failure in SQLColumns"
 msgstr "[RODBC] FEJL: Fejl i SQLColumns"
 
-#: RODBC.c:475
+#: RODBC.c:476
 msgid "[RODBC] ERROR: Failure in SQLSpecialColumns"
 msgstr "[RODBC] FEJL: Fejl i SQLSpecialColumns"
 
-#: RODBC.c:530 RODBC.c:578
+#: RODBC.c:531 RODBC.c:579
 msgid "[RODBC] ERROR: SQLTables failed"
 msgstr "[RODBC] FEJL: SQLTables fejlede"
 
-#: RODBC.c:654
+#: RODBC.c:655
 msgid "[RODBC] ERROR: SQLRowCount failed"
 msgstr "[RODBC] FEJL: SQLRowCount fejlede"
 
-#: RODBC.c:704
+#: RODBC.c:705
 msgid "[RODBC] ERROR: SQLDescribeCol failed"
 msgstr "[RODBC] FEJL: SQLDescribeCol fejlede"
 
-#: RODBC.c:751
+#: RODBC.c:752
 msgid "[RODBC] ERROR: SQLBindCol failed"
 msgstr "[RODBC] FEJL: SQLBindCol fejlede"
 
-#: RODBC.c:770 RODBC.c:802 RODBC.c:971
+#: RODBC.c:771 RODBC.c:803 RODBC.c:973
 msgid "[RODBC] No results available"
 msgstr "[RODBC] Ingen resultater tilgængelige"
 
-#: RODBC.c:808
+#: RODBC.c:809
 msgid "No Data"
 msgstr "Ingen data"
 
-#: RODBC.c:872
+#: RODBC.c:873
 #, c-format
 msgid "character data truncated in column '%s'"
 msgstr "tegndata afkortet i kolonne »%s«"
 
-#: RODBC.c:1120
+#: RODBC.c:1122
 msgid "[RODBC] SQLBindParameter failed"
 msgstr "[RODBC] SQLBindParameter fejlede"
 
-#: RODBC.c:1165
+#: RODBC.c:1167
 #, c-format
 msgid "character data '%s' truncated to %d bytes in column '%s'"
 msgstr "tegndata »%s« afkortet til %d byte i kolonne »%s«"
 
-#: RODBC.c:1182
+#: RODBC.c:1184
 msgid "[RODBC] Failed exec in Update"
 msgstr "[RODBC] Kørsel fejlede under opdatering"
 
-#: RODBC.c:1214
+#: RODBC.c:1216
 msgid "[RODBC] Error in SQLDisconnect"
 msgstr "[RODBC] Fejl i SQLDisconnect"
 
-#: RODBC.c:1219
+#: RODBC.c:1221
 msgid "[RODBC] Error in SQLFreeconnect"
 msgstr "[RODBC] Fejl i SQLFreeconnect"
 
-#: RODBC.c:1238
+#: RODBC.c:1240
 #, c-format
 msgid "closing unused RODBC handle %d\n"
 msgstr "lukker ubrugt RODBC-håndtag %d\n"

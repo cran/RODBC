@@ -95,14 +95,14 @@ sqlPrimaryKeys(channel, sqtable, errors = FALSE, as.is = TRUE,
   are the column sequence number (starting with 1) and name of the
   primary key: drivers can define further columns.  For
   \code{sqlColumns(special=FALSE)} there are 18 columnns: see
-  \url{https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlcolumns-function?view=sql-server-ver15}.
+  \url{https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqlcolumns-function?view=sql-server-ver15}.
 %%  \url{http://msdn.microsoft.com/en-us/library/ms711683(VS.85).aspx}.
   Those beyond the first 6 shown in the examples give the
   \sQuote{ordinal position} (column 17) and further characteristics of the
   column type: see \code{\link{sqlTypeInfo}}.
     
   For the numeric values returned by \code{sqlColumns(special=TRUE)} see
-  \url{https://docs.microsoft.com/en-us/sql/odbc/reference/syntax/sqlspecialcolumns-function?view=sql-server-ver15}:
+  \url{https://learn.microsoft.com/en-us/sql/odbc/reference/syntax/sqlspecialcolumns-function?view=sql-server-ver15}:
 %%  \url{http://msdn.microsoft.com/en-us/library/ms714602(VS.85).aspx}:
   the scope should always be \code{2} (the session) since that is the
   scope requested in the call. For the \code{PSEUDO_COLUMN} column, the

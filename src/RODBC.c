@@ -1,7 +1,7 @@
 /*
  *  RODDC/src/RODBC.c 
  *         M. Lapsley Copyright (C) 1999-2002
- *         B. D. Ripley  Copyright (C) 2002-2017
+ *         B. D. Ripley  Copyright (C) 2002-2022
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -226,7 +226,7 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows, SEXP ReadOnly)
 	UNPROTECT(1);
 	return ans;
     }
-    thisHandle = Calloc(1, RODBCHandle);
+    thisHandle = R_Calloc(1, RODBCHandle);
     ++nChannels;
 
     odbcInit();
@@ -334,9 +334,9 @@ SEXP RODBCQuery(SEXP chan, SEXP query, SEXP sRows)
 			    (SQLCHAR *) translateChar(STRING_ELT(query, 0)),
 			    SQL_NTS);
 	if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	    char *message = Calloc(strlen(cquery)+50, char);
-	    sprintf(message,
-		    "[RODBC] ERROR: Could not SQLExecDirect '%s'", cquery);
+	    char *message = R_Calloc(strlen(cquery)+50, char);
+	    snprintf(message, strlen(cquery)+50,
+		     "[RODBC] ERROR: Could not SQLExecDirect '%s'", cquery);
 	    geterr(thisHandle);
 	    errlistAppend(thisHandle, message);
 	    (void)SQLFreeHandle(SQL_HANDLE_STMT, thisHandle->hStmt);
@@ -616,8 +616,8 @@ static void cachenbind_free(pRODBCHandle thisHandle)
     if(thisHandle->ColData) {
 	for (i = 0; i < thisHandle->nAllocated; i++)
 	    if(thisHandle->ColData[i].pData)
-		Free(thisHandle->ColData[i].pData);
-	Free(thisHandle->ColData);
+		R_Free(thisHandle->ColData[i].pData);
+	R_Free(thisHandle->ColData);
 	thisHandle->ColData = NULL; /* to be sure */
     }   
 }
@@ -658,7 +658,7 @@ static int cachenbind(pRODBCHandle thisHandle, int nRows)
     /* Allocate storage for ColData array,
        first freeing what was there before */
     cachenbind_free(thisHandle);
-    thisHandle->ColData = Calloc(NCOLS, COLUMNS);
+    thisHandle->ColData = R_Calloc(NCOLS, COLUMNS);
     /* this allocates Data as zero */
     thisHandle->nAllocated = NCOLS;
 
@@ -731,7 +731,7 @@ static int cachenbind(pRODBCHandle thisHandle, int nRows)
 	    SQLLEN datalen = thisHandle->ColData[i].ColSize;
 	    thisHandle->ColData[i].datalen = datalen;
 	    thisHandle->ColData[i].pData =
-		Calloc(nRows * (datalen + 1), char);
+		R_Calloc(nRows * (datalen + 1), char);
 	    BIND(SQL_C_BINARY, pData, datalen);
 	}
 	default:
@@ -741,7 +741,7 @@ static int cachenbind(pRODBCHandle thisHandle, int nRows)
 	    /* sanity check as the reports are sometimes unreliable */
 	    if (datalen > 65535) datalen = 65535;
 	    thisHandle->ColData[i].pData =
-		Calloc(nRows * (datalen + 1), char);
+		R_Calloc(nRows * (datalen + 1), char);
 	    thisHandle->ColData[i].datalen = datalen;
 	    BIND(SQL_C_CHAR, pData, datalen);
 	}
@@ -1044,9 +1044,9 @@ SEXP RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP dataseq,
     res = SQLPrepare( thisHandle->hStmt, (SQLCHAR *) cquery,
 		      strlen(cquery) );
     if( res != SQL_SUCCESS && res != SQL_SUCCESS_WITH_INFO ) {
-	char *message = Calloc(strlen(cquery)+50, char);
-	sprintf(message,
-		"[RODBC] ERROR: Could not SQLPrepare '%s'", cquery);
+	char *message = R_Calloc(strlen(cquery)+50, char);
+	snprintf(message,strlen(cquery)+50,
+		 "[RODBC] ERROR: Could not SQLPrepare '%s'", cquery);
 	geterr(thisHandle);
 	errlistAppend(thisHandle, message);
 	(void)SQLFreeHandle(SQL_HANDLE_STMT, thisHandle->hStmt);
@@ -1057,7 +1057,7 @@ SEXP RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP dataseq,
     /* Allocate storage for ColData array,
        first freeing what was there last */
     cachenbind_free(thisHandle);
-    thisHandle->ColData = Calloc(NCOLS, COLUMNS);
+    thisHandle->ColData = R_Calloc(NCOLS, COLUMNS);
     /* this allocates Data as zero */
     thisHandle->nAllocated = NCOLS;
 
@@ -1105,7 +1105,7 @@ SEXP RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP dataseq,
 	    int datalen = thisHandle->ColData[j].ColSize;
 	    /* Why change here but not when sending the data? */
 	    if (datalen <= 0) datalen = 1024;
-	    thisHandle->ColData[j].pData = Calloc(datalen+1, char);
+	    thisHandle->ColData[j].pData = R_Calloc(datalen+1, char);
 	    res = SQLBindParameter(thisHandle->hStmt,
 				   j+1, SQL_PARAM_INPUT, SQL_C_CHAR,
 				   thisHandle->ColData[j].DataType,
@@ -1224,7 +1224,7 @@ static int inRODBCClose(pRODBCHandle thisHandle)
     cachenbind_free(thisHandle);
     errorFree(thisHandle->msglist);
     R_ClearExternalPtr(thisHandle->extPtr);
-    Free(thisHandle);
+    R_Free(thisHandle);
     return success;
 }
 
@@ -1280,7 +1280,8 @@ geterr(pRODBCHandle thisHandle)
 				&MsgLen);
 
 	if(retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO) break;
-	sprintf(message,"%s %d %s", sqlstate, (int)NativeError, msg);
+	snprintf(message, SQL_MAX_MESSAGE_LENGTH+16,
+		 "%s %d %s", sqlstate, (int)NativeError, msg);
 	errlistAppend(thisHandle, message);
 	// i++;
     }
@@ -1294,7 +1295,7 @@ geterr(pRODBCHandle thisHandle)
 static char *mystrdup(const char *s)
 {
     char *s2;
-    s2 = Calloc(strlen(s) + 1, char);
+    s2 = R_Calloc(strlen(s) + 1, char);
     strcpy(s2, s);
     return s2;
 }
@@ -1317,10 +1318,10 @@ static void errlistAppend(pRODBCHandle thisHandle, const char *string)
 	    if(root->next) root = root->next;
 	    else break;
 	}
-	root->next = Calloc(1, SQLMSG);
+	root->next = R_Calloc(1, SQLMSG);
 	root = root->next;
     } else {
-	root = thisHandle->msglist = Calloc(1, SQLMSG);
+	root = thisHandle->msglist = R_Calloc(1, SQLMSG);
     }
     root->next = NULL;
     root->message = buffer;
@@ -1403,8 +1404,8 @@ static void errorFree(SQLMSG *node)
     if(node->next)
 	errorFree(node->next);
     if(node) {
-	Free(node->message);
-	Free(node);
+	R_Free(node->message);
+	R_Free(node);
 	node = NULL;
     }
 }
@@ -1486,7 +1487,8 @@ SEXP RODBCListDataSources(SEXP stype)
 				sizeof(szDescription), NULL);
 	if(retval == SQL_NO_DATA) break;
 	if(retval != SQL_SUCCESS && retval != SQL_SUCCESS_WITH_INFO) {
-	    sprintf(message, "SQLDataSources returned: %d", retval);
+	    snprintf(message, SQL_MAX_DSN_LENGTH+101,
+		     "SQLDataSources returned: %d", retval);
 	    SET_STRING_ELT(ans, i, mkChar(message));
 	} else {
 	    SET_STRING_ELT(nm, i, mkChar((char *)szDSN));

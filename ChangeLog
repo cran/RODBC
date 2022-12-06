@@ -1,3 +1,9 @@
+Version: 1.3-20 (2022-12-05, released)
+
+	* src/RODBC.c: replace sprintf by snprintf
+	* man/{sqlColumns,sqlTypeInfo}.Rd: updaate URLs
+	* po: added Italian translations by Daniele Medri.
+
 Version: 1.3-19 (2021-09-15, released)
 
 	* configure.ac, configure: run autoupdate.
@@ -6,7 +12,7 @@ Version: 1.3-18 (2021-08-30, released)
 
 	* src/RODBC.c: Replace use of Rdefines.h
 	* vignttes/RODBC.Rnw: update/expand on installing on macOS.
-	* man/{sqlColumns,sqlTypeInfo}.Rd: find replacements for MS URLs.a
+	* man/{sqlColumns,sqlTypeInfo}.Rd: find replacements for MS URLs.
 
 Version: 1.3-17 (2020-05-11, released)
 
