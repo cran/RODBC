@@ -1,8 +1,9 @@
 % file RODBC/man/RODBC-package.Rd
-% copyright (C) 1999-2013  M. Lapsley and B. D. Ripley
+% copyright (C) 1999-2023  M. Lapsley and B. D. Ripley
 %
 \name{RODBC-package}
 \alias{RODBC}
+\alias{RODBC-package}
 \title{ODBC Database Connectivity}
 
 \description{
