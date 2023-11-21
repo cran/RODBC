@@ -818,7 +818,7 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 		blksize = (buffsize < 100) ? 100: buffsize;
 	    }
 	} else {
-	    if(!maximum || maximum > NROWS) maximum = NROWS;
+	    if(!maximum || maximum > NROWS) maximum = (int) NROWS;
 	    blksize = maximum;
 	}
 	for(i = 0; i < nc; i++) {
@@ -917,7 +917,8 @@ SEXP RODBCFetchRows(SEXP chan, SEXP max, SEXP bs, SEXP nas, SEXP believeNRows)
 			SEXP this = (len == SQL_NULL_DATA) ?
 			    allocVector(RAWSXP, 0) :
 			    mkRaw(thisHandle->ColData[i].pData + 
-				  (thisHandle->ColData[i].datalen * row), len);
+				  (thisHandle->ColData[i].datalen * row),
+				  (unsigned int) len);
 			SET_VECTOR_ELT(VECTOR_ELT(data, i), j-1, this);
 			break;
 		    }
@@ -1024,14 +1025,14 @@ SEXP RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP dataseq,
 		 SEXP params, SEXP test)
 {
     pRODBCHandle thisHandle = R_ExternalPtrAddr(chan);
-    int rows, i, j, k, stat = 1, vtest = asInteger(test), nparams;
+    int rows, i, k, stat = 1, vtest = asInteger(test), nparams;
     int *sequence = INTEGER(dataseq);
     const char *cquery = translateChar(STRING_ELT(query, 0));
     SQLRETURN res = 0; /* -Wall */
     SEXP paramnames = VECTOR_ELT(params, 0);
 
     nparams = length(paramnames);
-    NCOLS = nparams;
+    NCOLS = (SQLSMALLINT)nparams;
 
     clearresults(thisHandle);
 
@@ -1062,18 +1063,17 @@ SEXP RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP dataseq,
     thisHandle->nAllocated = NCOLS;
 
     /* extract the column data  */
-    for(j = 0; j < nparams; j++) {
-	int tmp;
+    for(short j = 0; j < nparams; j++) {
 	strcpy((char *) thisHandle->ColData[j].ColName,
 	       translateChar(STRING_ELT(paramnames, j)));
 	thisHandle->ColData[j].DataType = INTEGER(VECTOR_ELT(params, 1))[j];
 	thisHandle->ColData[j].ColSize = INTEGER(VECTOR_ELT(params, 2))[j];
 	/* I don't think this would be NA, but the code was here */
-	tmp  = INTEGER(VECTOR_ELT(params, 3))[j];
+	int tmp  = INTEGER(VECTOR_ELT(params, 3))[j];
 	thisHandle->ColData[j].DecimalDigits = (tmp == NA_INTEGER) ? 0 : tmp;
 
 	if(vtest)
-	    Rprintf("Binding: '%s' DataType %d, ColSize %d\n",
+	    Rprintf("Binding: '%s' DataType %d, ColSize %ul\n",
 		    (char *) thisHandle->ColData[j].ColName,
 		    thisHandle->ColData[j].DataType,
 		    thisHandle->ColData[j].ColSize);
@@ -1102,7 +1102,7 @@ SEXP RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP dataseq,
 	    break;
 	default:
 	{
-	    int datalen = thisHandle->ColData[j].ColSize;
+	    unsigned long datalen = thisHandle->ColData[j].ColSize;
 	    /* Why change here but not when sending the data? */
 	    if (datalen <= 0) datalen = 1024;
 	    thisHandle->ColData[j].pData = R_Calloc(datalen+1, char);
@@ -1130,7 +1130,7 @@ SEXP RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP dataseq,
     if(vtest) Rprintf("Parameters:\n");
     rows = LENGTH(VECTOR_ELT(data, 0));
     for(i = 0; i < rows; i++) {
-	for(j = 0; j < LENGTH(data); j++) {
+	for(int j = 0; j < LENGTH(data); j++) {
 	    k = sequence[j]; /* get the right column */
 	    switch(TYPEOF(VECTOR_ELT(data, k))) { 
 	    case REALSXP:
@@ -1160,7 +1160,7 @@ SEXP RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP dataseq,
 	    default:
 	    {
 		const char *cData = translateChar(STRING_ELT(VECTOR_ELT(data, k), i));
-		int datalen = thisHandle->ColData[j].ColSize;
+		unsigned long datalen = thisHandle->ColData[j].ColSize;
 		strncpy(thisHandle->ColData[j].pData, cData, datalen);
 		thisHandle->ColData[j].pData[datalen] = '\0';
 		if(strlen(cData) > datalen)

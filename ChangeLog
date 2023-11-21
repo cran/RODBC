@@ -1,4 +1,8 @@
-Version: 1.3-29 (2023-08-19, released)
+Version: 1.3-22 (2023-11-21, released)
+
+	* src/RODBC.c: tweaks, including use of Rprintf.
+
+Version: 1.3-21 (2023-08-19, released)
 
 	* man/RODBC-package.Rd: add extra alias at KH's insistence.
 
