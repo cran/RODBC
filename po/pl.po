@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RODBC 1.3-5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-15 16:31+0100\n"
+"POT-Creation-Date: 2023-11-25 10:09+0000\n"
 "PO-Revision-Date: 2012-06-26 19:38+0100\n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -74,7 +74,7 @@ msgstr "BŁĄD [RODBC]: SQLDescribeCol nie powiodło się"
 msgid "[RODBC] ERROR: SQLBindCol failed"
 msgstr "BŁĄD [RODBC]: SQLBindCol nie powiodło się"
 
-#: RODBC.c:771 RODBC.c:803 RODBC.c:973
+#: RODBC.c:771 RODBC.c:803 RODBC.c:974
 msgid "[RODBC] No results available"
 msgstr "[RODBC] Brak dostępnych wyników"
 
@@ -87,28 +87,28 @@ msgstr "Brak danych"
 msgid "character data truncated in column '%s'"
 msgstr "dane tekstowe obcięte w kolumnie '%s'"
 
-#: RODBC.c:1122
+#: RODBC.c:1124
 msgid "[RODBC] SQLBindParameter failed"
 msgstr "[RODBC] SQLBindParameter nie powiodło się"
 
-#: RODBC.c:1167
-#, c-format
-msgid "character data '%s' truncated to %d bytes in column '%s'"
+#: RODBC.c:1169
+#, fuzzy, c-format
+msgid "character data '%s' truncated to %lu bytes in column '%s'"
 msgstr "dane tekstowe '%s' obcięte do %d bajtów w kolumnie '%s'"
 
-#: RODBC.c:1184
+#: RODBC.c:1186
 msgid "[RODBC] Failed exec in Update"
 msgstr "[RODBC] Niepowodzenie w wykonaniu Update"
 
-#: RODBC.c:1216
+#: RODBC.c:1218
 msgid "[RODBC] Error in SQLDisconnect"
 msgstr "[RODBC] Błąd w SQLDisconnect"
 
-#: RODBC.c:1221
+#: RODBC.c:1223
 msgid "[RODBC] Error in SQLFreeconnect"
 msgstr "[RODBC] Błąd w SQLFreeconnect"
 
-#: RODBC.c:1240
+#: RODBC.c:1242
 #, c-format
 msgid "closing unused RODBC handle %d\n"
 msgstr "zamykanie nieużywanej obsługi RODBC %d\n"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rodbc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-15 16:31+0100\n"
+"POT-Creation-Date: 2023-11-25 10:09+0000\n"
 "PO-Revision-Date: 2011-05-28 18:30+01:00\n"
 "Last-Translator: Joe Hansen <joedalton2@yahoo.dk>\n"
 "Language-Team: Danish <debian-l10n-danish@lists.debian.org>\n"
@@ -69,7 +69,7 @@ msgstr "[RODBC] FEJL: SQLDescribeCol fejlede"
 msgid "[RODBC] ERROR: SQLBindCol failed"
 msgstr "[RODBC] FEJL: SQLBindCol fejlede"
 
-#: RODBC.c:771 RODBC.c:803 RODBC.c:973
+#: RODBC.c:771 RODBC.c:803 RODBC.c:974
 msgid "[RODBC] No results available"
 msgstr "[RODBC] Ingen resultater tilgængelige"
 
@@ -82,28 +82,28 @@ msgstr "Ingen data"
 msgid "character data truncated in column '%s'"
 msgstr "tegndata afkortet i kolonne »%s«"
 
-#: RODBC.c:1122
+#: RODBC.c:1124
 msgid "[RODBC] SQLBindParameter failed"
 msgstr "[RODBC] SQLBindParameter fejlede"
 
-#: RODBC.c:1167
-#, c-format
-msgid "character data '%s' truncated to %d bytes in column '%s'"
+#: RODBC.c:1169
+#, fuzzy, c-format
+msgid "character data '%s' truncated to %lu bytes in column '%s'"
 msgstr "tegndata »%s« afkortet til %d byte i kolonne »%s«"
 
-#: RODBC.c:1184
+#: RODBC.c:1186
 msgid "[RODBC] Failed exec in Update"
 msgstr "[RODBC] Kørsel fejlede under opdatering"
 
-#: RODBC.c:1216
+#: RODBC.c:1218
 msgid "[RODBC] Error in SQLDisconnect"
 msgstr "[RODBC] Fejl i SQLDisconnect"
 
-#: RODBC.c:1221
+#: RODBC.c:1223
 msgid "[RODBC] Error in SQLFreeconnect"
 msgstr "[RODBC] Fejl i SQLFreeconnect"
 
-#: RODBC.c:1240
+#: RODBC.c:1242
 #, c-format
 msgid "closing unused RODBC handle %d\n"
 msgstr "lukker ubrugt RODBC-håndtag %d\n"

@@ -1066,14 +1066,16 @@ SEXP RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP dataseq,
     for(short j = 0; j < nparams; j++) {
 	strcpy((char *) thisHandle->ColData[j].ColName,
 	       translateChar(STRING_ELT(paramnames, j)));
-	thisHandle->ColData[j].DataType = INTEGER(VECTOR_ELT(params, 1))[j];
+	thisHandle->ColData[j].DataType =
+	    (SQLSMALLINT)INTEGER(VECTOR_ELT(params, 1))[j];
 	thisHandle->ColData[j].ColSize = INTEGER(VECTOR_ELT(params, 2))[j];
 	/* I don't think this would be NA, but the code was here */
 	int tmp  = INTEGER(VECTOR_ELT(params, 3))[j];
-	thisHandle->ColData[j].DecimalDigits = (tmp == NA_INTEGER) ? 0 : tmp;
+	thisHandle->ColData[j].DecimalDigits =
+	    (SQLSMALLINT)((tmp == NA_INTEGER) ? 0 : tmp);
 
 	if(vtest)
-	    Rprintf("Binding: '%s' DataType %d, ColSize %ul\n",
+	    Rprintf("Binding: '%s' DataType %d, ColSize %lu\n",
 		    (char *) thisHandle->ColData[j].ColName,
 		    thisHandle->ColData[j].DataType,
 		    thisHandle->ColData[j].ColSize);
@@ -1164,7 +1166,7 @@ SEXP RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP dataseq,
 		strncpy(thisHandle->ColData[j].pData, cData, datalen);
 		thisHandle->ColData[j].pData[datalen] = '\0';
 		if(strlen(cData) > datalen)
-		    warning(_("character data '%s' truncated to %d bytes in column '%s'"),
+		    warning(_("character data '%s' truncated to %lu bytes in column '%s'"),
 			    cData, datalen, (char *) thisHandle->ColData[j].ColName);
 		if(vtest)
 		    Rprintf("no: %d: %s %s/***/", j + 1,

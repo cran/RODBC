@@ -2,14 +2,15 @@
 # Copyright (C) 1997 - 2008 Michael Lapsley and Brian D. Ripley.
 # This file is distributed under the same license as the r-cran-rodbc package.
 # Chris Leick <c.leick@vollbio.de>, 2010.
+# Christoph Brinkhaus <c.brinkhaus@t-online.de>, 2023.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.10.0\n"
+"Project-Id-Version: rodbc_1.3-21-1_R\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
 "POT-Creation-Date: 2011-05-30 09:16\n"
-"PO-Revision-Date: 2010-04-29 18:20+0100\n"
-"Last-Translator: Chris Leick <c.leick@vollbio.de>\n"
+"PO-Revision-Date: 2023-11-12 17:30+0100\n"
+"Last-Translator: Christoph Brinkhaus <c.brinkhaus@t-online.de>\n"
 "Language-Team: German <debian-l10n-german@lists.debian.org>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -96,7 +97,7 @@ msgid ": table not found on channel"
 msgstr ": Tabelle auf Kanal nicht gefunden"
 
 msgid "dot.dot.dot names are not supported"
-msgstr ""
+msgstr "Punkt.Punkt.Punkt-Namen werden nicht unterstützt"
 
 msgid "missing argument 'query'"
 msgstr "Argument »query« fehlt"
@@ -105,7 +106,7 @@ msgid "invalid numeric 'as.is' expression"
 msgstr "ungültiger numerischer »as.is«-Ausdruck"
 
 msgid "'as.is' has the wrong length"
-msgstr "»as.is« hat falsche Länge"
+msgstr "»as.is« hat die falsche Länge"
 
 msgid "!= cols ="
 msgstr "!= Spalten ="
@@ -132,10 +133,10 @@ msgid "data frame column(s)"
 msgstr "Daten-Frame-Spalte(n)"
 
 msgid "odbcConnectExcel is only usable with 32-bit Windows"
-msgstr ""
+msgstr "odbcConnectExcel ist nur mit 32-bit-Windows nutzbar"
 
 msgid "odbcConnectAccess is only usable with 32-bit Windows"
-msgstr ""
+msgstr "odbcConnectAccess ist nur mit 32-bit-Windows nutzbar"
 
 msgid "odbcConnectDbase is probably only usable with 32-bit Windows"
-msgstr ""
+msgstr "odbcConnectDbase ist wahrscheinlich nur mit 32-bit-Windows nutzbar"
