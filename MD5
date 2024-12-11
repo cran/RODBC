@@ -1,5 +1,5 @@
-9a61b642c8184f619e704535507e26b9 *ChangeLog
-73ee0ba06c28cd69b6b20e5531b9f3ce *DESCRIPTION
+e03dbc7ea95503ea0bcf78ec342c6d86 *ChangeLog
+acb59e6c0977724e53100d65a3214906 *DESCRIPTION
 eb723b61539feef013de476e68b5c50a *GPL-2
 e939f0b310630eb16cabc697aecaed25 *LICENCE.note
 f946374da2e4588d5056921f41ee4608 *NAMESPACE
@@ -7,13 +7,10 @@ e23075ef3f1a19256507a29961749022 *R/RODBC.R
 33dd6a1f0b2e81f0869119d009c49181 *R/TypeInfo.R
 005ae27b5c2c9de82ca464b7c18cf431 *R/sql.R
 0869f5c6e4029a8cd8ff94ef765f3ef9 *R/win.R
-499d69faa7e024c72a391278ee79a2fd *build/vignette.rds
 2ee6281df3a48ebf8e9b5943efc6bce6 *cleanup
 0c1487506d5c380c923f325ee78b0b6b *configure
 2b71a4726dd54885a2144b1ca1c7a25a *configure.ac
 bb8c1972ee5f14b8c3c55d0dac674591 *configure.win
-a86f0da6d5fad59d12749b906a66f87a *inst/doc/RODBC.Rnw
-b48b7639762811fc2292654eab91e492 *inst/doc/RODBC.pdf
 7cd664dd5e18f48d6252ed2f46ea92cb *inst/po/da/LC_MESSAGES/R-RODBC.mo
 ea8804c635865461a05a04dcfb4303fe *inst/po/da/LC_MESSAGES/RODBC.mo
 fa247ce86301c9ec2cdcf816d93d890a *inst/po/de/LC_MESSAGES/R-RODBC.mo
@@ -54,7 +51,7 @@ cd0ef0972ccc6798353d6c2b6001739c *po/it.po
 bd1d8363abe9574c3da29e0de9fdb5eb *po/pl.po
 0fe1b90d2b7adf1d85e5b38f643d4bbd *src/Makevars.in
 ad4d2913f37fe87f14158155f7f8284a *src/Makevars.win
-2ab31c3ea08b360669b9f602f65eef0a *src/RODBC.c
+a8e43221aabf773ad3663abbcfb5ff68 *src/RODBC.c
 89e3f0ba613dcfe828f658315c669357 *src/config.h.in
 7cf764264d239d149e9b0dd1e366f16a *src/config.h.win
 5c11ed447e9f9393862363359a9fd906 *tests/DB2.RR
