@@ -1,4 +1,12 @@
-Version: 1.3-24
+Version: 1.3-26 (2024-12-12, released)
+
+        * src/RODBC.c: add casts for non-standard 64-bit-Windows headers.
+
+Version: 1.3-25, 25.1 (2024-12-11, released)
+
+	* DESCRIPTION: change maintainer address to @R-project.org
+
+Version: 1.3-24 (2024-11-13, released)
 
         * src/RODBC.c: use Rf_ prefix
 

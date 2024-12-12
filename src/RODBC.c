@@ -292,7 +292,7 @@ SEXP RODBCDriverConnect(SEXP connection, SEXP id, SEXP useNRows, SEXP ReadOnly)
 					    &msglen);
 		    if(retval == SQL_NO_DATA_FOUND) break;
 		    Rf_warning(_("[RODBC] ERROR: state %s, code %d, message %s"),
-			       state, code, msg);
+			       state, (int)code, msg);
 		}
 	    } else Rf_warning(_("[RODBC] ERROR: Could not SQLDriverConnect"));
 	    (void)SQLFreeHandle(SQL_HANDLE_DBC, thisHandle->hDbc);
@@ -668,9 +668,14 @@ static int cachenbind(pRODBCHandle thisHandle, int nRows)
     /* passing unsigned integer values via casts is a bad idea.
        But here double casting works because long and a pointer
        are the same size on all relevant platforms (since
-       Win64 is not relevant). */
+       Win64 is not relevant -- but now is). */
     retval = SQLSetStmtAttr(thisHandle->hStmt, SQL_ATTR_ROW_ARRAY_SIZE,
-			    (SQLPOINTER) (unsigned long) thisHandle->rowArraySize, 0 );
+#ifdef _WIN64
+			    (SQLPOINTER) (unsigned long long) thisHandle->rowArraySize,
+#else
+			    (SQLPOINTER) (unsigned long) thisHandle->rowArraySize,
+#endif
+			    0 );
     if (retval != SQL_SUCCESS) thisHandle->rowArraySize = 1;
     thisHandle->rowsUsed = 0;
 
@@ -1078,7 +1083,7 @@ SEXP RODBCUpdate(SEXP chan, SEXP query, SEXP data, SEXP dataseq,
 	    Rprintf("Binding: '%s' DataType %d, ColSize %lu\n",
 		    (char *) thisHandle->ColData[j].ColName,
 		    thisHandle->ColData[j].DataType,
-		    thisHandle->ColData[j].ColSize);
+		    (long unsigned int) thisHandle->ColData[j].ColSize);
 	switch(TYPEOF(VECTOR_ELT(data, sequence[j]))) {
 	case REALSXP:
 	    /* It is possible that we are sending data to a DECIMAL or
@@ -1437,6 +1442,16 @@ SEXP RODBCSetAutoCommit(SEXP chan, SEXP autoCommit)
     int iAutoCommit = Rf_asLogical(autoCommit) != 0;
     int rc;
 
+#ifdef _WIN64
+    if (!iAutoCommit)
+	rc = SQLSetConnectAttr(thisHandle->hDbc, SQL_ATTR_AUTOCOMMIT,
+			       (SQLPOINTER) (unsigned long long) SQL_AUTOCOMMIT_OFF,
+			       0);
+    else
+	rc = SQLSetConnectAttr(thisHandle->hDbc, SQL_ATTR_AUTOCOMMIT,
+			       (SQLPOINTER) (unsigned long long) SQL_AUTOCOMMIT_ON,
+			       0);
+#else
     if (!iAutoCommit)
 	rc = SQLSetConnectAttr(thisHandle->hDbc, SQL_ATTR_AUTOCOMMIT,
 			       (SQLPOINTER) (unsigned long) SQL_AUTOCOMMIT_OFF,
@@ -1445,6 +1460,7 @@ SEXP RODBCSetAutoCommit(SEXP chan, SEXP autoCommit)
 	rc = SQLSetConnectAttr(thisHandle->hDbc, SQL_ATTR_AUTOCOMMIT,
 			       (SQLPOINTER) (unsigned long) SQL_AUTOCOMMIT_ON,
 			       0);
+#endif
     return Rf_ScalarInteger(rc);
 }
 
