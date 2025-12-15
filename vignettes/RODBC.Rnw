@@ -48,7 +48,7 @@ pdfauthor={B. D. Ripley}%
 \title{ODBC Connectivity}
 \author{by Brian Ripley\\
   Department of Statistics, University of Oxford\\
-\url{ripley@stats.ox.ac.uk}
+\url{mailto:Brian.Ripley@R-project.org}
 }
 \maketitle
 \sloppy

@@ -1,5 +1,5 @@
-843125aab3ce708070930957e806957b *ChangeLog
-c285e120d1e7b80fef61ad6351cf4ec9 *DESCRIPTION
+c7817695a0d0c79da1152f4937f58715 *ChangeLog
+49b805e6684ce98620e465bcbf9805db *DESCRIPTION
 eb723b61539feef013de476e68b5c50a *GPL-2
 e939f0b310630eb16cabc697aecaed25 *LICENCE.note
 f946374da2e4588d5056921f41ee4608 *NAMESPACE
@@ -7,13 +7,13 @@ e23075ef3f1a19256507a29961749022 *R/RODBC.R
 33dd6a1f0b2e81f0869119d009c49181 *R/TypeInfo.R
 005ae27b5c2c9de82ca464b7c18cf431 *R/sql.R
 0869f5c6e4029a8cd8ff94ef765f3ef9 *R/win.R
-93968b037e45e8b6040f321159efdf6d *build/vignette.rds
+54e806abfef4adf47b5c71526dad9039 *build/vignette.rds
 2ee6281df3a48ebf8e9b5943efc6bce6 *cleanup
 0c1487506d5c380c923f325ee78b0b6b *configure
 2b71a4726dd54885a2144b1ca1c7a25a *configure.ac
 bb8c1972ee5f14b8c3c55d0dac674591 *configure.win
-a86f0da6d5fad59d12749b906a66f87a *inst/doc/RODBC.Rnw
-d50b55021f5b601a71ed1373f2f5591b *inst/doc/RODBC.pdf
+397d2cc468e354af8af95f01c01f6ac7 *inst/doc/RODBC.Rnw
+df3ecbfaada2afe03cf355a0bf1d8861 *inst/doc/RODBC.pdf
 7cd664dd5e18f48d6252ed2f46ea92cb *inst/po/da/LC_MESSAGES/R-RODBC.mo
 ea8804c635865461a05a04dcfb4303fe *inst/po/da/LC_MESSAGES/RODBC.mo
 fa247ce86301c9ec2cdcf816d93d890a *inst/po/de/LC_MESSAGES/R-RODBC.mo
@@ -83,7 +83,7 @@ a820903e3c2be43e4bd9686f757f5931 *tests/sqlite3.Rout.save
 dc0d827731bab3d1ef6bfdd16722b1a9 *vignettes/Access.png
 9a518628d0ca45b2cf9c081a51e41eb9 *vignettes/MySQL.png
 51c55f2594b80f9a0dc396265eb92270 *vignettes/Oracle.png
-a86f0da6d5fad59d12749b906a66f87a *vignettes/RODBC.Rnw
+397d2cc468e354af8af95f01c01f6ac7 *vignettes/RODBC.Rnw
 283e376b37a9a09991618af8b5c3671a *vignettes/SQLserver.png
 4e5964890abff4a31322c993911555a2 *vignettes/linuxDSN.png
 39909ae24f339f7fe17ba9f6447845a5 *vignettes/linuxDSNsqlite.png
