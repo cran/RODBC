@@ -2,6 +2,7 @@
 
 library(RODBC)
 library(MASS)
+if(!require("MASS")) q("no")
 USArrests[1,2] <- NA
 hills <- hills[1:15,]
 row.names(hills)[12] <- "Dollar ('$')"

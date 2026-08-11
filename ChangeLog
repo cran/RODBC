@@ -1,3 +1,8 @@
+Version: 1.3-26.2 (20256-08-11, released)
+
+	* DESCRIPION: add MASS as a suggested package.
+	* inst/tests.R, tests/*.RR: use MASS only if available.
+
 Version: 1.3-26.1 (2025-12-15, released)
 
 	* vignettes/RODBV.Rnw: change maintainer address to @R-project.org
