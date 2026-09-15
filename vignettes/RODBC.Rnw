@@ -524,11 +524,11 @@ Commonly used data types fall into a number of groups:
   strings, often with names like \code{nvarchar} or \code{wvarchar}.
   Note that currently \pkg{RODBC} only uses the current locale for
   character data, which could be UTF-8 (and will be on macOS and in
-  many cases on Linux and other Unix-alikes), but is never UCS-2 as
-  used on Windows.  So if character data is stored in the database in
-  Unicode, it will be translated (with a possible loss of information)
-  in non-Unicode locales.  (This may change in future versions of
-  \pkg{RODBC}.)
+  many cases on Linux and other Unix-alikes, as well as recent
+  Windows), but is never UCS-2 as earlier used on Windows.  So if
+  character data is stored in the database in Unicode, it will be
+  translated (with a possible loss of information) in non-Unicode
+  locales.  (This may change in future versions of \pkg{RODBC}.)
 
   Some DBMSs such as PostgreSQL and Microsoft SQL Server allow
   variable-length character strings of length only limited by
@@ -1163,7 +1163,8 @@ required.  Windows normally comes with one (it is part of MDAC and can
 be installed separately if required).  macOS from 10.2 to 10.8 shipped
 with \code{iODBC} (\url{http://www.iodbc.org}, this is also available
 for other Unix-alikes) but from 10.9 the headers are no longer
-included in the macOS SDK, but the libraries are still part of the OS.
+included in the macOS SDK, but the libraries were still part of the OS
+until macOS 27.
 
 For other systems the driver manager of choice is likely to be
 \code{unixODBC}, part of almost all Linux distributions and with
@@ -1173,10 +1174,9 @@ or \code{unixodbc-dev} or some such will be needed.
 
 Both \code{unixODBC} and \code{iODBC} can be installed from the
 sources under macOS: they need ODBC drivers compiled for the driver
-manager in use.  At least for macOS 10.9--15 and 11, all that is required for
-\code{iODBC} is to unpack the sources and use their headers by
-something like
-\begin{example}
+manager in use.  At least for macOS 10.9--15 and 11--26, all that is
+required for \code{iODBC} is to unpack the sources and use their
+headers by something like \begin{example}
 ODBC_INCLUDE=/path/to/libiodbc-srcs/include R CMD INSTALL RODBC
 \end{example}
 \noindent
